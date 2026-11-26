@@ -97,9 +97,13 @@ jobs:
           flutter pub get 2>&1 | tee /tmp/pub-get.log
           status=${PIPESTATUS[0]}
           if [ "$status" -ne 0 ]; then
-            while IFS= read -r line; do
-              [ -n "$line" ] && echo "::error title=pub get::${line}"
-            done < <(grep -iaE 'because|version solving|incompatible|failed|depends on|sdk' /tmp/pub-get.log | head -30)
+            # Publish the tail of the log as one multi-line annotation: run logs
+            # and artifacts are not always retrievable from the API.
+            msg=$(tail -n 60 /tmp/build-apk.log \
+              | tr -d '\r' \
+              | sed -e 's/%/%25/g' \
+              | awk '{ printf "%s%%0A", $0 }')
+            echo "::error title=build apk (tail)::${msg}"
             exit "$status"
           fi
 
@@ -171,9 +175,12 @@ jobs:
             --build-number ${{ github.run_number }} 2>&1 | tee /tmp/build-apk.log
           status=${PIPESTATUS[0]}
           if [ "$status" -ne 0 ]; then
-            while IFS= read -r line; do
-              [ -n "$line" ] && echo "::error title=build apk::${line}"
-            done < <(grep -aE 'e: |error:|FAILURE:|What went wrong|Caused by|> Task .* FAILED|Unresolved reference|Execution failed' /tmp/build-apk.log | tail -40)
+            # Publish the tail as one multi-line annotation: run logs and
+            # artifacts are not always retrievable from the API.
+            msg=$(grep -aE 'e: |error:|FAILURE:|What went wrong|Caused by|> Task .* FAILED|Unresolved reference|Execution failed|Gradle task' /tmp/build-apk.log \
+              | tail -n 40 | tr -d '\r' | sed -e 's/%/%25/g' | awk '{ printf "%s%%0A", $0 }')
+            echo "::error title=build apk (tail)::${msg}"
+
             exit "$status"
           fi
 
