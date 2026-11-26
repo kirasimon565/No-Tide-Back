@@ -92,7 +92,16 @@ jobs:
         run: flutter doctor -v
 
       - name: Resolve dependencies
-        run: flutter pub get
+        run: |
+          set +e
+          flutter pub get 2>&1 | tee /tmp/pub-get.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            while IFS= read -r line; do
+              [ -n "$line" ] && echo "::error title=pub get::$line"
+            done < <(tail -n 25 /tmp/pub-get.log)
+            exit "$status"
+          fi
 
       - name: Analyze
         run: flutter analyze --no-fatal-infos --no-fatal-warnings

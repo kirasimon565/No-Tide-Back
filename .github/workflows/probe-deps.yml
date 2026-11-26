@@ -1,0 +1,36 @@
+name: Probe dependency resolution
+
+# Temporary diagnostic: prints the real pub resolver output for the pinned
+# dependency set. Deleted once the package versions are locked in.
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'pubspec.yaml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27.4'
+          channel: stable
+      - name: Show error via annotations
+        run: |
+          set +e
+          flutter --version
+          flutter pub get 2>&1 | tee /tmp/pub.log
+          status=${PIPESTATUS[0]}
+          echo "EXIT=$status" > /tmp/status
+          # one error annotation per line so nothing is lost without log access
+          while IFS= read -r line; do
+            [ -n "$line" ] && echo "::error title=pub::$line"
+          done < <(tail -n 40 /tmp/pub.log)
+          exit 0
