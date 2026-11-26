@@ -147,12 +147,12 @@ class GameStore {
 
   // ------------------------------------------------------------------ firestore
   DocumentReference<Map<String, dynamic>> get _playerDoc =>
-      _firestore.collection(FirestoreFields.playersCollection).doc(uid!);
+      _firestore.collection(StoreSkus.playersCollection).doc(uid!);
 
   /// Creates players/{uid} on first sign-in with the documented defaults.
   Future<void> ensurePlayerDocument(User user) async {
     final DocumentReference<Map<String, dynamic>> doc =
-        _firestore.collection(FirestoreFields.playersCollection).doc(user.uid);
+        _firestore.collection(StoreSkus.playersCollection).doc(user.uid);
     final DocumentSnapshot<Map<String, dynamic>> snapshot = await doc.get();
     if (!snapshot.exists) {
       await doc.set(<String, dynamic>{
@@ -202,7 +202,7 @@ class GameStore {
     final String? userId = uid;
     if (userId == null || cost <= 0) return false;
     final DocumentReference<Map<String, dynamic>> doc =
-        _firestore.collection(FirestoreFields.playersCollection).doc(userId);
+        _firestore.collection(StoreSkus.playersCollection).doc(userId);
 
     try {
       return await _firestore.runTransaction<bool>((Transaction tx) async {
@@ -234,7 +234,7 @@ class GameStore {
     if (userId == null) throw StateError('Not signed in');
 
     final DocumentReference<Map<String, dynamic>> doc =
-        _firestore.collection(FirestoreFields.playersCollection).doc(userId);
+        _firestore.collection(StoreSkus.playersCollection).doc(userId);
     final DocumentReference<Map<String, dynamic>> ledger = doc
         .collection('purchases')
         .doc(orderId ?? '${sku}_${DateTime.now().millisecondsSinceEpoch}');
@@ -274,7 +274,7 @@ class GameStore {
     final String? userId = uid;
     if (userId == null) return;
     final DocumentReference<Map<String, dynamic>> doc =
-        _firestore.collection(FirestoreFields.playersCollection).doc(userId);
+        _firestore.collection(StoreSkus.playersCollection).doc(userId);
     await doc.set(<String, dynamic>{
       FirestoreFields.multimediaUnlocked: true,
       FirestoreFields.updatedAt: FieldValue.serverTimestamp(),
@@ -297,7 +297,7 @@ class GameStore {
     if (userId == null) return;
     try {
       await _firestore
-          .collection(FirestoreFields.playersCollection)
+          .collection(StoreSkus.playersCollection)
           .doc(userId)
           .set(<String, dynamic>{
         FirestoreFields.profile: profile.toJson(),

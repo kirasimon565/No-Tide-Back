@@ -244,7 +244,7 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
       return const GameScreenState(threads: ChatThreads.seed);
     }
     _profile = service.loadProfile();
-    _profileSet = service.readProfileRaw() != null;
+    _profileSet = service.readProfileRaw();
     final List<ChatThread> threads = service.loadThreads();
     final GameSaveState? save = service.activeSave;
     final List<EvidenceItem> evidence = service.loadEvidence();

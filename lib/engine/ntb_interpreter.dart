@@ -611,7 +611,9 @@ class NtbInterpreter {
   }
 
   Future<void> _executeThought(NtbNode node) async {
-    final String threadId = _threadFor(node.param('chat', _variables['current_chat']?.toString()));
+    final String threadId = node.has('chat')
+        ? _threadFor(node.param('chat'))
+        : _threadFor(_variables['current_chat']?.toString());
     final ChatMessage message = ChatMessage(
       scriptMessageId: node.has('id') ? node.param('id') : 'thought_${node.lineNumber}',
       threadId: threadId,

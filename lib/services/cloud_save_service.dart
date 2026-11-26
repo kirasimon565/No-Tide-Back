@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 import '../core/constants/app_config.dart';
+import '../core/constants/store_skus.dart';
 import '../models/chat_message.dart';
 import '../models/evidence_item.dart';
 import '../models/game_save_state.dart';
@@ -27,7 +28,7 @@ class CloudSaveService {
   static const int maxSlots = 3;
 
   DocumentReference<Map<String, dynamic>> _playerDoc(String uid) =>
-      _firestore.collection(FirestoreFields.playersCollection).doc(uid);
+      _firestore.collection(StoreSkus.playersCollection).doc(uid);
 
   // ------------------------------------------------------------------- writes
   /// Pushes the active save as a merge so concurrent devices cannot clobber

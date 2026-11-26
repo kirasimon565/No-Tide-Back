@@ -112,7 +112,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
   @override
   Widget build(BuildContext context) {
     final GameScreenState game = ref.watch(gameStateProvider);
-    final ChatThread? thread = game.thread(widget.threadId) ??
+    final ChatThread thread = game.thread(widget.threadId) ??
         ChatThreads.byId(widget.threadId) ??
         ChatThreads.seed.first;
     final List<ChatMessage> messages = ref.watch(threadMessagesProvider(widget.threadId));
