@@ -36,9 +36,9 @@ class _NotificationBannerHostState extends ConsumerState<NotificationBannerHost>
     notifier.dismissNotification();
     await notifier.openThread(notification.threadId);
     if (!mounted) return;
-    final NavigatorState? navigator = Navigator.of(context);
+    // Already inside a chat: open the pinged thread on top of the stack.
+    final NavigatorState navigator = Navigator.of(context);
     if (navigator.canPop()) {
-      // Already inside a chat: open the new thread on top of the stack.
       await navigator.push(chatRoomRoute(notification.threadId));
     }
   }
