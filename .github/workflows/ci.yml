@@ -15,8 +15,6 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  FLUTTER_VERSION: '3.27.4'
 
 jobs:
   analyze-and-test:
@@ -34,7 +32,6 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
@@ -53,10 +50,28 @@ jobs:
           fi
 
       - name: Analyze
-        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+        run: |
+          set +e
+          flutter analyze --no-fatal-infos --no-fatal-warnings 2>&1 | tee /tmp/analyze.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            while IFS= read -r line; do
+              [ -n "$line" ] && echo "::error title=analyze::${line}"
+            done < <(grep -aE 'error •|warning •' /tmp/analyze.log | head -40)
+            exit "$status"
+          fi
 
       - name: Tests
-        run: flutter test --reporter expanded
+        run: |
+          set +e
+          flutter test --reporter expanded 2>&1 | tee /tmp/test.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            while IFS= read -r line; do
+              [ -n "$line" ] && echo "::error title=test::${line}"
+            done < <(grep -aE 'Error:|error:|Expected:|Actual:|failed' /tmp/test.log | head -40)
+            exit "$status"
+          fi
 
   script-validation:
     name: Validate .ntb scripts

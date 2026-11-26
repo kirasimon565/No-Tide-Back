@@ -110,7 +110,7 @@ ThemeData buildNoTideBackTheme() {
         borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
       ),
     ),
-    dialogTheme: const DialogTheme(
+    dialogTheme: const DialogThemeData(
       backgroundColor: AppColors.surfaceCard,
       surfaceTintColor: Colors.transparent,
     ),
