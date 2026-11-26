@@ -180,7 +180,7 @@ jobs:
             msg=$(awk '/What went wrong/,/Try:|Get more help/' /tmp/build-apk.log \
               | head -n 60 | tr -d '\r' | sed -e 's/%/%25/g' | awk '{ printf "%s%%0A", $0 }')
             # Kotlin/Dart compiler diagnostics are always worth surfacing.
-            diag=$(grep -aE '^\[ *\+?[0-9]* ms\] (e: |w: )|^e: |error:' /tmp/build-apk.log | head -n 25)
+            diag=$(grep -aE 'e: file:|e: [^ ]|error:|Unresolved reference' /tmp/build-apk.log | head -n 25)
             if [ -n "$diag" ]; then
               msg="${msg}%0A--- compiler ---%0A$(echo "$diag" | tr -d '\r' | sed -e 's/%/%25/g' | awk '{ printf "%s%%0A", $0 }')"
             fi
