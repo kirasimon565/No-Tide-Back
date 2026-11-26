@@ -163,7 +163,7 @@ jobs:
         if: ${{ inputs.build_type == '' || inputs.build_type == 'apk' || inputs.build_type == 'both' }}
         run: |
           set +e
-          flutter build apk --release \
+          flutter build apk --release -v \
             --dart-define=NTB_STORE=${{ inputs.store_rail || 'googleplay' }} \
             --dart-define=REVENUECAT_ANDROID_KEY=${{ secrets.REVENUECAT_ANDROID_KEY }} \
             ${{ (inputs.with_xsolla_sdk == true && '-PwithXsolla') || '' }} \
@@ -173,7 +173,7 @@ jobs:
           if [ "$status" -ne 0 ]; then
             while IFS= read -r line; do
               [ -n "$line" ] && echo "::error title=build apk::${line}"
-            done < <(grep -aiE 'error|failed|could not|not found|exception|FAILURE:|Execution failed' /tmp/build-apk.log | head -40)
+            done < <(grep -aE 'e: |error:|FAILURE:|What went wrong|Caused by|> Task .* FAILED|Unresolved reference|Execution failed' /tmp/build-apk.log | tail -40)
             exit "$status"
           fi
 
