@@ -1,0 +1,77 @@
+name: no_tide_back
+description: "No Tide Back — a dark maritime psychological thriller told entirely through your phone."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management (Riverpod 3 Notifier / AsyncNotifier patterns)
+  flutter_riverpod: ^3.0.0
+
+  # Cloud backend: Auth (Google Sign-In) + Firestore economy & cloud saves
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  cloud_firestore: ^5.4.4
+  google_sign_in: ^6.2.1
+
+  # Local, offline-first mirror of Firestore state (threads, messages, evidence, saves)
+  path_provider: ^2.1.4
+  shared_preferences: ^2.3.2
+
+  # Billing: RevenueCat (Amazon Appstore / Samsung Galaxy / Google Play keys)
+  purchases_flutter: ^8.2.1
+
+  # Media playback
+  audioplayers: ^6.1.0
+  video_player: ^2.9.2
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/scripts/
+    - assets/audio/bgm/
+    - assets/audio/sfx/
+    - assets/audio/voice/
+    - assets/video/
+    - assets/images/branding/
+    - assets/images/title/
+    - assets/images/chat/
+    - assets/images/hacking/
+    - assets/images/overlays/
+    - assets/images/characters/
+    - assets/images/evidence/
+    - assets/images/documents/
+
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+        - asset: assets/fonts/Inter-Italic.ttf
+          style: italic
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700
+    - family: JetBrainsMono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-Regular.ttf
+        - asset: assets/fonts/JetBrainsMono-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/JetBrainsMono-Bold.ttf
+          weight: 700

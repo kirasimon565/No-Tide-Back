@@ -1,0 +1,31 @@
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+pubspec.lock
+flutter_export_environment.sh
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Android
+android/.gradle/
+android/local.properties
+android/key.properties
+android/app/*.jks
+android/app/*.keystore
+*.jks
+*.keystore
+*.p12
+*.pem
+
+# Release outputs & local artifacts
+release-keystore.b64
+build-output/
+*.apk
+*.aab
+*.ipa

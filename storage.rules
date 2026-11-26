@@ -1,0 +1,11 @@
+rules_version = '2';
+
+// No Tide Back ships every asset inside the APK; Cloud Storage is only used for
+// optional per-player avatar uploads.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /players/{uid}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}

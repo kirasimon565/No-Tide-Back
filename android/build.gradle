@@ -1,0 +1,21 @@
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        // Xsolla Android SDK repository (only used when -PwithXsolla is set)
+        maven { url = uri("https://xsolla.github.io/xsolla-android-sdk/") }
+    }
+}
+
+rootProject.buildDir = "../build"
+
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+subprojects {
+    project.evaluationDependsOn(":app")
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}

@@ -1,0 +1,201 @@
+name: Build Android APK
+
+# Builds a release APK for No Tide Back (com.eyeswatchinggames.no_tide_back).
+#
+# Signing: the keystore is never committed. Add these repository secrets
+# (Settings → Secrets and variables → Actions):
+#
+#   ANDROID_KEYSTORE_BASE64   base64 of your .jks/.keystore
+#                             e.g.  base64 -w0 upload-keystore.jks > keystore.b64
+#   ANDROID_KEYSTORE_PASSWORD store password
+#   ANDROID_KEY_ALIAS         key alias (e.g. upload)
+#   ANDROID_KEY_PASSWORD      key password
+#
+# Optional:
+#   REVENUECAT_ANDROID_KEY    RevenueCat public SDK key for the Google Play rail
+#
+# If the secrets are missing the workflow still builds, but with a debug
+# signature — the run summary tells you which happened.
+
+on:
+  push:
+    branches: [main, 'arena/**']
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Artifact type'
+        required: true
+        default: apk
+        type: choice
+        options: [apk, aab, both]
+      store_rail:
+        description: 'Billing rail baked into the build'
+        required: true
+        default: googleplay
+        type: choice
+        options: [googleplay, amazon, samsung, xsolla]
+      with_xsolla_sdk:
+        description: 'Bundle the Xsolla Android SDK (adds its Gradle repo)'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apk-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.27.4'
+  JAVA_VERSION: '17'
+
+jobs:
+  build:
+    name: Build release artifacts
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Restore Gradle caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('android/**/*.gradle', 'android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: Flutter doctor
+        run: flutter doctor -v
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Run tests
+        run: flutter test --reporter expanded
+
+      # --------------------------------------------------------------------
+      # Release signing from repository secrets
+      # --------------------------------------------------------------------
+      - name: Decode keystore
+        id: keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${ANDROID_KEYSTORE_BASE64}" ]; then
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            echo "No ANDROID_KEYSTORE_BASE64 secret: building with the debug key."
+            exit 0
+          fi
+
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/upload-keystore.jks
+
+          if [ ! -s android/app/upload-keystore.jks ]; then
+            echo "::error::Keystore decoded to an empty file. Check ANDROID_KEYSTORE_BASE64."
+            exit 1
+          fi
+
+          cat > android/key.properties <<EOF
+          storeFile=upload-keystore.jks
+          storePassword=${ANDROID_KEYSTORE_PASSWORD}
+          keyAlias=${ANDROID_KEY_ALIAS}
+          keyPassword=${ANDROID_KEY_PASSWORD}
+          EOF
+
+          echo "signed=true" >> "$GITHUB_OUTPUT"
+          echo "Keystore decoded ($(wc -c < android/app/upload-keystore.jks) bytes)."
+
+      - name: Note signing status
+        run: |
+          if [ "${{ steps.keystore.outputs.signed }}" = "true" ]; then
+            echo "### Signing: release keystore from repository secrets" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "### Signing: DEBUG (no ANDROID_KEYSTORE_BASE64 secret found)" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "Add ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS" >> "$GITHUB_STEP_SUMMARY"
+            echo "and ANDROID_KEY_PASSWORD to repository secrets for a Play-signed build." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # --------------------------------------------------------------------
+      # Build
+      # --------------------------------------------------------------------
+      - name: Build APK
+        if: ${{ inputs.build_type == '' || inputs.build_type == 'apk' || inputs.build_type == 'both' }}
+        run: |
+          flutter build apk --release \
+            --dart-define=NTB_STORE=${{ inputs.store_rail || 'googleplay' }} \
+            --dart-define=REVENUECAT_ANDROID_KEY=${{ secrets.REVENUECAT_ANDROID_KEY }} \
+            ${{ (inputs.with_xsolla_sdk == true && '-PwithXsolla') || '' }} \
+            --build-name 1.0.0 \
+            --build-number ${{ github.run_number }}
+
+      - name: Build AAB
+        if: ${{ inputs.build_type == 'aab' || inputs.build_type == 'both' }}
+        run: |
+          flutter build appbundle --release \
+            --dart-define=NTB_STORE=${{ inputs.store_rail || 'googleplay' }} \
+            --dart-define=REVENUECAT_ANDROID_KEY=${{ secrets.REVENUECAT_ANDROID_KEY }} \
+            ${{ (inputs.with_xsolla_sdk == true && '-PwithXsolla') || '' }} \
+            --build-name 1.0.0 \
+            --build-number ${{ github.run_number }}
+
+      - name: Collect artifacts
+        run: |
+          mkdir -p build-output
+          find build/app/outputs/flutter-apk -name "*.apk" -exec cp {} build-output/ \; 2>/dev/null || true
+          find build/app/outputs/bundle -name "*.aab" -exec cp {} build-output/ \; 2>/dev/null || true
+          ls -lh build-output
+
+      - name: Upload APK
+        if: ${{ inputs.build_type == '' || inputs.build_type == 'apk' || inputs.build_type == 'both' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: no-tide-back-apk-${{ github.run_number }}
+          path: build-output/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload AAB
+        if: ${{ inputs.build_type == 'aab' || inputs.build_type == 'both' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: no-tide-back-aab-${{ github.run_number }}
+          path: build-output/*.aab
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Clean signing material
+        if: always()
+        run: |
+          rm -f android/app/upload-keystore.jks android/key.properties
