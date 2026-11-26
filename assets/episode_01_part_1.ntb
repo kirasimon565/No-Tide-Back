@@ -1,0 +1,1037 @@
+@version 1.0
+@metadata title="No Tide Back - Episode 1: The Contract" author="EyesWatching Games" episode="1"
+@comment EXPANDED PART 1 - ORIGINAL 84 MESSAGES + 91 NEW = 175 MAIN MESSAGES
+@comment SEARCH FOR NEW TO SEE ALL ADDED LINES
+
+@set trust_jessica = 5
+@set trust_abigail = 7
+@set trust_beatrice = 6
+@set trust_maya = 7
+@set trust_kathy = 3
+@set trust_kai = 4
+@set home_safe = true
+@set evidence_count = 0
+@set maya_photo_clue = false
+@set sister_suspicious = false
+@set suspicion = 0
+@set stress = 0
+@set multimedia_package_owned = false
+@set kathy_trust_up = false
+@set kai_trust_up = false
+
+@character id="jessica" name="Jessica" avatar="avatar_jessica.png" status="Online"
+@character id="abigail" name="Abigail" avatar="avatar_abigail.png" status="Online"
+@character id="beatrice" name="Beatrice" avatar="avatar_beatrice.png" status="Online"
+@character id="maya" name="Maya" avatar="avatar_maya.png" status="Online"
+@character id="kai" name="Kai" avatar="avatar_kai.png" status="Offline"
+@character id="kathy" name="Kathy" avatar="avatar_kathy.png" status="Offline"
+@character id="mom" name="Mom" avatar="avatar_mom.png" status="Online"
+@character id="sister" name="Chloe (Sister)" avatar="avatar_sister.png" status="Online"
+
+:: ep1_start
+@environment location="Home - Bedroom" time="07:42 AM" weather="Clear"
+@sound file="notification_chime.mp3"
+@notification chat="group_island" sender="Abigail" text="Tell me you're awake right now"
+
+@ui open="group_island"
+@online character="abigail"
+@typing character="abigail" duration="2"
+@message id="m001" chat="group_island" sender="abigail" text="Tell me you're awake right now"
+@typing character="abigail" duration="2"
+@message id="m002" chat="group_island" sender="abigail" text="if ur still asleep while we're about to get on the boat im blocking u 😂"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m002a" chat="group_island" sender="abigail" text="i already took 40 pics of the pier and its not even 8am"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m002b" chat="group_island" sender="abigail" text="i swear if u miss the boat im telling beatrice it was ur fault"
+
+@online character="maya"
+@typing character="maya" duration="2"
+@message id="m003" chat="group_island" sender="maya" text="give {them} 5 min abi, not everyone wakes up at 6am to take pics of birds"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m003a" chat="group_island" sender="maya" text="abi u were up at 6am. normal people are still dead at this hour"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m003b" chat="group_island" sender="maya" text="also {player_name} u good? u were up late last night right"
+@react_message target="m003" sender="abigail" emoji="🙄"
+
+@online character="beatrice"
+@typing character="beatrice" duration="2"
+@message id="m004" chat="group_island" sender="beatrice" text="they werent seagulls maya. they were terns."
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m004a" chat="group_island" sender="beatrice" text="they were terns. white foreheads. abi got it wrong in her story too"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m004b" chat="group_island" sender="abigail" text="ok beatrice the bird police has arrived"
+@typing character="maya" duration="1"
+@message id="m005" chat="group_island" sender="maya" text="whatever, they scream at the exact same volume"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m005a" chat="group_island" sender="maya" text="u know what, they still scream. that is my point"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m005b" chat="group_island" sender="beatrice" text="fine. they scream. can we get on the boat before jessica starts a spreadsheet about us"
+
+@choice id="c001"
+  @reply text="im awake!! barely. send proof u actually made it to the pier"
+    @set trust_abigail +1
+    @goto ep1_pier_banter
+  @reply text="have fun on ur billionaire retreat while i rot at home 💀"
+    @set trust_maya +1
+    @goto ep1_pier_banter
+  @reply text="did jessica actually pack on time or r u still waiting for her?"
+    @set trust_beatrice +1
+    @goto ep1_pier_banter
+
+:: ep1_pier_banter
+@online character="jessica"
+@typing character="jessica" duration="3"
+@message id="m006" chat="group_island" sender="jessica" text="i was here 10 mins before everyone else btw"
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m006a" chat="group_island" sender="jessica" text="i got here early cuz my mom kept calling me about her meds and i needed air"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m006b" chat="group_island" sender="maya" text="jess u okay? u sound tired already"
+@typing character="jessica" duration="2"
+@message id="m007" chat="group_island" sender="jessica" text="mostly cuz i needed coffee before listening to maya complain about her hair"
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m007a" chat="group_island" sender="jessica" text="im fine. coffee fixed it. mostly."
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m007b" chat="group_island" sender="maya" text="u say that every time and then u nap on the boat"
+
+@typing character="maya" duration="2"
+@message id="m008" chat="group_island" sender="maya" text="its the humidity jess!! look at this frizz 😭"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m008a" chat="group_island" sender="maya" text="seriously look. the wind is doing things"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m008b" chat="group_island" sender="abigail" text="it looks good tho. messy hair is ur brand now"
+@image id="m009" chat="group_island" sender="maya" file="img_maya_pier_selfie.jpg" caption="pier. grey skies lol"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m009a" chat="group_island" sender="abigail" text="grey skies but make it fashion"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m009b" chat="group_island" sender="beatrice" text="u look cold. u brought a jacket right"
+
+@typing character="abigail" duration="2"
+@message id="m010" chat="group_island" sender="abigail" text="ok but look at this:"
+@image id="m011" chat="group_island" sender="abigail" file="img_abigail_boat_harbor.jpg" caption="our ride for the next hour 🛥️"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m011a" chat="group_island" sender="abigail" text="kai said we can sit at the front if we dont touch anything"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m011b" chat="group_island" sender="maya" text="i already touched something. it was a rope. sorry kai"
+
+@typing character="beatrice" duration="3"
+@message id="m012" chat="group_island" sender="beatrice" text="thats kai's boat. he's already loading the crates."
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m012a" chat="group_island" sender="beatrice" text="he has 3 crates for Wing A and 2 for the media room. i counted"
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m012b" chat="group_island" sender="jessica" text="u counted crates? of course u did"
+@typing character="jessica" duration="2"
+@message id="m013" chat="group_island" sender="jessica" text="good. sooner we get on that island and finish this, sooner bh sends the money."
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m013a" chat="group_island" sender="jessica" text="this payout covers my mom's next two treatments. i need it to go smooth"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m013b" chat="group_island" sender="maya" text="it will. we got this"
+
+@typing character="abigail" duration="3"
+@message id="m014" chat="group_island" sender="abigail" text="still weird that bh is paying us this much just to prep some island launch"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m014a" chat="group_island" sender="abigail" text="like who pays this much for a launch party on an island no one can find on maps"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m014b" chat="group_island" sender="beatrice" text="biotech. they always pay like this. nda, private island, no press"
+@typing character="jessica" duration="3"
+@message id="m015" chat="group_island" sender="jessica" text="biotech companies pay stupid money to keep stuff quiet before a launch. my last lab screwed me on overtime so im not asking questions."
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m015a" chat="group_island" sender="jessica" text="my last lab still owes me 3 months overtime. so yeah. im not asking questions either"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m015b" chat="group_island" sender="maya" text="same. bh paid my invoice in one day. one day. my old clients take 3 months"
+
+@choice id="c002"
+  @reply text="dont forget us little people when ur rich jess"
+    @set trust_jessica +1
+    @goto ep1_nda_talk
+  @reply text="srsly tho did u guys actually read the whole nda before signing?"
+    @set trust_beatrice +1
+    @goto ep1_nda_talk
+
+:: ep1_nda_talk
+@typing character="beatrice" duration="3"
+@message id="m016" chat="group_island" sender="beatrice" text="i read every clause {player_name}. normal nda stuff, dont go past the fences, no livestreaming."
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m016a" chat="group_island" sender="beatrice" text="section 4 says no photos of Sub-Level B. section 7 says no livestreaming. rest is normal"
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m016b" chat="group_island" sender="jessica" text="u actually read all 22 pages? i skimmed and signed"
+@typing character="beatrice" duration="2"
+@message id="m017" chat="group_island" sender="beatrice" text="good they didnt block us texting family. otherwise i wouldnt have come."
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m017a" chat="group_island" sender="beatrice" text="i need to text {player_name} or i get anxious. so yeah. i would not have come otherwise"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m017b" chat="group_island" sender="maya" text="same. {player_name} is literally our group chat lifeline"
+
+@typing character="maya" duration="2"
+@message id="m018" chat="group_island" sender="maya" text="same. {player_name} is our anchor back home ⚓"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m018a" chat="group_island" sender="maya" text="u are stuck with us even from home. sorry not sorry"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m018b" chat="group_island" sender="abigail" text="u are our home base. if we go missing u call the coast guard lol. joking. kinda"
+@react_message target="m018" sender="jessica" emoji="👍"
+@react_message target="m018" sender="abigail" emoji="❤️"
+
+@typing character="abigail" duration="3"
+@message id="m019" chat="group_island" sender="abigail" text="captain kai is waving us on!! he looks like he's straight out of a movie lol"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m019a" chat="group_island" sender="abigail" text="he has that calm captain energy. like he has seen everything"
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m019b" chat="group_island" sender="jessica" text="he has. he has been doing this route for 12 years"
+@typing character="jessica" duration="2"
+@message id="m020" chat="group_island" sender="jessica" text="hes a licensed captain with a wife and 2 kids abi. not an assassin."
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m020a" chat="group_island" sender="abigail" text="ok fine. wife and kids and not an assassin. still hot tho"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m020b" chat="group_island" sender="maya" text="abi stop. he can hear us"
+
+@typing character="abigail" duration="2"
+@message id="m021" chat="group_island" sender="abigail" text="let me have my 【entity-American Horror Story¦canonical_name=American Horror Story】 fantasy jess. it keeps me warm."
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m021a" chat="group_island" sender="abigail" text="i need the fantasy to survive this boat ride. the water is black out here"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m021b" chat="group_island" sender="beatrice" text="it is just deep water. it always looks black this early"
+@typing character="beatrice" duration="2"
+@message id="m022" chat="group_island" sender="beatrice" text="boarding now. signal might drop once we leave the harbor."
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m022a" chat="group_island" sender="beatrice" text="if i go offline, dont panic. it is just signal"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m022b" chat="group_island" sender="maya" text="same. i will text when we dock"
+
+@offline character="jessica"
+@offline character="beatrice"
+@offline character="maya"
+@delay seconds="2"
+
+@comment HOME THREAD - EXPANDED
+@sound file="notification_chime.mp3"
+@notification chat="dm_sister" sender="Chloe (Sister)" text="Hey. Are you even listening to Mom downstairs?"
+@ui open="dm_sister"
+@typing character="sister" duration="2"
+@message id="m023" chat="dm_sister" sender="sister" text="hey. are u even listening to mom downstairs?"
+@comment NEW
+@typing character="sister" duration="2"
+@message id="m023a" chat="dm_sister" sender="sister" text="mom is making pancakes and asking where u are"
+@comment NEW
+@typing character="sister" duration="2"
+@message id="m023b" chat="dm_sister" sender="sister" text="she said if u dont come down she is eating ur share"
+@typing character="sister" duration="2"
+@message id="m024" chat="dm_sister" sender="sister" text="shes been calling ur name for like 5 mins"
+@comment NEW
+@typing character="sister" duration="2"
+@message id="m024a" chat="dm_sister" sender="sister" text="5 mins. i timed it. she is in mom mode"
+
+@choice id="c003"
+  @reply text="tell her im coming! i was just seeing beatrice and the girls off"
+    @goto ep1_sister_chat
+  @reply text="i had my headphones on, what does she want?"
+    @goto ep1_sister_chat
+
+:: ep1_sister_chat
+@typing character="sister" duration="2"
+@message id="m025" chat="dm_sister" sender="sister" text="she needs u to pick up her prescription from the pharmacy before noon"
+@comment NEW
+@typing character="sister" duration="2"
+@message id="m025a" chat="dm_sister" sender="sister" text="pharmacy before noon or she will be mad all day"
+@comment NEW
+@typing character="sister" duration="2"
+@message id="m025b" chat="dm_sister" sender="sister" text="also pick up milk if u go. we are out"
+@typing character="sister" duration="3"
+@message id="m026" chat="dm_sister" sender="sister" text="and honestly? im still mad beatrice and maya got invited to some weird private island gig and we didnt 🙄"
+@comment NEW
+@typing character="sister" duration="2"
+@message id="m026a" chat="dm_sister" sender="sister" text="i mean beatrice got invited and we got... pancakes"
+@comment NEW
+@typing character="sister" duration="2"
+@message id="m026b" chat="dm_sister" sender="sister" text="not jealous. just saying. a private island sounds cooler than my classes"
+@typing character="sister" duration="3"
+@message id="m027" chat="dm_sister" sender="sister" text="like what even IS bh?? i tried looking up their island last night and nothing came up on maps"
+@comment NEW
+@typing character="sister" duration="2"
+@message id="m027a" chat="dm_sister" sender="sister" text="i searched bh organization island and got nothing. not even a bad website"
+@comment NEW
+@typing character="sister" duration="2"
+@message id="m027b" chat="dm_sister" sender="sister" text="that is weird right? every company has a bad website"
+
+@choice id="c004"
+  @reply text="its just a private biotech thing chloe. drop it and focus on ur classes"
+    @set home_safe = true
+    @goto ep1_mom_ping
+  @reply text="yeah the nda they signed is super weird. even the coordinates are restricted."
+    @set sister_suspicious = true
+    @set stress +1
+    @goto ep1_mom_ping
+
+:: ep1_mom_ping
+@if sister_suspicious == true
+  @typing character="sister" duration="2"
+  @message id="m028" chat="dm_sister" sender="sister" text="sketchy as hell. send me the company name later, i wanna dig around."
+@else
+  @typing character="sister" duration="2"
+  @message id="m028" chat="dm_sister" sender="sister" text="fine fine, moms orders first. dont forget the pharmacy."
+@endif
+@comment NEW
+@typing character="sister" duration="2"
+@message id="m028a" chat="dm_sister" sender="sister" text="ok. pharmacy first, detective stuff later"
+@comment NEW
+@typing character="sister" duration="2"
+@message id="m028b" chat="dm_sister" sender="sister" text="also dont tell mom i was snooping. she will worry"
+
+@sound file="notification_chime.mp3"
+@notification chat="dm_mom" sender="Mom" text="Good morning sweetheart ❤️"
+@ui open="dm_mom"
+@typing character="mom" duration="2"
+@message id="m029" chat="dm_mom" sender="mom" text="Good morning sweetheart ❤️"
+@comment NEW
+@typing character="mom" duration="2"
+@message id="m029a" chat="dm_mom" sender="mom" text="did u sleep ok? u were up late"
+@comment NEW
+@typing character="mom" duration="2"
+@message id="m029b" chat="dm_mom" sender="mom" text="ur sister said u were on ur phone all night"
+@typing character="mom" duration="3"
+@message id="m030" chat="dm_mom" sender="mom" text="did beatrice text u yet? i wanna know she got on the boat ok. u know how nervous i get when shes near water."
+@comment NEW
+@typing character="mom" duration="2"
+@message id="m030a" chat="dm_mom" sender="mom" text="beatrice gets seasick. tell her to sit in the middle of the boat"
+@typing character="mom" duration="2"
+@message id="m030b" chat="dm_mom" sender="mom" text="also can u check if we have any frozen pizzas left? ur sister ate the last one and i dont wanna go to the store today."
+@comment NEW
+@typing character="mom" duration="2"
+@message id="m030c" chat="dm_mom" sender="mom" text="also tell maya i said hi. tell her i still have her blue scarf from last winter"
+@comment NEW
+@typing character="mom" duration="2"
+@message id="m030d" chat="dm_mom" sender="mom" text="she left it here when she stayed over. i washed it"
+
+@choice id="c005"
+  @reply text="she just boarded with jessica, abigail and maya. everyones safe mom"
+    @goto ep1_mom_end
+  @reply text="beatrice is fine. and yes im heading to the pharmacy for u in a bit."
+    @goto ep1_mom_end
+
+:: ep1_mom_end
+@typing character="mom" duration="3"
+@message id="m031" chat="dm_mom" sender="mom" text="thank u honey. tell beatrice to text me when they land. have a good morning!"
+@comment NEW
+@typing character="mom" duration="2"
+@message id="m031a" chat="dm_mom" sender="mom" text="love u. text me when they land"
+@comment NEW
+@typing character="mom" duration="2"
+@message id="m031b" chat="dm_mom" sender="mom" text="and eat something. u always forget"
+@react_message target="m031" sender="player" emoji="❤️"
+
+@delay seconds="3"
+@environment time="08:55 AM"
+@sound file="notification_chime.mp3"
+@notification chat="dm_abigail" sender="Abigail" text="Psst. You free for a second?"
+
+@comment ABIGAIL BOAT DM - EXPANDED
+@ui open="dm_abigail"
+@online character="abigail"
+@typing character="abigail" duration="2"
+@message id="m032" chat="dm_abigail" sender="abigail" text="psst. u free for a sec?"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m032a" chat="dm_abigail" sender="abigail" text="dont tell the group. i am hiding behind the crates lol"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m032b" chat="dm_abigail" sender="abigail" text="kai is steering and pretending he doesnt see me"
+@typing character="abigail" duration="3"
+@message id="m033" chat="dm_abigail" sender="abigail" text="we're like halfway across. the water out here is pitch black, kinda pretty ngl"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m033a" chat="dm_abigail" sender="abigail" text="the water is so dark i cant see the bottom at all"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m033b" chat="dm_abigail" sender="abigail" text="it is pretty but also kinda creepy. like ahs season 1 vibes"
+@typing character="abigail" duration="3"
+@message id="m034" chat="dm_abigail" sender="abigail" text="jessica is already buried in her tablet doing lab stuff, and beatrice is lecturing maya about old movies. its like a weird field trip."
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m034a" chat="dm_abigail" sender="abigail" text="jessica has her tablet and 3 pens. three. who needs 3 pens"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m034b" chat="dm_abigail" sender="abigail" text="beatrice is showing maya pics of old romance movies. maya is pretending to care"
+
+@choice id="c006"
+  @choice_locked id="c006_prem" cost="15" text="[PREMIUM - 15 Coins] Ask Abigail to snap sneaky pics of everyone on deck rn"
+    @set maya_photo_clue = true
+    @set trust_abigail +2
+    @goto ep1_abigail_prem_photo
+  @reply text="enjoy the ride abi! take tons of pics once u hit the shore"
+    @set trust_abigail +1
+    @goto ep1_abigail_normal
+
+:: ep1_abigail_prem_photo
+@typing character="abigail" duration="2"
+@message id="m035" chat="dm_abigail" sender="abigail" text="say less. switching to silent mode 📸"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m035a" chat="dm_abigail" sender="abigail" text="ok ok. low angle. no flash"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m035b" chat="dm_abigail" sender="abigail" text="jessica is gonna kill me if she sees this"
+@delay seconds="2"
+@image id="m036" chat="dm_abigail" sender="abigail" file="img_abigail_candid_deck.jpg" caption="sneaky pic: jessica and beatrice talking at the front, maya turned away at the back"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m036a" chat="dm_abigail" sender="abigail" text="look at maya at the back. she is turned away from everyone"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m036b" chat="dm_abigail" sender="abigail" text="and jessica and beatrice are actually talking normal for once"
+@typing character="abigail" duration="3"
+@message id="m037" chat="dm_abigail" sender="abigail" text="caught them totally off guard lol. i feel like a spy hiding in the shadows"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m037a" chat="dm_abigail" sender="abigail" text="u see it right? the second phone? i did not imagine that"
+@thought text="wait... zoom in on the corner at the back. maya's holding a second phone, not her usual blue case. why would she have 2 phones?"
+@add_evidence id="ev_maya_burner" title="Candid Deck Photo" description="Maya texting on a second phone she doesn't normally use, facing away from the group."
+@set evidence_count +1
+@goto ep1_abigail_wrap
+
+:: ep1_abigail_normal
+@typing character="abigail" duration="2"
+@message id="m035" chat="dm_abigail" sender="abigail" text="oh u already know my sd cards are gonna suffer today"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m035a" chat="dm_abigail" sender="abigail" text="my sd cards are gonna be full by lunch"
+@typing character="abigail" duration="2"
+@message id="m036" chat="dm_abigail" sender="abigail" text="wait, we're starting to see the island through the fog!"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m036a" chat="dm_abigail" sender="abigail" text="oh wait. fog is clearing. i can see the dock"
+@goto ep1_abigail_wrap
+
+:: ep1_abigail_wrap
+@typing character="abigail" duration="2"
+@message id="m037b" chat="dm_abigail" sender="abigail" text="jumping back to the group chat, we're docking!"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m037c" chat="dm_abigail" sender="abigail" text="also my battery is at 40 percent already. i forgot my power bank"
+
+@comment ARRIVAL AND KATHY - EXPANDED
+@ui open="group_island"
+@online character="jessica"
+@online character="beatrice"
+@online character="maya"
+@online character="kathy"
+@system_message chat="group_island" text="Kathy was added to the group"
+@typing character="abigail" duration="2"
+@message id="m038" chat="group_island" sender="abigail" text="land ho!! this place looks like a bond villain's summer home"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m038a" chat="group_island" sender="abigail" text="the building looks like it was dropped here by a helicopter"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m038b" chat="group_island" sender="maya" text="it has glass on one side and concrete on the other. who designed this"
+@image id="m039" chat="group_island" sender="abigail" file="img_island_compound_cliff.jpg" caption="concrete and glass building stuck right into the cliff"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m039a" chat="group_island" sender="abigail" text="i took 20 pics already. my hands are shaking from the boat"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m039b" chat="group_island" sender="beatrice" text="u need to eat. u get shaky when u skip breakfast"
+@typing character="maya" duration="2"
+@message id="m040" chat="group_island" sender="maya" text="whoa. ok the building is actually insane."
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m040a" chat="group_island" sender="maya" text="the media room has floor to ceiling windows. i already love it"
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m040b" chat="group_island" sender="jessica" text="the lab has better light. i checked the spec sheet"
+@typing character="jessica" duration="2"
+@message id="m041" chat="group_island" sender="jessica" text="thats reinforced concrete. built for cat 5 storms... or to keep stuff from getting out."
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m041a" chat="group_island" sender="jessica" text="reinforced concrete, double glass, backup generators. this is not a launch pad. this is a bunker"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m041b" chat="group_island" sender="beatrice" text="jess. lunch. now. before u spiral"
+@typing character="beatrice" duration="2"
+@message id="m042" chat="group_island" sender="beatrice" text="dont start jess. u havent even had lunch yet."
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m042a" chat="group_island" sender="beatrice" text="u get mean when u are hungry. eat a granola bar"
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m042b" chat="group_island" sender="jessica" text="i have one. in my bag. somewhere"
+@typing character="kathy" duration="3"
+@message id="m043" chat="group_island" sender="kathy" text="Welcome to Sector Four, everyone. I'm Kathy, Senior Operations Manager for B.H."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m043a" chat="group_island" sender="kathy" text="I have managed remote sites for ten years. I will keep this short."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m043b" chat="group_island" sender="kathy" text="If you need anything, you text this group. Do not wander off to find me."
+@typing character="kathy" duration="3"
+@message id="m044" chat="group_island" sender="kathy" text="I've been added to this thread for logistics and safety check-ins during your contract."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m044a" chat="group_island" sender="kathy" text="You will get your wristbands at the front desk. Do not lose them."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m044b" chat="group_island" sender="kathy" text="They track location for safety only. Not for monitoring your work."
+@typing character="kathy" duration="4"
+@message id="m045" chat="group_island" sender="kathy" text="Before you unpack, three rules: 1) Wear your biometric wristbands at all times. 2) Do not enter Sub-Level B or the East Perimeter past the red markers. 3) Curfew is 22:00 sharp."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m045a" chat="group_island" sender="kathy" text="If you have a medical issue, you tell me first. Not the group chat."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m045b" chat="group_island" sender="kathy" text="And if you see a red marker, you stop. No photos. No curiosity."
+
+@choice id="c007"
+  @reply text="nice to meet u kathy! thanks for keeping them safe out there"
+    @set trust_kathy +1
+    @goto ep1_kathy_response
+  @reply text="wristbands and curfews? sounds more like a military base than a launch"
+    @set trust_kathy -1
+    @set suspicion +1
+    @goto ep1_kathy_response
+
+:: ep1_kathy_response
+@if trust_kathy >= 4
+  @typing character="kathy" duration="3"
+  @message id="m046" chat="group_island" sender="kathy" text="Appreciated, {player_name}. Ten years managing remote B.H. sites taught me discipline keeps everyone alive."
+@else
+  @typing character="kathy" duration="3"
+  @message id="m046" chat="group_island" sender="kathy" text="Former military, actually, {player_name}. And when you're fifty miles off the coast with no emergency services, protocol isn't optional."
+@endif
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m046a" chat="group_island" sender="kathy" text="I run a tight site because I have seen what happens when people ignore protocol."
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m046b" chat="group_island" sender="abigail" text="noted. tight site. no wandering. got it"
+@typing character="jessica" duration="3"
+@message id="m047" chat="group_island" sender="jessica" text="fine by me, as long as the lab stuff in Wing A matches the spec sheet u sent me"
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m047a" chat="group_island" sender="jessica" text="the spec sheet said 4 centrifuges and 2 freezers. i need to verify that today"
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m047b" chat="group_island" sender="kathy" text="They are waiting in Wing A. I checked them myself this morning."
+@typing character="kathy" duration="2"
+@message id="m048" chat="group_island" sender="kathy" text="Everything is calibrated and waiting, Dr. Vance. Your assistant can help you log inventory after lunch."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m048a" chat="group_island" sender="kathy" text="Your assistant can help you log inventory after lunch."
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m048b" chat="group_island" sender="beatrice" text="I am not her assistant. I said that in my contract call."
+@typing character="beatrice" duration="2"
+@message id="m049" chat="group_island" sender="beatrice" text="Actually, I'm contracted as an independent genetic consultant here, not an assistant."
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m049a" chat="group_island" sender="beatrice" text="Independent genetic consultant. It is in my contract, page 2."
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m049b" chat="group_island" sender="jessica" text="ok. ok. consultant. sorry. i am stressed"
+@typing character="jessica" duration="2"
+@message id="m050" chat="group_island" sender="jessica" text="Right. My bad. Lets just make sure the reagent logs aren't mislabeled like last time."
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m050a" chat="group_island" sender="jessica" text="last time the logs were off by 12 vials. 12. that is not a small error"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m050b" chat="group_island" sender="beatrice" text="that was a labeling issue from the supplier. not me"
+@typing character="beatrice" duration="2"
+@message id="m051" chat="group_island" sender="beatrice" text="That was one vial six months ago, Jessica. Let it go."
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m051a" chat="group_island" sender="beatrice" text="one vial. six months ago. u bring it up every time we work together"
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m051b" chat="group_island" sender="jessica" text="because it almost ruined my experiment. i am allowed to remember"
+@typing character="maya" duration="2"
+@message id="m052" chat="group_island" sender="maya" text="guys pls we just got off the boat 😅"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m052a" chat="group_island" sender="maya" text="can we eat? i am starving and i will cry if we keep fighting"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m052b" chat="group_island" sender="abigail" text="food. yes. please. i will stop taking pics for 5 mins"
+
+@choice id="c008"
+  @reply text="Back Beatrice up, she earned her lead role"
+    @set trust_beatrice +1
+    @set trust_jessica -1
+    @goto ep1_afternoon_split
+  @reply text="Back Jessica up, precision matters in a lab"
+    @set trust_jessica +1
+    @set trust_beatrice -1
+    @goto ep1_afternoon_split
+  @reply text="Break it up both of u. Focus on getting paid."
+    @set trust_jessica +1
+    @set trust_beatrice +1
+    @goto ep1_afternoon_split
+
+:: ep1_afternoon_split
+@typing character="abigail" duration="2"
+@message id="m053" chat="group_island" sender="abigail" text="listen to {player_name}. if u need me im gonna go take pics of these crazy red flowers by the greenhouse wall"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m053a" chat="group_island" sender="abigail" text="those flowers are so red they look fake. like horror movie red"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m053b" chat="group_island" sender="abigail" text="i am gonna take pics but i will stay on the path. promise kathy"
+@image id="m054" chat="group_island" sender="abigail" file="img_abigail_red_flowers.jpg" caption="red flowers tangled around a rusty fence"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m054a" chat="group_island" sender="abigail" text="they are tangled around the fence. someone planted them and forgot them"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m054b" chat="group_island" sender="maya" text="they are pretty. creepy pretty"
+@typing character="kathy" duration="2"
+@message id="m055" chat="group_island" sender="kathy" text="Stay on the paved path near the greenhouse, Abigail. The soil near the runoff ditch is off limits."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m055a" chat="group_island" sender="kathy" text="The soil there tested high for runoff chemicals. Do not touch it."
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m055b" chat="group_island" sender="abigail" text="not touching. just photos. from far away"
+@typing character="abigail" duration="2"
+@message id="m056" chat="group_island" sender="abigail" text="copy that, Captain 🫡"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m056a" chat="group_island" sender="abigail" text="copy that. staying on the path. no soil. no touching"
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m056b" chat="group_island" sender="kathy" text="Good. I will be at the front desk if you need me."
+@typing character="maya" duration="2"
+@message id="m057" chat="group_island" sender="maya" text="im heading to the media room to check the stuff they sent over. talk soon {player_name}!"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m057a" chat="group_island" sender="maya" text="the media room has 3 screens and a coffee machine. i am in heaven"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m057b" chat="group_island" sender="maya" text="i will send u pics of the mockups later {player_name}. they want blue and white branding"
+@offline character="kathy"
+@offline character="maya"
+@offline character="jessica"
+@offline character="beatrice"
+@offline character="abigail"
+
+@delay seconds="3"
+@environment time="03:15 PM"
+@sound file="notification_chime.mp3"
+@notification chat="dm_kai" sender="Kai" text="You're {player_name}, right? The friend back on the mainland?"
+
+@comment KAI FIRST CONTACT - EXPANDED
+@ui open="dm_kai"
+@online character="kai"
+@typing character="kai" duration="3"
+@message id="m058" chat="dm_kai" sender="kai" text="You're {player_name}, right? The friend back on the mainland?"
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m058a" chat="dm_kai" sender="kai" text="Abigail said you are the one who keeps them all in line from home"
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m058b" chat="dm_kai" sender="kai" text="She said you are the calm one. I hope she is right"
+@typing character="kai" duration="3"
+@message id="m059" chat="dm_kai" sender="kai" text="Abigail gave me your number before she got off the boat. Told me to text you if the weather turns."
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m059a" chat="dm_kai" sender="kai" text="She gave me your number and said, if the weather turns, text {player_name}"
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m059b" chat="dm_kai" sender="kai" text="So I am texting. Weather is fine. For now."
+
+@choice id="c009"
+  @reply text="yeah thats me. everything go ok getting them to the island kai?"
+    @set trust_kai +1
+    @goto ep1_kai_talk
+  @reply text="are u heading back to the mainland now or staying out there?"
+    @goto ep1_kai_talk
+
+:: ep1_kai_talk
+@typing character="kai" duration="3"
+@message id="m060" chat="dm_kai" sender="kai" text="Drop-off went smooth. Water's calm for now."
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m060a" chat="dm_kai" sender="kai" text="Drop-off was easy. They were excited. A little loud. But easy"
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m060b" chat="dm_kai" sender="kai" text="Abigail took pics of everything. Even my boat. Even me. I told her to stop"
+@typing character="kai" duration="4"
+@message id="m061" chat="dm_kai" sender="kai" text="And no, I'm anchored half a mile off the south cove. B.H. paid triple my normal rate to keep my engine running and stay on standby till their contract ends."
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m061a" chat="dm_kai" sender="kai" text="B.H. is paying me to stay. Not to leave. Engine on. Anchor down."
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m061b" chat="dm_kai" sender="kai" text="I have done this for other companies. Never for triple pay. That part is weird"
+@typing character="kai" duration="3"
+@message id="m062" chat="dm_kai" sender="kai" text="I love being out on the open water, and this payout covers my kids school for two years. Can't complain."
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m062a" chat="dm_kai" sender="kai" text="My wife thinks I am crazy for taking this job. She is probably right"
+@typing character="kai" duration="3"
+@message id="m062b" chat="dm_kai" sender="kai" text="My youngest Leo is obsessed with boats. I promised him I'd take him out on this one once the contract is over. He's gonna lose his mind."
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m062c" chat="dm_kai" sender="kai" text="Leo keeps asking when I will be home. I told him 5 days. Maybe 6"
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m062d" chat="dm_kai" sender="kai" text="I promised him a boat ride. I do not break promises to my kids"
+@typing character="kai" duration="3"
+@message id="m063" chat="dm_kai" sender="kai" text="But I'll say this... the armed guards at the dock didn't look like normal security. Keep an eye on your friends, kid."
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m063a" chat="dm_kai" sender="kai" text="The guards at the dock had rifles. Not pistols. Rifles."
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m063b" chat="dm_kai" sender="kai" text="I have been to private islands before. Never seen that. Keep your friends close"
+@offline character="kai"
+
+@delay seconds="3"
+@environment time="06:40 PM"
+@sound file="notification_chime.mp3"
+@notification chat="group_island" sender="Beatrice" text="Has anyone seen Jessica in the last hour?"
+
+@comment EVENING TENSION - EXPANDED
+@ui open="group_island"
+@online character="beatrice"
+@online character="abigail"
+@online character="maya"
+@typing character="beatrice" duration="2"
+@message id="m064" chat="group_island" sender="beatrice" text="Has anyone seen Jessica in the last hour?"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m064a" chat="group_island" sender="beatrice" text="She left her tablet on the table. That is not like her"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m064b" chat="group_island" sender="beatrice" text="She never leaves her tablet. Ever"
+@typing character="abigail" duration="2"
+@message id="m065" chat="group_island" sender="abigail" text="Not since dinner. Thought she was with u in Wing A."
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m065a" chat="group_island" sender="abigail" text="I saw her at dinner. She ate 3 bites and left"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m065b" chat="group_island" sender="abigail" text="She said she had a headache. But she looked scared, not sick"
+@typing character="beatrice" duration="3"
+@message id="m066" chat="group_island" sender="beatrice" text="She left halfway through reviewing the centrifuge stuff. Her phone is going straight to voicemail."
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m066a" chat="group_island" sender="beatrice" text="Her phone is going straight to voicemail. I tried 4 times"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m066b" chat="group_island" sender="maya" text="4 times? u are worried too then"
+@typing character="maya" duration="2"
+@message id="m067" chat="group_island" sender="maya" text="Maybe she's just stressed? U know how she gets when she's worried about her mom's hospital bills."
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m067a" chat="group_island" sender="maya" text="She was talking about her mom's bills earlier. She was almost crying"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m067b" chat="group_island" sender="maya" text="She said the hospital called about a new bill. She did not want to talk about it"
+@typing character="abigail" duration="2"
+@message id="m068" chat="group_island" sender="abigail" text="Still weird her status shows offline inside a building with full wifi."
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m068a" chat="group_island" sender="abigail" text="The wifi here is perfect. Like 5 bars everywhere"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m068b" chat="group_island" sender="abigail" text="So offline means she turned it off. Or something turned it off"
+
+@choice id="c010"
+  @reply text="did u ask kathy where she went?"
+    @goto ep1_jessica_returns
+  @reply text="keep texting her. she wouldnt wander into a restricted zone on day 1"
+    @goto ep1_jessica_returns
+
+:: ep1_jessica_returns
+@online character="jessica"
+@typing character="jessica" duration="3"
+@message id="m069" chat="group_island" sender="jessica" text="im right here. relax."
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m069a" chat="group_island" sender="jessica" text="i am fine. i just needed air"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m069b" chat="group_island" sender="beatrice" text="u were gone 70 mins. air does not take 70 mins"
+@typing character="beatrice" duration="2"
+@message id="m070" chat="group_island" sender="beatrice" text="Where were u? U disappeared for over 70 mins."
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m070a" chat="group_island" sender="beatrice" text="U disappeared. We were about to text Kathy"
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m070b" chat="group_island" sender="jessica" text="dont text Kathy. i am here. i am fine"
+@typing character="jessica" duration="3"
+@message id="m071" chat="group_island" sender="jessica" text="My mom's oncologist called and the signal dropped in the hallway. Had to walk up to the north courtyard to get a bar."
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m071a" chat="group_island" sender="jessica" text="My mom's oncologist called. He said the new treatment is 40k. 40k"
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m071b" chat="group_island" sender="jessica" text="I had to walk to get signal. The hallway has dead zones"
+@typing character="maya" duration="2"
+@message id="m072" chat="group_island" sender="maya" text="oh no is she ok jess?? 🥺"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m072a" chat="group_island" sender="maya" text="jess. i am so sorry. do u want me to call ur mom?"
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m072b" chat="group_island" sender="jessica" text="no. she is sleeping. dont wake her"
+@typing character="jessica" duration="2"
+@message id="m073" chat="group_island" sender="jessica" text="Same as always. Expensive."
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m073a" chat="group_island" sender="jessica" text="Same as always. Expensive. And scary"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m073b" chat="group_island" sender="beatrice" text="we are here. u dont have to do this alone"
+@typing character="jessica" duration="2"
+@message id="m074" chat="group_island" sender="jessica" text="im going to my room early. dont wake me unless the building's on fire."
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m074a" chat="group_island" sender="jessica" text="i am going to sleep. i need to stop thinking for a bit"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m074b" chat="group_island" sender="beatrice" text="ok. sleep. i will check on u in the morning"
+@offline character="jessica"
+@typing character="abigail" duration="2"
+@message id="m075" chat="group_island" sender="abigail" text="...ok. that was super abrupt."
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m075a" chat="group_island" sender="abigail" text="that was abrupt even for jess"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m075b" chat="group_island" sender="maya" text="she is hiding something. i can tell. i have known her too long"
+@typing character="beatrice" duration="3"
+@message id="m076" chat="group_island" sender="beatrice" text="Shes exhausted. Lets all get some rest before curfew."
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m076a" chat="group_island" sender="beatrice" text="Lets all get some rest. Curfew is in 20 mins anyway"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m076b" chat="group_island" sender="maya" text="curfew. wristbands. red markers. this place is intense"
+
+@delay seconds="3"
+@environment time="10:48 PM"
+@sound file="notification_chime.mp3"
+@notification chat="dm_abigail" sender="Abigail" text="{player_name}. Are you still awake??"
+@ui open="dm_abigail"
+@online character="abigail"
+@typing character="abigail" duration="2"
+@message id="m077" chat="dm_abigail" sender="abigail" text="{player_name}. Are you still awake??"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m077a" chat="dm_abigail" sender="abigail" text="i am shaking. like actually shaking"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m077b" chat="dm_abigail" sender="abigail" text="i am in my room with the door locked. dont tell anyone i snuck out"
+@typing character="abigail" duration="2"
+@message id="m078" chat="dm_abigail" sender="abigail" text="Do NOT mention this in the group chat. srsly."
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m078a" chat="dm_abigail" sender="abigail" text="if Kathy finds out i broke curfew i am dead. like actually dead"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m078b" chat="dm_abigail" sender="abigail" text="but u need to see this. u are the only one i trust with it"
+
+@choice id="c011"
+  @reply text="im awake. what happened abi? ur freaking me out"
+    @goto ep1_abigail_night_clip
+  @reply text="its almost 11pm, isnt there a curfew? where r u?"
+    @goto ep1_abigail_night_clip
+
+:: ep1_abigail_night_clip
+@typing character="abigail" duration="3"
+@message id="m079" chat="dm_abigail" sender="abigail" text="I snuck out to the east treeline with my big lens to take pics of owls at night"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m079a" chat="dm_abigail" sender="abigail" text="I wanted owls. I got nightmares instead"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m079b" chat="dm_abigail" sender="abigail" text="I had my big lens. I was by the east treeline, near the fence"
+@typing character="abigail" duration="3"
+@message id="m080" chat="dm_abigail" sender="abigail" text="And i swear on my life i didnt imagine this"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m080a" chat="dm_abigail" sender="abigail" text="I did not imagine it. I have it on camera. Sort of"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m080b" chat="dm_abigail" sender="abigail" text="my hands were shaking so bad the pics are blurry"
+@typing character="abigail" duration="3"
+@message id="m081" chat="dm_abigail" sender="abigail" text="Two guys in hazmat gear just wheeled a metal gurney into Sub-Level B. There was someone strapped to it, thrashing so hard the straps were bleeding."
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m081a" chat="dm_abigail" sender="abigail" text="Two guys in hazmat. Not normal security. Hazmat"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m081b" chat="dm_abigail" sender="abigail" text="The person on the gurney was screaming. Not crying. Screaming"
+@typing character="abigail" duration="3"
+@message id="m082" chat="dm_abigail" sender="abigail" text="And right behind the fence? Something moved in the bushes. Looked like a dog, except totally hairless, huge, with glowing burns down its back."
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m082a" chat="dm_abigail" sender="abigail" text="It was hairless. Like burned skin. And it was big. Bigger than a dog"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m082b" chat="dm_abigail" sender="abigail" text="It looked at me. I swear it looked right at my lens"
+@typing character="abigail" duration="3"
+@message id="m083" chat="dm_abigail" sender="abigail" text="I hit record for like 4 seconds before my camera screen glitched out from their jammer. Sending u the messed up clip rn!"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m083a" chat="dm_abigail" sender="abigail" text="4 seconds. That is all I got before the screen glitched"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m083b" chat="dm_abigail" sender="abigail" text="the jammer. they have a jammer out there. why would they need a jammer"
+@video id="m084" chat="dm_abigail" sender="abigail" file="vid_abigail_corrupted_01.mp4" encrypted="true" caption="[ENCRYPTED / SIGNAL INTERFERENCE - 00:04]"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m084a" chat="dm_abigail" sender="abigail" text="pls fix it. u are good with this stuff. pls"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m084b" chat="dm_abigail" sender="abigail" text="i am going to sleep with my door locked. text me when u see it"
+@system_message chat="dm_abigail" text="⚠️ File corrupted by B.H. jammer. Use Decryption Tool to fix the frame."
+
+@comment MULTIMEDIA PACKAGE - PART 1 - OPTIONAL - DOES NOT COUNT IN 700
+@if multimedia_package_owned == true
+  @system_message chat="dm_abigail" text="MULTIMEDIA PACKAGE: 5 file notes and 5 private DMs unlocked for Part 1"
+  @comment NEW FILE NOTE 1
+  @ui open="dm_jessica"
+  @typing character="jessica" duration="2"
+  @message id="mm_p1_f1_msg" chat="dm_jessica" sender="jessica" text="u want to see the contract? page 4 is weird. look at the small print."
+  @image id="mm_p1_f1_img" chat="dm_jessica" sender="jessica" file="doc_bh_contract_p4.jpg" caption="B.H. Contract Page 4 - medical testing clause, NDA penalties, 22 pages total"
+  @typing character="jessica" duration="2"
+  @message id="mm_p1_f1_msg2" chat="dm_jessica" sender="jessica" text="it says medical testing may be required. i thought that was for blood tests. now i am not sure."
+  @comment NEW FILE NOTE 2
+  @ui open="dm_abigail"
+  @typing character="abigail" duration="2"
+  @message id="mm_p1_f2_msg" chat="dm_abigail" sender="abigail" text="extra pics from the boat, package only. check the EXIF on the last one."
+  @image id="mm_p1_f2_img" chat="dm_abigail" sender="abigail" file="img_abigail_exif_pack.jpg" caption="Boat deck, 08:12 AM, EXIF: device A, location 50 miles offshore, Maya in background"
+  @typing character="abigail" duration="2"
+  @message id="mm_p1_f2_msg2" chat="dm_abigail" sender="abigail" text="maya is in the back again. same second phone. i was not imagining it."
+  @comment NEW FILE NOTE 3
+  @ui open="dm_kathy"
+  @typing character="kathy" duration="2"
+  @message id="mm_p1_f3_msg" chat="dm_kathy" sender="kathy" text="This is my one page rules sheet. I give it to every team. Read the handwritten note."
+  @image id="mm_p1_f3_img" chat="dm_kathy" sender="kathy" file="doc_kathy_rules_sheet.jpg" caption="Kathy Rules Sheet - wristbands, red markers, curfew 22:00, handwritten: do not trust East Wing"
+  @typing character="kathy" duration="2"
+  @message id="mm_p1_f3_msg2" chat="dm_kathy" sender="kathy" text="East Wing is where I heard the noise last month. I wrote that note myself."
+  @comment NEW FILE NOTE 4
+  @ui open="dm_jessica"
+  @typing character="jessica" duration="2"
+  @message id="mm_p1_f4_msg" chat="dm_jessica" sender="jessica" text="my prep note from today. i wrote it at 3am because i could not sleep."
+  @image id="mm_p1_f4_img" chat="dm_jessica" sender="jessica" file="doc_jessica_prep_note.jpg" caption="Jessica Prep Note - centrifuge check, water tastes metallic, 12 vials off last time"
+  @typing character="jessica" duration="2"
+  @message id="mm_p1_f4_msg2" chat="dm_jessica" sender="jessica" text="the water here tastes metallic. i wrote that down because i thought i was tired. maybe i was not."
+  @comment NEW FILE NOTE 5
+  @ui open="dm_maya"
+  @typing character="maya" duration="2"
+  @message id="mm_p1_f5_msg" chat="dm_maya" sender="maya" text="here is the mockup bh wanted. blue and white. clean. they loved it."
+  @image id="mm_p1_f5_img" chat="dm_maya" sender="maya" file="doc_maya_mockup_blue.jpg" caption="Maya Mockup - B.H. branding, blue and white, file metadata timestamp 02:14 AM"
+  @typing character="maya" duration="2"
+  @message id="mm_p1_f5_msg2" chat="dm_maya" sender="maya" text="i was up late finishing it. bh kept asking for changes at 2am. weird hours for branding, right?"
+  @comment NEW PRIVATE DM KATHY
+  @ui open="dm_kathy"
+  @online character="kathy"
+  @typing character="kathy" duration="2"
+  @message id="mm_p1_kathy_01" chat="dm_kathy" sender="kathy" text="Can I be honest for a minute? Not as your manager. Just as Kathy."
+  @typing character="kathy" duration="2"
+  @message id="mm_p1_kathy_02" chat="dm_kathy" sender="kathy" text="I run a tight site because I have seen what happens when people ignore protocol."
+  @typing character="kathy" duration="2"
+  @message id="mm_p1_kathy_03" chat="dm_kathy" sender="kathy" text="I lost two people in my military years because someone went past a marker to take a photo."
+  @typing character="kathy" duration="2"
+  @message id="mm_p1_kathy_04" chat="dm_kathy" sender="kathy" text="I took this B.H. job because I wanted a quiet corporate job after that. No field work. Just paperwork."
+  @typing character="kathy" duration="2"
+  @message id="mm_p1_kathy_05" chat="dm_kathy" sender="kathy" text="Ten years here. I thought I knew this company. I am starting to wonder if I did."
+  @typing character="kathy" duration="2"
+  @message id="mm_p1_kathy_06" chat="dm_kathy" sender="kathy" text="Do not tell the girls I said that. I need them to trust that I have it under control."
+  @set kathy_trust_up = true
+  @set trust_kathy +1
+  @comment NEW PRIVATE DM JESSICA
+  @ui open="dm_jessica"
+  @online character="jessica"
+  @typing character="jessica" duration="2"
+  @message id="mm_p1_jess_01" chat="dm_jessica" sender="jessica" text="can i tell u something i did not say in the group?"
+  @typing character="jessica" duration="2"
+  @message id="mm_p1_jess_02" chat="dm_jessica" sender="jessica" text="my mom's new treatment is 40k. my old lab still owes me money and they will not pay."
+  @typing character="jessica" duration="2"
+  @message id="mm_p1_jess_03" chat="dm_jessica" sender="jessica" text="i snapped at beatrice today because i am scared. not because she did anything wrong."
+  @typing character="jessica" duration="2"
+  @message id="mm_p1_jess_04" chat="dm_jessica" sender="jessica" text="i love her. she is like family. i just do not know how to say i am scared without sounding weak."
+  @set trust_jessica +1
+  @comment NEW PRIVATE DM ABIGAIL
+  @ui open="dm_abigail"
+  @online character="abigail"
+  @typing character="abigail" duration="2"
+  @message id="mm_p1_abi_01" chat="dm_abigail" sender="abigail" text="u know why i film everything? my dad used to do it. he said photos dont lie."
+  @typing character="abigail" duration="2"
+  @message id="mm_p1_abi_02" chat="dm_abigail" sender="abigail" text="i watch ahs and i read crime and punishment and everyone thinks it is just a phase."
+  @typing character="abigail" duration="2"
+  @message id="mm_p1_abi_03" chat="dm_abigail" sender="abigail" text="it is not a phase. i am obsessed with guilt. like what guilt does to people. how it makes them do weird things."
+  @typing character="abigail" duration="2"
+  @message id="mm_p1_abi_04" chat="dm_abigail" sender="abigail" text="that is why tonight scared me so much. i saw something real and i have no idea what to do with it."
+  @set trust_abigail +1
+  @comment NEW PRIVATE DM MAYA
+  @ui open="dm_maya"
+  @online character="maya"
+  @typing character="maya" duration="2"
+  @message id="mm_p1_maya_01" chat="dm_maya" sender="maya" text="hey. can i tell u something? just u. not the group."
+  @typing character="maya" duration="2"
+  @message id="mm_p1_maya_02" chat="dm_maya" sender="maya" text="i lost my parents when i was 15. u know that. but i never told anyone how it happened."
+  @typing character="maya" duration="2"
+  @message id="mm_p1_maya_03" chat="dm_maya" sender="maya" text="car crash. at night. no one saw it. police said it was an accident. i never believed that."
+  @typing character="maya" duration="2"
+  @message id="mm_p1_maya_04" chat="dm_maya" sender="maya" text="i lived with my aunt after that. u and beatrice were the only family i had left. u know that too."
+  @typing character="maya" duration="2"
+  @message id="mm_p1_maya_05" chat="dm_maya" sender="maya" text="bh said they could help me find the truth. that is why i took this job. i just want to know what happened to them."
+  @set trust_maya +1
+  @comment NEW PRIVATE DM KAI
+  @ui open="dm_kai"
+  @online character="kai"
+  @typing character="kai" duration="2"
+  @message id="mm_p1_kai_01" chat="dm_kai" sender="kai" text="u asked about my family earlier. i will tell u a bit more."
+  @typing character="kai" duration="2"
+  @message id="mm_p1_kai_02" chat="dm_kai" sender="kai" text="my wife is a teacher. she hates this job. she says the pay is too good to be clean."
+  @typing character="kai" duration="2"
+  @message id="mm_p1_kai_03" chat="dm_kai" sender="kai" text="my oldest is 9. my youngest Leo is 6. Leo draws boats all day. he wants to be a captain like me."
+  @typing character="kai" duration="2"
+  @message id="mm_p1_kai_04" chat="dm_kai" sender="kai" text="i told them i would be home in 5 days. i keep my promises. so i will be here when your friends need me."
+  @set kai_trust_up = true
+  @set trust_kai +1
+@endif
+
+@comment JUMP TO PART 2
+@goto ep1_hacking_puzzle_1

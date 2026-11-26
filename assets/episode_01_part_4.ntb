@@ -1,0 +1,606 @@
+@comment PART 4 EXPANDED - EPISODE 1 FINALE - SUSPECT 1 FRAMED AND WING B BREACH
+@comment ORIGINAL 30 MESSAGES + 145 NEW = 175 MAIN MESSAGES FOR PART 4
+@comment SEARCH FOR NEW TO SEE ALL ADDED LINES
+@comment Continues directly from ep1_part4_climax
+
+:: ep1_part4_climax
+@ui open="group_island"
+@environment time="12:41 AM"
+@music file="bgm_ambient_dread.mp3" loop="true" volume="0.3"
+@online character="beatrice"
+@online character="abigail"
+@online character="maya"
+
+@typing character="abigail" duration="2"
+@message id="m149" chat="group_island" sender="abigail" text="forget staying in separate rooms. i just ran across the hall to beatrice's room."
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m149a" chat="group_island" sender="abigail" text="i could not stay alone anymore. my room was too quiet"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m149b" chat="group_island" sender="abigail" text="i ran across the hall in my socks. i did not even put shoes on"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m149c" chat="group_island" sender="abigail" text="the hallway was dark. i kept thinking someone was behind me"
+@typing character="maya" duration="2"
+@message id="m150" chat="group_island" sender="maya" text="same im right behind u, opening the door now!"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m150a" chat="group_island" sender="maya" text="i am right behind u. wait for me. dont close the door"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m150b" chat="group_island" sender="maya" text="i left my room too. i could not stay in there alone"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m150c" chat="group_island" sender="maya" text="my hands are shaking so bad i almost dropped my phone"
+
+@typing character="beatrice" duration="3"
+@message id="m151" chat="group_island" sender="beatrice" text="ok we're all three inside and the door is locked. {player_name} talk to us."
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m151a" chat="group_island" sender="beatrice" text="ok. door locked. we are all three in my room"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m151b" chat="group_island" sender="beatrice" text="abi is on my bed. maya is on the floor. i am by the door"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m151c" chat="group_island" sender="beatrice" text="{player_name} are u there? pls talk to us. we need u"
+@typing character="maya" duration="2"
+@message id="m152" chat="group_island" sender="maya" text="why would jessicas keycard be logged at sub-level b?! i thought she went to sleep hours ago!"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m152a" chat="group_island" sender="maya" text="she said she was going to sleep. she said dont wake me"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m152b" chat="group_island" sender="maya" text="then her keycard is in sub level b? how? why?"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m152c" chat="group_island" sender="maya" text="i am so confused. i am scared and confused"
+
+@choice id="c026"
+  @reply text="Tell them about the $85,000 B.H. payment record under Jessica's name, they need the full picture."
+    @set jessica_framed_public = true
+    @set trust_jessica -1
+    @goto ep1_group_wire_reveal
+  @reply text="Hold back on the money for now, tell them Kathy is checking Sub-Level B and to stay quiet."
+    @set jessica_framed_public = false
+    @set trust_jessica +1
+    @goto ep1_group_hold_back
+
+:: ep1_group_wire_reveal
+@typing character="abigail" duration="2"
+@message id="m153" chat="group_island" sender="abigail" text="85 thousand dollars?! are u serious rn?!"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m153a" chat="group_island" sender="abigail" text="85 thousand? like real money? not like points?"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m153b" chat="group_island" sender="abigail" text="that is so much money. that is like a house"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m153c" chat="group_island" sender="abigail" text="why would bh pay her that much? she is just a scientist"
+@typing character="maya" duration="3"
+@message id="m154" chat="group_island" sender="maya" text="wait... thats almost the exact amount she said her moms specialist quoted her last week 😭"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m154a" chat="group_island" sender="maya" text="she told me last week. the specialist said 85k. i remember"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m154b" chat="group_island" sender="maya" text="she was crying when she told me. she said she did not know what to do"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m154c" chat="group_island" sender="maya" text="i told her we would figure it out. i did not know bh already did"
+@typing character="beatrice" duration="3"
+@message id="m155" chat="group_island" sender="beatrice" text="i still refuse to believe jess set us up. shes stubborn and always negative, not a monster."
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m155a" chat="group_island" sender="beatrice" text="jess is stubborn. she is negative. she is not a monster"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m155b1" chat="group_island" sender="beatrice" text="she would not sell us out. she would not. i know her"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m155c1" chat="group_island" sender="beatrice" text="there has to be another reason. there has to be"
+@typing character="abigail" duration="2"
+@message id="m155b" chat="group_island" sender="abigail" text="but what if the money was too good to pass up? u know how much shes been struggling."
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m155b2" chat="group_island" sender="abigail" text="she has been struggling for months. her mom. the bills. all of it"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m155b3" chat="group_island" sender="abigail" text="i am not saying she did it. i am saying i get why someone would"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m155b4" chat="group_island" sender="abigail" text="if someone offered me 85k to keep my mom alive, i would think about it too"
+@typing character="beatrice" duration="3"
+@message id="m155c" chat="group_island" sender="beatrice" text="i know. but there has to be another explanation. she wouldnt sell us out."
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m155c2" chat="group_island" sender="beatrice" text="maybe bh tricked her. maybe they said it was normal pay"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m155c3" chat="group_island" sender="beatrice" text="maybe she did not know what it was for. we need to ask her"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m155c4" chat="group_island" sender="beatrice" text="not accuse her. ask her. there is a difference"
+@goto ep1_jessica_ping
+
+:: ep1_group_hold_back
+@typing character="maya" duration="3"
+@message id="m153" chat="group_island" sender="maya" text="idk guys... between her disappearing after dinner, snapping at bea, and always stressing about her moms hospital bills..."
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m153a" chat="group_island" sender="maya" text="she disappeared after dinner. she snapped at bea. she is stressed about money"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m153b" chat="group_island" sender="maya" text="i am not saying she did something. i am just listing what happened"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m153c" chat="group_island" sender="maya" text="it looks bad. i know it looks bad. i hate that it looks bad"
+@typing character="abigail" duration="2"
+@message id="m154" chat="group_island" sender="abigail" text="stop it maya. dont put that in my head rn, im already picturing every horror movie cliche."
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m154a" chat="group_island" sender="abigail" text="stop. i am already picturing horror movies. do not add to it"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m154b" chat="group_island" sender="abigail" text="i watch too many horror movies. my brain goes straight to the worst"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m154c" chat="group_island" sender="abigail" text="jessica is my friend. she is not a horror movie villain"
+@typing character="beatrice" duration="2"
+@message id="m155" chat="group_island" sender="beatrice" text="wait, look at the member list. jessicas status just flickered."
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m155a" chat="group_island" sender="beatrice" text="wait. look. jessica just came online"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m155b1" chat="group_island" sender="beatrice" text="her status flickered. offline. online. offline. online"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m155c1" chat="group_island" sender="beatrice" text="is she typing? is anyone else seeing this?"
+@goto ep1_jessica_ping
+
+:: ep1_jessica_ping
+@online character="jessica"
+@typing character="jessica" duration="2"
+@message id="m156" chat="group_island" sender="jessica" text="do NOT come down to sub level b"
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m156a" chat="group_island" sender="jessica" text="do NOT come down here. i mean it"
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m156b" chat="group_island" sender="jessica" text="stay in beas room. lock the door. do not move"
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m156c" chat="group_island" sender="jessica" text="i am typing fast because i dont have much time"
+@typing character="beatrice" duration="2"
+@message id="m157" chat="group_island" sender="beatrice" text="JESSICA?! where are u?! are u hurt?!"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m157a" chat="group_island" sender="beatrice" text="jessica. where are u. are u hurt. answer me"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m157b" chat="group_island" sender="beatrice" text="we thought u were gone. we thought u were missing"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m157c" chat="group_island" sender="beatrice" text="pls tell me u are okay. pls"
+
+@typing character="jessica" duration="3"
+@message id="m158" chat="group_island" sender="jessica" text="block the stairwell door NOW. the vents in wing b are leaking gas, its making the lab techs see stuff"
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m158a" chat="group_island" sender="jessica" text="the vents. wing b. gas is leaking. it makes people see stuff"
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m158b" chat="group_island" sender="jessica" text="the techs down here are seeing things. they think faces are melting"
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m158c" chat="group_island" sender="jessica" text="block the stairwell door. now. use the dresser. use anything"
+@typing character="jessica" duration="2"
+@message id="m159" chat="group_island" sender="jessica" text="one of them just attacked a guard with a scalpel screaming that peoples faces were melting off"
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m159a" chat="group_island" sender="jessica" text="a tech. with a scalpel. he attacked a guard"
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m159b" chat="group_island" sender="jessica" text="he was screaming. faces melting. get out of my head. stuff like that"
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m159c" chat="group_island" sender="jessica" text="the guard is hurt. i dont know how bad. i had to run"
+
+@typing character="abigail" duration="2"
+@message id="m160" chat="group_island" sender="abigail" text="what the hell are u doing down there jess?! kathy said ur keycard opened the restricted elevator!"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m160a" chat="group_island" sender="abigail" text="kathy said ur keycard opened the elevator. how? why?"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m160b" chat="group_island" sender="abigail" text="u were supposed to be asleep. why were u down there"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m160c" chat="group_island" sender="abigail" text="jess. answer. pls. we need to know"
+@typing character="jessica" duration="3"
+@message id="m161" chat="group_island" sender="jessica" text="i didnt... somebody cloned my... wait. kathys radio just went off in the hallway, someones coming..."
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m161a" chat="group_island" sender="jessica" text="i did not use my card. somebody cloned it"
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m161b" chat="group_island" sender="jessica" text="i was in my room. then i heard the alarm. then i came down to check"
+@comment NEW
+@typing character="jessica" duration="2"
+@message id="m161c" chat="group_island" sender="jessica" text="wait. kathys radio. in the hallway. someone is coming. i have to go"
+
+@offline character="jessica"
+@vibration pattern="short"
+@typing character="maya" duration="2"
+@message id="m162" chat="group_island" sender="maya" text="jess?! JESSICA?!"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m162a" chat="group_island" sender="maya" text="jessica. answer. jessica"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m162b" chat="group_island" sender="maya" text="she went offline again. she went offline"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m162c" chat="group_island" sender="maya" text="she said someone is coming. who is coming?"
+
+@choice id="c027"
+  @reply text="listen to her! push the heavy dresser in front of the door and stuff wet towels under the vent!"
+    @set room_barricaded = true
+    @set trust_beatrice +1
+    @goto ep1_hallway_breach
+  @reply text="get out of that building rn and head toward the southwest inlet kai mentioned!"
+    @set room_barricaded = false
+    @goto ep1_hallway_breach
+
+:: ep1_hallway_breach
+@if room_barricaded == true
+  @typing character="beatrice" duration="2"
+  @message id="m163" chat="group_island" sender="beatrice" text="done! maya and i pushed the heavy dresser in front of the door and abi jammed wet towels under the crack!"
+  @comment NEW
+  @typing character="beatrice" duration="2"
+  @message id="m163a" chat="group_island" sender="beatrice" text="dresser is in front of the door. it is heavy. it will hold"
+  @comment NEW
+  @typing character="beatrice" duration="2"
+  @message id="m163a2" chat="group_island" sender="beatrice" text="abi jammed towels under the vent. wet towels. like jess said"
+  @comment NEW
+  @typing character="beatrice" duration="2"
+  @message id="m163a3" chat="group_island" sender="beatrice" text="we are on the floor. away from the door. like jess said"
+@else
+  @typing character="beatrice" duration="2"
+  @message id="m163" chat="group_island" sender="beatrice" text="we cant! theres something banging on the fire exit at the end of the hall, we're holding the door rn!"
+  @comment NEW
+  @typing character="beatrice" duration="2"
+  @message id="m163a" chat="group_island" sender="beatrice" text="we cant run. something is banging on the fire exit"
+  @comment NEW
+  @typing character="beatrice" duration="2"
+  @message id="m163a2" chat="group_island" sender="beatrice" text="we are holding the door. maya and me. abi is behind us"
+  @comment NEW
+  @typing character="beatrice" duration="2"
+  @message id="m163a3" chat="group_island" sender="beatrice" text="if we let go, it will come in. we cant let go"
+@endif
+
+@delay seconds="3"
+@typing character="maya" duration="2"
+@message id="m163b" chat="group_island" sender="maya" text="i can hear footsteps. heavy ones. theyre getting closer."
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m163b1" chat="group_island" sender="maya" text="footsteps. heavy. like boots. getting closer"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m163b2" chat="group_island" sender="maya" text="i can hear them through the door. through the dresser"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m163b3" chat="group_island" sender="maya" text="they stopped. they stopped right outside our door"
+@typing character="abigail" duration="2"
+@message id="m163c" chat="group_island" sender="abigail" text="please tell me thats kathy."
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m163c1" chat="group_island" sender="abigail" text="pls be kathy. pls be kathy. pls"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m163c2" chat="group_island" sender="abigail" text="i am holding my breath. i am not even joking"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m163c3" chat="group_island" sender="abigail" text="if it is not kathy, do not open. do not open"
+
+@stop_music fade_out="1"
+@sound file="glass_shatter_distant.mp3"
+@camera effect="shake" duration="1"
+@typing character="abigail" duration="2"
+@message id="m164" chat="group_island" sender="abigail" text="OH GOD HES IN THE HALLWAY"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m164a" chat="group_island" sender="abigail" text="he is in the hallway. i can hear him"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m164b" chat="group_island" sender="abigail" text="he is breathing hard. like he ran here"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m164c" chat="group_island" sender="abigail" text="i am under the blanket. i am not looking"
+@typing character="maya" duration="2"
+@message id="m165" chat="group_island" sender="maya" text="hes in a bloody lab coat, hes banging his head on the door, hes crying and laughing at the same time!!"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m165a" chat="group_island" sender="maya" text="bloody lab coat. he is banging his head on the door"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m165b" chat="group_island" sender="maya" text="he is crying and laughing. at the same time. how?"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m165c" chat="group_island" sender="maya" text="he keeps saying get out of my head. get out. get out"
+
+@audio id="m166" chat="group_island" sender="abigail" file="aud_hallway_scream_01.ogg" duration="00:06" caption="Muffled audio: Heavy pounding on wood, messy sobbing, and a man screaming 'Get out of my head, stop looking at me!'"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m166a" chat="group_island" sender="abigail" text="i recorded that. i dont know why i recorded it"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m166b" chat="group_island" sender="abigail" text="it is 6 seconds. i can hear him screaming"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m166c" chat="group_island" sender="abigail" text="i am shaking so bad i almost dropped my phone"
+
+@typing character="beatrice" duration="2"
+@message id="m167" chat="group_island" sender="beatrice" text="everyone down on the floor, away from the door, dont make a sound!!"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m167a" chat="group_island" sender="beatrice" text="down. on the floor. away from the door"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m167b" chat="group_island" sender="beatrice" text="do not make a sound. phones on silent. lights off"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m167c" chat="group_island" sender="beatrice" text="if he hears us, he will try harder. stay quiet"
+
+@choice id="c028"
+  @reply text="stay completely silent! dont even let ur screens light up!"
+    @goto ep1_signal_drop
+  @reply text="im texting kathy rn to get up to ur floor!"
+    @goto ep1_signal_drop
+
+:: ep1_signal_drop
+@sound file="static_glitch.mp3"
+@camera effect="glitch" duration="1"
+@system_message chat="group_island" text="⚠️ WARNING: Local cell and satellite signal having bad interference."
+@comment NEW
+@system_message chat="group_island" text="WARNING: Signal dropping. 1 bar. 0 bars."
+@comment NEW
+@thought text="signal is dropping. they are going to lose me."
+@comment NEW
+@thought text="if i lose them now, they are alone in that room."
+
+@typing character="beatrice" duration="2"
+@message id="m168" chat="group_island" sender="beatrice" text="hes at our door, hes trying the handle... {player_name} if anything happens to us tell mom and chloe"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m168a" chat="group_island" sender="beatrice" text="he is trying the handle. the dresser is holding but it is moving"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m168b" chat="group_island" sender="beatrice" text="{player_name} if anything happens, tell mom i love her"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m168c" chat="group_island" sender="beatrice" text="tell chloe too. tell her i said hi. tell her i am sorry"
+@typing character="maya" duration="1"
+@message id="m169" chat="group_island" sender="maya" text="{player_name} PLEASE"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m169a" chat="group_island" sender="maya" text="{player_name} pls stay. do not leave"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m169b" chat="group_island" sender="maya" text="i can hear him. he is still there. he is still trying"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m169c" chat="group_island" sender="maya" text="pls. pls. pls. i am so scared"
+
+@offline character="beatrice"
+@offline character="abigail"
+@offline character="maya"
+
+@stop_music fade_out="1"
+@sound file="signal_lost_tone.mp3"
+@system_message chat="group_island" text="❌ CONNECTION LOST: Cant reach network (Sector Four Relay Offline)."
+
+@delay seconds="2"
+@thought text="no... no no no! come on, reconnect!!"
+@comment NEW
+@thought text="no. no. no. not now. not when they need me."
+@comment NEW
+@thought text="come on. reconnect. pls reconnect."
+@network request="ping_sector_four_relay"
+@delay seconds="2"
+@network response="TIMEOUT_504_JAMMER_ACTIVE"
+@system_message chat="group_island" text="Message failed to send. Tap to retry."
+@comment NEW
+@system_message chat="group_island" text="Message failed. Retry 1 of 3. Jammer active."
+@comment NEW
+@thought text="jammer. they turned the jammer back on. that is why signal died."
+
+@delay seconds="2"
+@environment location="Home - Bedroom" time="01:03 AM"
+
+@music file="bgm_dread_silence.mp3" loop="true" volume="0.4"
+
+@sound file="notification_chime.mp3"
+@notification chat="dm_mom" sender="Mom" text="Sweetheart, you okay? It's late. I heard you walking around up there."
+
+@comment FINAL BEAT - THE CONTRAST OF NORMAL HOME LIFE
+@stop_music fade_out="2"
+@music file="bgm_maternal_contrast.mp3" loop="true" volume="0.4"
+
+@ui open="dm_mom"
+@online character="mom"
+@typing character="mom" duration="3"
+@message id="m170" chat="dm_mom" sender="mom" text="sweetheart, u ok? its late. i heard u walking around up there."
+@comment NEW
+@typing character="mom" duration="2"
+@message id="m170a" chat="dm_mom" sender="mom" text="i heard u pacing. are u okay? u sound stressed"
+@comment NEW
+@typing character="mom" duration="2"
+@message id="m170b" chat="dm_mom" sender="mom" text="did u eat? u always forget to eat when u are stressed"
+@comment NEW
+@typing character="mom" duration="2"
+@message id="m170c" chat="dm_mom" sender="mom" text="come downstairs if u need tea. i am still up"
+@typing character="mom" duration="3"
+@message id="m171" chat="dm_mom" sender="mom" text="did beatrice text u back yet? is everything ok on the island?"
+@comment NEW
+@typing character="mom" duration="2"
+@message id="m171a" chat="dm_mom" sender="mom" text="did beatrice text? she usually texts me too"
+@comment NEW
+@typing character="mom" duration="2"
+@message id="m171b" chat="dm_mom" sender="mom" text="is everything okay on the island? be honest"
+@comment NEW
+@typing character="mom" duration="2"
+@message id="m171c" chat="dm_mom" sender="mom" text="u know how nervous i get when she is near water. and now it is night"
+
+@choice id="c029"
+  @reply text="Yeah Mom, everything's fine, just couldnt sleep. Go back to bed, i love you."
+    @set home_safe = true
+    @goto ep1_ending_screen
+  @reply text="im ok mom, beatrice's signal dropped cuz of the ocean weather. goodnight ❤️"
+    @set home_safe = true
+    @goto ep1_ending_screen
+
+:: ep1_ending_screen
+@typing character="mom" duration="2"
+@message id="m172" chat="dm_mom" sender="mom" text="ok honey. get some rest. love u."
+@comment NEW
+@typing character="mom" duration="2"
+@message id="m172a" chat="dm_mom" sender="mom" text="get some rest. love u. text me in the morning"
+@comment NEW
+@typing character="mom" duration="2"
+@message id="m172b" chat="dm_mom" sender="mom" text="and lock ur door. it is late. love u"
+@comment NEW
+@typing character="mom" duration="2"
+@message id="m172c" chat="dm_mom" sender="mom" text="i am going to bed now. goodnight sweetheart"
+@offline character="mom"
+
+@delay seconds="2"
+@thought text="come on... please just stay alive till the signal comes back."
+@comment NEW
+@thought text="stay alive. pls. just stay alive till signal comes back."
+@comment NEW
+@thought text="i am going to sit here and keep retrying. i am not sleeping tonight."
+
+@delay seconds="3"
+
+@autosave slot="ep1_complete"
+@unlock_achievement id="ach_ep1_clear" title="The Contract" description="Completed Episode 1: The Contract."
+@fade_out duration="3"
+
+@comment COMING SOON STINGER
+@stop_music fade_out="2"
+@music file="bgm_to_be_continued.mp3" loop="false" volume="0.6"
+
+@fade_in duration="2"
+@show_text text="NO TIDE BACK" duration="3"
+@show_text text="EPISODE 2: SIDE EFFECTS" duration="3"
+@show_text text="IN DEVELOPMENT" duration="3"
+@show_text text="hang in there until the next episode." duration="4"
+@fade_out duration="2"
+
+@comment MULTIMEDIA PACKAGE - PART 4 - OPTIONAL - DOES NOT COUNT IN 700
+@if multimedia_package_owned == true
+  @system_message chat="system" text="MULTIMEDIA PACKAGE: 5 file notes and 5 private DMs unlocked for Part 4"
+  @comment NEW FILE NOTE 1 - JESSICA KEYCARD LOG
+  @ui open="dm_kathy"
+  @typing character="kathy" duration="2"
+  @message id="mm_p4_f1_msg" chat="dm_kathy" sender="kathy" text="package only. this is the keycard log for the Sub-Level B elevator. jessica's card, but look at the time."
+  @image id="mm_p4_f1_img" chat="dm_kathy" sender="kathy" file="doc_jessica_keycard_log.jpg" caption="Keycard log - J. Vance card, Sub-Level B elevator, 23:54, duplicate swipe 2 mins later"
+  @typing character="kathy" duration="2"
+  @message id="mm_p4_f1_msg2" chat="dm_kathy" sender="kathy" text="two swipes. 2 mins apart. same card. one person cannot be in two places."
+  @comment NEW FILE NOTE 2 - ABIGAIL HALLWAY AUDIO TRANSCRIPT
+  @ui open="dm_abigail"
+  @typing character="abigail" duration="2"
+  @message id="mm_p4_f2_msg" chat="dm_abigail" sender="abigail" text="package only. i typed out what the guy was saying. i could not sleep so i listened 10 times."
+  @image id="mm_p4_f2_img" chat="dm_abigail" sender="abigail" file="doc_abigail_audio_transcript.jpg" caption="Abigail transcript - hallway scream, get out of my head, stop looking at me, 00:47 AM"
+  @typing character="abigail" duration="2"
+  @message id="mm_p4_f2_msg2" chat="dm_abigail" sender="abigail" text="he kept saying get out of my head. over and over. like the gas made him see stuff."
+  @comment NEW FILE NOTE 3 - BEATRICE DRESSER PHOTO
+  @ui open="dm_beatrice"
+  @typing character="beatrice" duration="2"
+  @message id="mm_p4_f3_msg" chat="dm_beatrice" sender="beatrice" text="package only. this is my room door after. the dresser moved 2 inches."
+  @image id="mm_p4_f3_img" chat="dm_beatrice" sender="beatrice" file="img_beatrice_dresser_door.jpg" caption="Beatrice room door - dresser pushed against door, towels under vent, scratches on door"
+  @typing character="beatrice" duration="2"
+  @message id="mm_p4_f3_msg2" chat="dm_beatrice" sender="beatrice" text="see the scratches? they were not there before. he was really trying to get in."
+  @comment NEW FILE NOTE 4 - MOM KITCHEN NOTE
+  @ui open="dm_mom"
+  @typing character="mom" duration="2"
+  @message id="mm_p4_f4_msg" chat="dm_mom" sender="mom" text="package only. i found this note on the kitchen counter. i wrote it for you this morning."
+  @image id="mm_p4_f4_img" chat="dm_mom" sender="mom" file="doc_mom_kitchen_note.jpg" caption="Mom kitchen note - pharmacy, milk, frozen pizza, love mom"
+  @typing character="mom" duration="2"
+  @message id="mm_p4_f4_msg2" chat="dm_mom" sender="mom" text="i wrote pharmacy, milk, pizza. normal stuff. while you were saving your friends."
+  @comment NEW FILE NOTE 5 - KAI SOUTHWEST INLET MAP
+  @ui open="dm_kai"
+  @typing character="kai" duration="2"
+  @message id="mm_p4_f5_msg" chat="dm_kai" sender="kai" text="package only. this is my hand drawn map of the southwest inlet. i drew it on my boat."
+  @image id="mm_p4_f5_img" chat="dm_kai" sender="kai" file="doc_kai_inlet_map.jpg" caption="Kai inlet map - southwest shore, rocky inlet, dinghy path, main gate chained"
+  @typing character="kai" duration="2"
+  @message id="mm_p4_f5_msg2" chat="dm_kai" sender="kai" text="southwest. not main dock. main gate is chained. remember this for later."
+  @comment NEW PRIVATE DM KATHY - PART 4
+  @ui open="dm_kathy"
+  @online character="kathy"
+  @typing character="kathy" duration="2"
+  @message id="mm_p4_kathy_01" chat="dm_kathy" sender="kathy" text="I am in Sub-Level B. I found something. I cannot say it in the group."
+  @typing character="kathy" duration="2"
+  @message id="mm_p4_kathy_02" chat="dm_kathy" sender="kathy" text="The cells are real. I saw them. I saw the doors."
+  @typing character="kathy" duration="2"
+  @message id="mm_p4_kathy_03" chat="dm_kathy" sender="kathy" text="I have worked here ten years and I never knew. I never went down here."
+  @typing character="kathy" duration="2"
+  @message id="mm_p4_kathy_04" chat="dm_kathy" sender="kathy" text="I am going to get Jessica out. Stay on your phone. Do not let the girls follow me."
+  @typing character="kathy" duration="2"
+  @message id="mm_p4_kathy_05" chat="dm_kathy" sender="kathy" text="If I go quiet, tell them I am still here. Tell them I am coming back."
+  @set trust_kathy +1
+  @comment NEW PRIVATE DM JESSICA - PART 4
+  @ui open="dm_jessica"
+  @online character="jessica"
+  @typing character="jessica" duration="2"
+  @message id="mm_p4_jess_01" chat="dm_jessica" sender="jessica" text="hey. it is me. i got 10 seconds of signal."
+  @typing character="jessica" duration="2"
+  @message id="mm_p4_jess_02" chat="dm_jessica" sender="jessica" text="i did not use my card. someone cloned it. i swear."
+  @typing character="jessica" duration="2"
+  @message id="mm_p4_jess_03" chat="dm_jessica" sender="jessica" text="i came down because i heard the alarm. i wanted to help."
+  @typing character="jessica" duration="2"
+  @message id="mm_p4_jess_04" chat="dm_jessica" sender="jessica" text="tell beatrice i am sorry i snapped at her. tell her i love her. ok?"
+  @set trust_jessica +1
+  @comment NEW PRIVATE DM ABIGAIL - PART 4
+  @ui open="dm_abigail"
+  @online character="abigail"
+  @typing character="abigail" duration="2"
+  @message id="mm_p4_abi_01" chat="dm_abigail" sender="abigail" text="we are still in beas room. door locked. dresser against it."
+  @typing character="abigail" duration="2"
+  @message id="mm_p4_abi_02" chat="dm_abigail" sender="abigail" text="i keep thinking about the guy in the hallway. his face. his voice."
+  @typing character="abigail" duration="2"
+  @message id="mm_p4_abi_03" chat="dm_abigail" sender="abigail" text="i filmed everything because i thought no one would believe me. now i wish i had not."
+  @typing character="abigail" duration="2"
+  @message id="mm_p4_abi_04" chat="dm_abigail" sender="abigail" text="thank u for staying up with us. u are the only one who knows what is happening."
+  @set trust_abigail +1
+  @comment NEW PRIVATE DM MAYA - PART 4
+  @ui open="dm_maya"
+  @online character="maya"
+  @typing character="maya" duration="2"
+  @message id="mm_p4_maya_01" chat="dm_maya" sender="maya" text="we are still here. beas room. door locked."
+  @typing character="maya" duration="2"
+  @message id="mm_p4_maya_02" chat="dm_maya" sender="maya" text="i keep thinking about jessica. she said someone cloned her card."
+  @typing character="maya" duration="2"
+  @message id="mm_p4_maya_03" chat="dm_maya" sender="maya" text="i believe her. i do. she would not lie about that."
+  @typing character="maya" duration="2"
+  @message id="mm_p4_maya_04" chat="dm_maya" sender="maya" text="u are the only one who knows how scared i am. dont tell the others."
+  @set trust_maya +1
+  @comment NEW PRIVATE DM KAI - PART 4
+  @ui open="dm_kai"
+  @online character="kai"
+  @typing character="kai" duration="2"
+  @message id="mm_p4_kai_01" chat="dm_kai" sender="kai" text="signal is gone from the island. i can see it from the boat."
+  @typing character="kai" duration="2"
+  @message id="mm_p4_kai_02" chat="dm_kai" sender="kai" text="all lights went dark. then red. then dark again."
+  @typing character="kai" duration="2"
+  @message id="mm_p4_kai_03" chat="dm_kai" sender="kai" text="my wife keeps calling me. i told her i am staying. i am not leaving."
+  @typing character="kai" duration="2"
+  @message id="mm_p4_kai_04" chat="dm_kai" sender="kai" text="southwest inlet. dinghy ready. if they get out, i will be there."
+  @set trust_kai +1
+@endif
+
+@end_scene title="END OF EPISODE 1: THE CONTRACT" next_episode="episode_02_part_1.ntb"

@@ -1,0 +1,743 @@
+@comment PART 3 EXPANDED - LOCKDOWN PANIC, PRIVATE SIDE CHATS AND KAI CHECK IN
+@comment ORIGINAL 41 MESSAGES + 134 NEW = 175 MAIN MESSAGES FOR PART 3
+@comment SEARCH FOR NEW TO SEE ALL ADDED LINES
+@comment Continues directly from ep1_part3_chaos
+
+:: ep1_part3_chaos
+@ui open="group_island"
+@environment time="12:04 AM"
+@typing character="abigail" duration="2"
+@message id="m111" chat="group_island" sender="abigail" text="mine is flashing red too!! why are the wristbands buzzing?!"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m111a" chat="group_island" sender="abigail" text="mine just started buzzing and it wont stop"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m111b" chat="group_island" sender="abigail" text="it is vibrating on my wrist like a phone call"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m111c" chat="group_island" sender="abigail" text="i tried to take it off and it just buzzed louder"
+@typing character="maya" duration="2"
+@message id="m112" chat="group_island" sender="maya" text="the doors are locking themselves!! i just tried my handle and it wont open!"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m112a" chat="group_island" sender="maya" text="i tried my handle twice. it is locked from outside"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m112b" chat="group_island" sender="maya" text="i am not joking. i am locked in my room"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m112c" chat="group_island" sender="maya" text="i can hear the lock click. like someone else controls it"
+
+@typing character="beatrice" duration="3"
+@message id="m113" chat="group_island" sender="beatrice" text="kathy what the hell is going on? u said these were just security badges!"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m113a" chat="group_island" sender="beatrice" text="u said badges. u did not say locking doors"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m113b" chat="group_island" sender="beatrice" text="my door just locked too. i am stuck in here"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m113c" chat="group_island" sender="beatrice" text="kathy. answer. now"
+@typing character="kathy" duration="2"
+@message id="m114" chat="group_island" sender="kathy" text="Standard lockdown when a sensor trips. Stay calm and stay away from the windows."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m114a" chat="group_island" sender="kathy" text="This is standard. A sensor tripped in Wing B. That is all."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m114b" chat="group_island" sender="kathy" text="Stay away from windows. Stay away from vents."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m114c" chat="group_island" sender="kathy" text="I am checking the panel now. Do not try to force your doors."
+
+@typing character="maya" duration="2"
+@message id="m115" chat="group_island" sender="maya" text="kathy jessica STILL hasnt answered!! her room is right next to the stairs where the screaming came from!"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m115a" chat="group_island" sender="maya" text="i texted jessica 3 times. nothing. not even delivered"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m115b" chat="group_island" sender="maya" text="her room is right by the stairs. she is closest to whatever that was"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m115c" chat="group_island" sender="maya" text="what if she went to check the screaming? what if she is out there"
+
+@choice id="c019"
+  @reply text="kathy check jessicas room rn! we need to know if shes safe"
+    @set trust_jessica +1
+    @goto ep1_kathy_sweeps
+  @reply text="wait, what if jessica isnt in her room at all?"
+    @set suspicion +1
+    @goto ep1_kathy_sweeps
+
+:: ep1_kathy_sweeps
+@typing character="kathy" duration="2"
+@message id="m116" chat="group_island" sender="kathy" text="Moving to her area now. Keep quiet unless u hear movement outside ur doors."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m116a" chat="group_island" sender="kathy" text="I am moving now. Keep your phones on silent."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m116b" chat="group_island" sender="kathy" text="If you hear boots, do not call out. Text only."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m116c" chat="group_island" sender="kathy" text="I will text when I reach her door."
+@offline character="kathy"
+
+@delay seconds="2"
+@sound file="notification_chime.mp3"
+@notification chat="dm_beatrice" sender="Beatrice" text="{player_name}, talk to me. Something doesn't add up."
+
+@comment PRIVATE DM WITH BEATRICE - COUSIN AND GENETICIST
+@ui open="dm_beatrice"
+@online character="beatrice"
+@typing character="beatrice" duration="3"
+@message id="m117" chat="dm_beatrice" sender="beatrice" text="{player_name}, talk to me. something doesnt add up."
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m117a" chat="dm_beatrice" sender="beatrice" text="i need to talk to u alone. not in the group"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m117b" chat="dm_beatrice" sender="beatrice" text="my door is locked and i am sitting on the floor. i need to think out loud"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m117c" chat="dm_beatrice" sender="beatrice" text="u are the only one who will listen without panicking"
+@typing character="beatrice" duration="3"
+@message id="m118" chat="dm_beatrice" sender="beatrice" text="i didnt wanna panic abigail and maya in the main chat, so im telling u."
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m118a" chat="dm_beatrice" sender="beatrice" text="abi is already shaking. maya is already crying. i cant add to that"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m118b" chat="dm_beatrice" sender="beatrice" text="if i say this in the group, they will spiral"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m118c" chat="dm_beatrice" sender="beatrice" text="so i am telling u first. u decide what to do with it"
+@typing character="beatrice" duration="3"
+@message id="m119" chat="dm_beatrice" sender="beatrice" text="before dinner i looked at the coolers jessica was logging in wing a. those werent normal biotech stuff."
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m119a" chat="dm_beatrice" sender="beatrice" text="i was in wing a to log inventory. jessica left the coolers open"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m119b" chat="dm_beatrice" sender="beatrice" text="i looked because i am nosy. and because the labels were weird"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m119c" chat="dm_beatrice" sender="beatrice" text="the labels said biohazard. not normal lab stuff. biohazard"
+
+@typing character="beatrice" duration="3"
+@message id="m120" chat="dm_beatrice" sender="beatrice" text="they were aerosol chemicals and cell mutagens {player_name}. the kind of stuff that gets u thrown in prison."
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m120a" chat="dm_beatrice" sender="beatrice" text="aerosol chemicals. cell mutagens. that is not launch party stuff"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m120a2" chat="dm_beatrice" sender="beatrice" text="that is the kind of stuff u only use in a locked lab with suits"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m120a3" chat="dm_beatrice" sender="beatrice" text="and they were just sitting in coolers. like lunch boxes"
+@typing character="beatrice" duration="2"
+@message id="m120b" chat="dm_beatrice" sender="beatrice" text="i know what im looking at. i taught a course on this exact sequencing thing 3 months ago."
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m120b1" chat="dm_beatrice" sender="beatrice" text="i taught a whole course on this. 3 months ago. i know the names"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m120b2" chat="dm_beatrice" sender="beatrice" text="i showed my students the safety sheets. these were the same chemicals"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m120b3" chat="dm_beatrice" sender="beatrice" text="i am not guessing. i am sure"
+@typing character="beatrice" duration="2"
+@message id="m121" chat="dm_beatrice" sender="beatrice" text="tell me the truth... did jessica say anything weird to u before we left?"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m121a" chat="dm_beatrice" sender="beatrice" text="did she say anything about money? about her mom? about bh?"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m121b" chat="dm_beatrice" sender="beatrice" text="she has been weird since we got here. not just tired. weird"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m121c" chat="dm_beatrice" sender="beatrice" text="u talk to her more than me. did she tell u anything?"
+
+@choice id="c020"
+  @reply text="i found a public bh payment record for $85,000 under jessicas name from 3 days ago."
+    @set trust_beatrice +2
+    @set jessica_exposed_to_beatrice = true
+    @goto ep1_beatrice_reaction
+  @reply text="im still piecing stuff together bea. dont confront anyone till we have real proof."
+    @set trust_beatrice +1
+    @set jessica_exposed_to_beatrice = false
+    @goto ep1_beatrice_reaction
+
+:: ep1_beatrice_reaction
+@if jessica_exposed_to_beatrice == true
+  @typing character="beatrice" duration="3"
+  @message id="m122" chat="dm_beatrice" sender="beatrice" text="85 thousand?! thats the exact amount she needed for her moms treatment..."
+  @comment NEW
+  @typing character="beatrice" duration="2"
+  @message id="m122a" chat="dm_beatrice" sender="beatrice" text="85k. that is the number she told me. for her mom"
+  @comment NEW
+  @typing character="beatrice" duration="2"
+  @message id="m122b" chat="dm_beatrice" sender="beatrice" text="she said 40k first. then she said it went up. then she said 85k"
+  @comment NEW
+  @typing character="beatrice" duration="2"
+  @message id="m122c" chat="dm_beatrice" sender="beatrice" text="i thought she was exaggerating. she was not"
+  @typing character="beatrice" duration="3"
+  @message id="m123" chat="dm_beatrice" sender="beatrice" text="no... jess is blunt and she holds grudges, but she hates liars. if she took that money there has to be more to it."
+  @comment NEW
+  @typing character="beatrice" duration="2"
+  @message id="m123a" chat="dm_beatrice" sender="beatrice" text="jess hates liars. she will call u out in front of everyone if u lie"
+  @comment NEW
+  @typing character="beatrice" duration="2"
+  @message id="m123b" chat="dm_beatrice" sender="beatrice" text="so if she took money, there has to be a reason. she would not just take it"
+  @comment NEW
+  @typing character="beatrice" duration="2"
+  @message id="m123c" chat="dm_beatrice" sender="beatrice" text="maybe bh forced her. maybe they tricked her. i dont know"
+@else
+  @typing character="beatrice" duration="3"
+  @message id="m122" chat="dm_beatrice" sender="beatrice" text="ur right. if i accuse her without proof this whole group turns on each other while we're locked inside."
+  @comment NEW
+  @typing character="beatrice" duration="2"
+  @message id="m122a" chat="dm_beatrice" sender="beatrice" text="if i accuse her now, we will all fight. and we are locked in"
+  @comment NEW
+  @typing character="beatrice" duration="2"
+  @message id="m122b" chat="dm_beatrice" sender="beatrice" text="we need proof. real proof. not just vibes"
+  @comment NEW
+  @typing character="beatrice" duration="2"
+  @message id="m122c" chat="dm_beatrice" sender="beatrice" text="thank u for stopping me. i was about to text the group"
+  @typing character="beatrice" duration="2"
+  @message id="m123" chat="dm_beatrice" sender="beatrice" text="just promise me u wont hide anything from me {bro_sis}. we're family."
+  @comment NEW
+  @typing character="beatrice" duration="2"
+  @message id="m123a" chat="dm_beatrice" sender="beatrice" text="we are family. cousins. but family. promise me"
+  @comment NEW
+  @typing character="beatrice" duration="2"
+  @message id="m123b" chat="dm_beatrice" sender="beatrice" text="if u find something, tell me first. not maya. not abi. me"
+  @comment NEW
+  @typing character="beatrice" duration="2"
+  @message id="m123c" chat="dm_beatrice" sender="beatrice" text="i can handle it. i am not gonna panic"
+@endif
+
+@typing character="beatrice" duration="2"
+@message id="m124" chat="dm_beatrice" sender="beatrice" text="hold on, i hear heavy boots outside my door. going quiet."
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m124a" chat="dm_beatrice" sender="beatrice" text="boots. outside. heavy. not kathy. kathy wears soft shoes"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m124b" chat="dm_beatrice" sender="beatrice" text="i am going quiet. lights off. phone on silent"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m124c" chat="dm_beatrice" sender="beatrice" text="if i dont text in 5 mins, tell kathy to check on me"
+@offline character="beatrice"
+
+@delay seconds="2"
+@sound file="notification_chime.mp3"
+@notification chat="dm_maya" sender="Maya" text="Hey... are you okay? You've been super quiet in the main chat 💙"
+
+@comment PRIVATE DM WITH MAYA - SUBTLE INFORMATION GATHERING BY THE MOLE
+@ui open="dm_maya"
+@online character="maya"
+@typing character="maya" duration="2"
+@message id="m125" chat="dm_maya" sender="maya" text="hey... are u ok? uve been super quiet in the main chat 💙"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m125a" chat="dm_maya" sender="maya" text="u have been quiet. i noticed. i always notice"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m125b" chat="dm_maya" sender="maya" text="are u still up? are u still watching us from home?"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m125c" chat="dm_maya" sender="maya" text="i just wanted to check on u. u are our lifeline and u went quiet"
+@typing character="maya" duration="3"
+@message id="m126" chat="dm_maya" sender="maya" text="im sitting on the floor with the lights off. my heart is beating out of my chest."
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m126a" chat="dm_maya" sender="maya" text="i am on the floor. back against the door. lights off"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m126b" chat="dm_maya" sender="maya" text="my heart is so loud i can hear it. is that normal? probably not"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m126c" chat="dm_maya" sender="maya" text="i keep looking at my wristband. it is still red. still red"
+@typing character="maya" duration="3"
+@message id="m127" chat="dm_maya" sender="maya" text="wait... ur back home on a free connection. have u looked anything up about bh yet? or did abi send u anything?"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m127a" chat="dm_maya" sender="maya" text="u are at home. u can google stuff. we cant"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m127b" chat="dm_maya" sender="maya" text="did abi send u anything? she said she had a clip"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m127c" chat="dm_maya" sender="maya" text="i am just asking because i am scared. not because i am nosy"
+
+@thought text="maya sounds terrified... shes been my friend since we were kids. still, why is she asking if abi sent me something?"
+@comment NEW
+@thought text="she is asking a lot. about abi. about the clip. about bh."
+@comment NEW
+@thought text="maybe she is just scared. maybe she wants to know what we know. i need to be careful."
+
+@choice id="c021"
+  @reply text="nothing solid yet maya. just focus on staying hidden till kathy clears the hall."
+    @set maya_knows_leak = false
+    @goto ep1_maya_probe
+  @reply text="abigail caught something weird near sub-level b on camera, and i found a sketchy payout record."
+    @set maya_knows_leak = true
+    @set suspicion +1
+    @goto ep1_maya_probe
+
+:: ep1_maya_probe
+@if maya_knows_leak == true
+  @typing character="maya" duration="3"
+  @message id="m128" chat="dm_maya" sender="maya" text="wait, she recorded it?! did u save a copy yet? what if they wipe her camera remotely?"
+  @comment NEW
+  @typing character="maya" duration="2"
+  @message id="m128a" chat="dm_maya" sender="maya" text="did u save it? like on ur phone? not just in the chat?"
+  @comment NEW
+  @typing character="maya" duration="2"
+  @message id="m128b" chat="dm_maya" sender="maya" text="they can wipe her camera. they have jammers. they can wipe anything"
+  @comment NEW
+  @typing character="maya" duration="2"
+  @message id="m128c" chat="dm_maya" sender="maya" text="pls tell me u saved it somewhere safe"
+  @typing character="maya" duration="2"
+  @message id="m129" chat="dm_maya" sender="maya" text="and whose name was on the payout?! please tell me it wasnt kathy..."
+  @comment NEW
+  @typing character="maya" duration="2"
+  @message id="m129a" chat="dm_maya" sender="maya" text="whose name? pls. i need to know who to trust"
+  @comment NEW
+  @typing character="maya" duration="2"
+  @message id="m129b1" chat="dm_maya" sender="maya" text="if it was kathy, we are screwed. she is the only one with keys"
+  @comment NEW
+  @typing character="maya" duration="2"
+  @message id="m129b2" chat="dm_maya" sender="maya" text="if it was someone else, maybe we can still trust kathy"
+  @delay seconds="3"
+  @typing character="maya" duration="3"
+  @message id="m129b" chat="dm_maya" sender="maya" text="u can trust me {player_name}. im on ur side. just tell me who it was."
+  @comment NEW
+  @typing character="maya" duration="2"
+  @message id="m129b3" chat="dm_maya" sender="maya" text="u can trust me. since we were kids. u know that"
+  @comment NEW
+  @typing character="maya" duration="2"
+  @message id="m129b4" chat="dm_maya" sender="maya" text="i am on ur side. always. just tell me"
+  @thought text="shes really pushing for this. why does she need to know so bad?"
+  @comment NEW
+  @thought text="she is pushing too hard. she wants a name. now."
+@else
+  @typing character="maya" duration="3"
+  @message id="m128" chat="dm_maya" sender="maya" text="ok... if u find ANYTHING tell me first ok? since we were kids its always been us watching each others backs."
+  @comment NEW
+  @typing character="maya" duration="2"
+  @message id="m128a" chat="dm_maya" sender="maya" text="if u find anything, tell me first. before the group. ok?"
+  @comment NEW
+  @typing character="maya" duration="2"
+  @message id="m128b" chat="dm_maya" sender="maya" text="we have always watched each others backs. since we were kids"
+  @comment NEW
+  @typing character="maya" duration="2"
+  @message id="m128c" chat="dm_maya" sender="maya" text="promise me. pinky promise. even over text"
+  @typing character="maya" duration="2"
+  @message id="m129" chat="dm_maya" sender="maya" text="i just dont know if we can trust kathy anymore. she works for them."
+  @comment NEW
+  @typing character="maya" duration="2"
+  @message id="m129a" chat="dm_maya" sender="maya" text="kathy works for bh. she has for ten years. she is not our friend"
+  @comment NEW
+  @typing character="maya" duration="2"
+  @message id="m129b1" chat="dm_maya" sender="maya" text="she says stay calm. she says stay inside. what if that is what they want"
+  @comment NEW
+  @typing character="maya" duration="2"
+  @message id="m129b2" chat="dm_maya" sender="maya" text="i am not saying she is bad. i am saying we dont know"
+@endif
+
+@choice id="c022"
+  @choice_if maya_knows_leak == true
+    @reply text="i kept the file on my end. lets not jump to conclusions till jessica turns up."
+      @goto ep1_maya_end
+  @choice_if maya_knows_leak == false
+    @reply text="always maya. keep ur phone on silent and stay away from the door."
+      @set trust_maya +1
+      @goto ep1_maya_end
+
+:: ep1_maya_end
+@typing character="maya" duration="2"
+@message id="m130" chat="dm_maya" sender="maya" text="ok. texting u the second the green light comes back on my band."
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m130a" chat="dm_maya" sender="maya" text="when it goes green, i will text u right away"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m130b" chat="dm_maya" sender="maya" text="green means safe. red means stay. i will watch it"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m130c" chat="dm_maya" sender="maya" text="ok. phone on silent. door locked. floor. i am staying here"
+@offline character="maya"
+
+@delay seconds="2"
+@environment time="12:22 AM"
+@sound file="notification_chime.mp3"
+@notification chat="dm_kai" sender="Kai" text="{player_name}, is everything alright over there?"
+
+@comment OFFSHORE CHECK IN WITH CAPTAIN KAI
+@ui open="dm_kai"
+@online character="kai"
+@typing character="kai" duration="3"
+@message id="m131" chat="dm_kai" sender="kai" text="{player_name}, is everything alright over there?"
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m131a" chat="dm_kai" sender="kai" text="i am watching from the boat. something is off"
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m131b" chat="dm_kai" sender="kai" text="i have not moved. engine on. anchor down. i am here"
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m131c" chat="dm_kai" sender="kai" text="tell me straight. are your friends okay?"
+@typing character="kai" duration="3"
+@message id="m132" chat="dm_kai" sender="kai" text="im looking at the island through my binoculars. all the lights just switched to red. looks like an emergency."
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m132a" chat="dm_kai" sender="kai" text="all the lights. not just one room. all of them"
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m132b" chat="dm_kai" sender="kai" text="i have been doing this route for 12 years. i have never seen that"
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m132c" chat="dm_kai" sender="kai" text="red lights on a building means emergency. on a boat too. same thing"
+@typing character="kai" duration="3"
+@message id="m133" chat="dm_kai" sender="kai" text="and i just heard something howling from the cliffs. ive been on the water my whole life, and ive never heard an animal make a sound like that."
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m133a" chat="dm_kai" sender="kai" text="howling. from the cliffs. not a dog. not a wolf"
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m133b" chat="dm_kai" sender="kai" text="i have heard every animal out here. this was different"
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m133c" chat="dm_kai" sender="kai" text="it sounded like it was in pain. or angry. i dont know which"
+
+@choice id="c023"
+  @reply text="something is seriously wrong on that island kai. please dont leave, they might need an emergency pickup."
+    @set trust_kai +1
+    @goto ep1_kai_response
+  @reply text="bh said its a drill, but keep ur engine ready just in case."
+    @goto ep1_kai_response
+
+:: ep1_kai_response
+@typing character="kai" duration="3"
+@message id="m134" chat="dm_kai" sender="kai" text="im not going anywhere tonight {player_name}. my contract says wait till the jobs done, and i dont leave people stranded."
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m134a" chat="dm_kai" sender="kai" text="i dont leave people stranded. that is my rule. contract or not"
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m134b1" chat="dm_kai" sender="kai" text="my wife would kill me if i left. she said stay. so i am staying"
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m134c" chat="dm_kai" sender="kai" text="engine is on. i am not going anywhere"
+@typing character="kai" duration="3"
+@message id="m134b" chat="dm_kai" sender="kai" text="plus my youngest leo would never forgive me if i bailed on a boat trip. hes been talking about this boat for weeks."
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m134b2" chat="dm_kai" sender="kai" text="leo keeps asking about this boat. he draws it every day"
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m134b3" chat="dm_kai" sender="kai" text="i promised him a ride when i get back. i keep my promises"
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m134b4" chat="dm_kai" sender="kai" text="he is 6. he thinks i am a superhero. i cant let him down"
+@typing character="kai" duration="3"
+@message id="m135" chat="dm_kai" sender="kai" text="one problem tho, two armed guards just walked down to the main pier and chained the harbor gate shut from the inside."
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m135a" chat="dm_kai" sender="kai" text="two guards. armed. they chained the gate. from inside"
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m135b" chat="dm_kai" sender="kai" text="i watched them do it. they did not even look at me"
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m135c" chat="dm_kai" sender="kai" text="that gate is the only way in and out by boat. now it is locked"
+@typing character="kai" duration="2"
+@message id="m136" chat="dm_kai" sender="kai" text="if ur friends have to leave in a hurry they wont be able to use the main dock. tell them theres an old rocky inlet on the southwest shore i can pull a dinghy into."
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m136a" chat="dm_kai" sender="kai" text="southwest shore. rocky inlet. not the main dock"
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m136b" chat="dm_kai" sender="kai" text="i can pull a dinghy in there. it is tight but i can do it"
+@comment NEW
+@typing character="kai" duration="2"
+@message id="m136c" chat="dm_kai" sender="kai" text="tell them. when they need it. southwest. remember that"
+@add_evidence id="ev_southwest_inlet" title="Kai's Extraction Tip" description="Main harbor gate is chained shut. Kai can get the group out via the rocky southwest inlet."
+@offline character="kai"
+
+@delay seconds="2"
+@sound file="notification_chime.mp3"
+@notification chat="group_island" sender="Kathy" text="Lockdown lifted. Corridor is clear."
+
+@comment LOCKDOWN LIFTED AND KATHY REPORT
+@ui open="group_island"
+@online character="kathy"
+@online character="beatrice"
+@online character="abigail"
+@online character="maya"
+
+@typing character="kathy" duration="2"
+@message id="m137" chat="group_island" sender="kathy" text="Lockdown lifted. Hallway is clear."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m137a" chat="group_island" sender="kathy" text="Lockdown lifted. You can open your doors now."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m137b" chat="group_island" sender="kathy" text="Hallway is clear. I checked it myself."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m137c" chat="group_island" sender="kathy" text="Wristbands should go back to green in a minute."
+@typing character="beatrice" duration="2"
+@message id="m138" chat="group_island" sender="beatrice" text="what about jessica?! was she in her room?"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m138a" chat="group_island" sender="beatrice" text="was she in there? did u check?"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m138b" chat="group_island" sender="beatrice" text="pls tell me she was just sleeping and missed all this"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m138c" chat="group_island" sender="beatrice" text="kathy. answer. was she in her room?"
+
+@typing character="kathy" duration="3"
+@message id="m139" chat="group_island" sender="kathy" text="Her room was empty. Bed untouched."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m139a" chat="group_island" sender="kathy" text="Bed untouched. No phone. No tablet. Nothing."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m139b" chat="group_island" sender="kathy" text="Her bag is still there. Her jacket is gone."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m139c" chat="group_island" sender="kathy" text="She did not pack. She just left."
+@typing character="abigail" duration="2"
+@message id="m140" chat="group_island" sender="abigail" text="what?! where the hell is she?!"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m140a" chat="group_island" sender="abigail" text="where is she? she cant just vanish"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m140b" chat="group_island" sender="abigail" text="she was supposed to be sleeping. she said she was going to sleep"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m140c" chat="group_island" sender="abigail" text="i am gonna cry. i am actually gonna cry"
+
+@typing character="kathy" duration="3"
+@message id="m141" chat="group_island" sender="kathy" text="Security logs show her keycard used the Sub-Level B elevator ten minutes before the alarm went off."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m141a" chat="group_island" sender="kathy" text="Logs do not lie. Her keycard. Sub-Level B elevator. 10 mins before alarm."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m141b" chat="group_island" sender="kathy" text="I checked twice. Same time. Same card."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m141c" chat="group_island" sender="kathy" text="I did not authorize that. No one did."
+@typing character="maya" duration="2"
+@message id="m142" chat="group_island" sender="maya" text="sub-level b?! thats the floor u told us was totally off limits!"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m142a" chat="group_island" sender="maya" text="u told us not to go there. ever. u said red markers"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m142b" chat="group_island" sender="maya" text="why would jessica go there? she knows the rules"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m142c" chat="group_island" sender="maya" text="unless someone made her go. unless someone took her"
+
+@typing character="kathy" duration="3"
+@message id="m143" chat="group_island" sender="kathy" text="It is. And the guard down there is in the infirmary right now, says a wild animal broke through the fence and attacked him."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m143a" chat="group_island" sender="kathy" text="Guard is in infirmary. He says an animal broke through the fence."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m143b" chat="group_island" sender="kathy" text="He has scratches on his arm. He is shaken. Not badly hurt."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m143c" chat="group_island" sender="kathy" text="I have not seen the animal. Security has not found it."
+@typing character="kathy" duration="3"
+@message id="m144" chat="group_island" sender="kathy" text="Im going down to Sub-Level B myself to find her. Nobody leaves this floor."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m144a" chat="group_island" sender="kathy" text="I am going down myself. No one else. Just me."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m144b" chat="group_island" sender="kathy" text="Nobody leaves this floor. Stay in your rooms. Lock your doors."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m144c" chat="group_island" sender="kathy" text="I will text when I find her. Stay put."
+
+@choice id="c024"
+  @choice_locked id="c024_prem" cost="20" text="[PREMIUM - 20 Coins] Message Kathy privately before she goes into Sub-Level B: warn her B.H. is hiding human experiments."
+    @set kathy_warned_ep1 = true
+    @set trust_kathy +2
+    @goto ep1_kathy_prem_dm
+  @reply text="be careful down there kathy. bring them all back in one piece."
+    @set kathy_warned_ep1 = false
+    @goto ep1_part4_climax
+
+:: ep1_kathy_prem_dm
+@ui open="dm_kathy"
+@online character="kathy"
+@typing character="kathy" duration="2"
+@message id="m145" chat="dm_kathy" sender="kathy" text="Speak fast {player_name}. Im standing at the Sub-Level B elevator rn."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m145a" chat="dm_kathy" sender="kathy" text="Elevator is here. Doors open. I have 30 seconds"
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m145b" chat="dm_kathy" sender="kathy" text="Talk fast. What do u need to tell me?"
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m145c" chat="dm_kathy" sender="kathy" text="If this is about the lockdown, I already know"
+@typing character="kathy" duration="3"
+@message id="m146" chat="dm_kathy" sender="kathy" text="What do u mean 'human experiments'? Ive worked for B.H. for ten years, they make medical supplies."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m146a" chat="dm_kathy" sender="kathy" text="Ten years. Medical supplies. That is what they told me"
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m146b" chat="dm_kathy" sender="kathy" text="Human experiments? That is a big claim. U better have proof"
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m146c" chat="dm_kathy" sender="kathy" text="I am standing at the elevator. My hand is shaking. Talk"
+
+@choice id="c025"
+  @reply text="We have camera footage of hazmat teams wheeling a bleeding tied up person into Sub-Level B tonight. Check the cells."
+    @goto ep1_kathy_prem_reply
+
+:: ep1_kathy_prem_reply
+@typing character="kathy" duration="3"
+@message id="m147" chat="dm_kathy" sender="kathy" text="...If ur lying to me {player_name}, I'll have ur access cut before morning."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m147a" chat="dm_kathy" sender="kathy" text="If u are lying, I will cut your access. I mean it"
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m147b" chat="dm_kathy" sender="kathy" text="I do not like being played. Especially not tonight"
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m147c" chat="dm_kathy" sender="kathy" text="But if u are telling the truth, I need to know what I am walking into"
+@typing character="kathy" duration="3"
+@message id="m148" chat="dm_kathy" sender="kathy" text="If ur telling the truth... God help whoever signed off on this. Keep ur phone close."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m148a" chat="dm_kathy" sender="kathy" text="Keep your phone close. I will text you from down there"
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m148b" chat="dm_kathy" sender="kathy" text="If I go quiet, tell the girls to stay in their rooms. Do not let them follow me"
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m148c" chat="dm_kathy" sender="kathy" text="Going down now. Elevator doors closing"
+@offline character="kathy"
+
+@comment MULTIMEDIA PACKAGE - PART 3 - OPTIONAL - DOES NOT COUNT IN 700
+@if multimedia_package_owned == true
+  @system_message chat="system" text="MULTIMEDIA PACKAGE: 5 file notes and 5 private DMs unlocked for Part 3"
+  @comment NEW FILE NOTE 1 - BEATRICE LAB NOTES
+  @ui open="dm_beatrice"
+  @typing character="beatrice" duration="2"
+  @message id="mm_p3_f1_msg" chat="dm_beatrice" sender="beatrice" text="package only. my notes from Wing A. i wrote them on my phone so no one sees my paper notes."
+  @image id="mm_p3_f1_img" chat="dm_beatrice" sender="beatrice" file="doc_beatrice_wing_a_notes.jpg" caption="Beatrice Wing A notes - cooler labels, aerosol chemicals list, timestamp 18:42"
+  @typing character="beatrice" duration="2"
+  @message id="mm_p3_f1_msg2" chat="dm_beatrice" sender="beatrice" text="i wrote down the cooler labels exactly. i did not want to forget the names."
+  @comment NEW FILE NOTE 2 - KATHY SECURITY LOG SNIPPET
+  @ui open="dm_kathy"
+  @typing character="kathy" duration="2"
+  @message id="mm_p3_f2_msg" chat="dm_kathy" sender="kathy" text="package only. this is the security log snippet. keycard, elevator, time."
+  @image id="mm_p3_f2_img" chat="dm_kathy" sender="kathy" file="doc_kathy_security_log_snippet.jpg" caption="Security log - keycard swipe Sub-Level B elevator, 23:54, ID redacted"
+  @typing character="kathy" duration="2"
+  @message id="mm_p3_f2_msg2" chat="dm_kathy" sender="kathy" text="i should not be sharing this. but you asked. the time is 23:54."
+  @comment NEW FILE NOTE 3 - ABIGAIL WRISTBAND PHOTO
+  @ui open="dm_abigail"
+  @typing character="abigail" duration="2"
+  @message id="mm_p3_f3_msg" chat="dm_abigail" sender="abigail" text="package only. my wristband. it is still red in this pic."
+  @image id="mm_p3_f3_img" chat="dm_abigail" sender="abigail" file="img_abigail_wristband_red.jpg" caption="Abigail wristband flashing red, 00:04 AM, door locked"
+  @typing character="abigail" duration="2"
+  @message id="mm_p3_f3_msg2" chat="dm_abigail" sender="abigail" text="i took this at 00:04. my door was locked. my band was red. i was scared."
+  @comment NEW FILE NOTE 4 - KAI BINOCULAR PHOTO
+  @ui open="dm_kai"
+  @typing character="kai" duration="2"
+  @message id="mm_p3_f4_msg" chat="dm_kai" sender="kai" text="package only. i took this through my binoculars. it is blurry but you can see the red lights."
+  @image id="mm_p3_f4_img" chat="dm_kai" sender="kai" file="img_kai_binocular_red_lights.jpg" caption="Island through binoculars - all windows red, 00:12 AM, south cove"
+  @typing character="kai" duration="2"
+  @message id="mm_p3_f4_msg2" chat="dm_kai" sender="kai" text="all red. every window. i have never seen that in 12 years."
+  @comment NEW FILE NOTE 5 - MAYA VENT PHOTO
+  @ui open="dm_maya"
+  @typing character="maya" duration="2"
+  @message id="mm_p3_f5_msg" chat="dm_maya" sender="maya" text="package only. this is the vent outside my door. i took it before lockdown."
+  @image id="mm_p3_f5_img" chat="dm_maya" sender="maya" file="img_maya_vent_hallway.jpg" caption="Maya hallway vent - metal vent, scratches, hallway B, 23:58"
+  @typing character="maya" duration="2"
+  @message id="mm_p3_f5_msg2" chat="dm_maya" sender="maya" text="see the scratches? they were not there in the morning. i checked."
+  @comment NEW PRIVATE DM KATHY - PART 3
+  @ui open="dm_kathy"
+  @online character="kathy"
+  @typing character="kathy" duration="2"
+  @message id="mm_p3_kathy_01" chat="dm_kathy" sender="kathy" text="I am about to go down. Can I tell you something first?"
+  @typing character="kathy" duration="2"
+  @message id="mm_p3_kathy_02" chat="dm_kathy" sender="kathy" text="I have been in the military. I have seen lockdowns. This one felt different."
+  @typing character="kathy" duration="2"
+  @message id="mm_p3_kathy_03" chat="dm_kathy" sender="kathy" text="The doors locked from outside. Not from inside. That is not standard."
+  @typing character="kathy" duration="2"
+  @message id="mm_p3_kathy_04" chat="dm_kathy" sender="kathy" text="I did not tell the girls that. I did not want them to panic more."
+  @typing character="kathy" duration="2"
+  @message id="mm_p3_kathy_05" chat="dm_kathy" sender="kathy" text="If I do not come back in 20 mins, tell them to stay put. Do not let them follow me."
+  @set trust_kathy +1
+  @comment NEW PRIVATE DM JESSICA - PART 3 - NOTE: JESSICA IS MISSING, THIS IS HER LAST NOTE FROM EARLIER
+  @ui open="dm_jessica"
+  @online character="jessica"
+  @typing character="jessica" duration="2"
+  @message id="mm_p3_jess_01" chat="dm_jessica" sender="jessica" text="hey. if you are reading this in the package, this is from earlier today."
+  @typing character="jessica" duration="2"
+  @message id="mm_p3_jess_02" chat="dm_jessica" sender="jessica" text="i wrote this before dinner. i was in Wing A and the coolers were weird."
+  @typing character="jessica" duration="2"
+  @message id="mm_p3_jess_03" chat="dm_jessica" sender="jessica" text="i told beatrice the logs were off. i did not tell her why. i was scared."
+  @typing character="jessica" duration="2"
+  @message id="mm_p3_jess_04" chat="dm_jessica" sender="jessica" text="i just wanted to do my job and get paid and go home to my mom. that is all i wanted."
+  @set trust_jessica +1
+  @comment NEW PRIVATE DM ABIGAIL - PART 3
+  @ui open="dm_abigail"
+  @online character="abigail"
+  @typing character="abigail" duration="2"
+  @message id="mm_p3_abi_01" chat="dm_abigail" sender="abigail" text="my wristband is still red. i keep staring at it."
+  @typing character="abigail" duration="2"
+  @message id="mm_p3_abi_02" chat="dm_abigail" sender="abigail" text="i am locked in. door locked. lights off. i am under my blanket again."
+  @typing character="abigail" duration="2"
+  @message id="mm_p3_abi_03" chat="dm_abigail" sender="abigail" text="i keep thinking about the gurney. and the black jacket. and jessica."
+  @typing character="abigail" duration="2"
+  @message id="mm_p3_abi_04" chat="dm_abigail" sender="abigail" text="i do not want to think jessica did it. i really do not. she is my friend."
+  @set trust_abigail +1
+  @comment NEW PRIVATE DM MAYA - PART 3
+  @ui open="dm_maya"
+  @online character="maya"
+  @typing character="maya" duration="2"
+  @message id="mm_p3_maya_01" chat="dm_maya" sender="maya" text="i am still on the floor. i have not moved."
+  @typing character="maya" duration="2"
+  @message id="mm_p3_maya_02" chat="dm_maya" sender="maya" text="i keep hearing boots. then nothing. then boots again."
+  @typing character="maya" duration="2"
+  @message id="mm_p3_maya_03" chat="dm_maya" sender="maya" text="i want to text jessica but she is not answering. i am scared she is gone."
+  @typing character="maya" duration="2"
+  @message id="mm_p3_maya_04" chat="dm_maya" sender="maya" text="u are the only one i can tell this to. i am not okay. i am really not okay."
+  @set trust_maya +1
+  @comment NEW PRIVATE DM KAI - PART 3
+  @ui open="dm_kai"
+  @online character="kai"
+  @typing character="kai" duration="2"
+  @message id="mm_p3_kai_01" chat="dm_kai" sender="kai" text="i am still here. engine on. lights red on the island."
+  @typing character="kai" duration="2"
+  @message id="mm_p3_kai_02" chat="dm_kai" sender="kai" text="my wife texted me. she said come home. i told her i cant."
+  @typing character="kai" duration="2"
+  @message id="mm_p3_kai_03" chat="dm_kai" sender="kai" text="leo drew a picture of my boat today. he sent it to me. i have it on my phone."
+  @typing character="kai" duration="2"
+  @message id="mm_p3_kai_04" chat="dm_kai" sender="kai" text="i am not leaving. southwest inlet. remember that. if they need me, i am there."
+  @set trust_kai +1
+@endif
+
+@comment JUMP TO PART 4
+@goto ep1_part4_climax

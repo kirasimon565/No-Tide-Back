@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1031730150472",
+    "project_id": "no-tide-back",
+    "storage_bucket": "no-tide-back.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1031730150472:android:5469b673648821c1622c7d",
+        "android_client_info": {
+          "package_name": "com.eyeswatchinggames.no_tide_back"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1031730150472-uigkvb84borl7q76cd7l6e71989ude7j.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.eyeswatchinggames.no_tide_back",
+            "certificate_hash": "8aa5d6c6f9cf525037c26f4af66e321cfe5fbe6b"
+          }
+        },
+        {
+          "client_id": "1031730150472-76auf0f668jsqni8ihftc15s245o0f0j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCquIPTKQUKJ1eOGUuf6ujGnV08yJS-kps"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1031730150472-76auf0f668jsqni8ihftc15s245o0f0j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

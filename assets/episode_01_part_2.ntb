@@ -1,0 +1,644 @@
+@comment PART 2 EXPANDED - HACKING TOOL 1, WIRE TRANSFER AND LATE NIGHT TENSION
+@comment ORIGINAL 26 MESSAGES + 149 NEW = 175 MAIN MESSAGES FOR PART 2
+@comment SEARCH FOR NEW TO SEE ALL ADDED LINES
+@comment Continues directly from ep1_hacking_puzzle_1
+
+:: ep1_hacking_puzzle_1
+@ui open="dm_abigail"
+@typing character="abigail" duration="2"
+@message id="m085" chat="dm_abigail" sender="abigail" text="tell me u got it!! my hands are shaking so bad i almost dropped my lens cap"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m085a" chat="dm_abigail" sender="abigail" text="i am back in my room but i can still hear my heart in my ears"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m085b" chat="dm_abigail" sender="abigail" text="my camera is on the bed and it is still glitching a little"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m085c" chat="dm_abigail" sender="abigail" text="pls tell me u got the file. pls"
+@typing character="abigail" duration="2"
+@message id="m086" chat="dm_abigail" sender="abigail" text="im running back to the dorms before security checks the trees"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m086a" chat="dm_abigail" sender="abigail" text="i took the long way around so no one sees me"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m086b" chat="dm_abigail" sender="abigail" text="i passed wing b and i swear the lights were off but i heard a door"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m086c" chat="dm_abigail" sender="abigail" text="ok im inside. door locked. i am under my blanket like a kid"
+
+@choice id="c012"
+  @reply text="i got the file. stay hidden and lock ur door!"
+    @goto ep1_launch_hack_1
+  @reply text="did anyone see u out there? what about kathy?"
+    @goto ep1_launch_hack_1
+
+:: ep1_launch_hack_1
+@typing character="abigail" duration="2"
+@message id="m087" chat="dm_abigail" sender="abigail" text="no one saw me. locking my door rn, text me the second u fix the clip!"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m087a" chat="dm_abigail" sender="abigail" text="i locked it twice. i checked twice"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m087b" chat="dm_abigail" sender="abigail" text="my hands are still shaking. i cant even type right"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m087c" chat="dm_abigail" sender="abigail" text="u are the only one i trust with this. dont send it to the group"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m087d" chat="dm_abigail" sender="abigail" text="if kathy sees it she will think i broke curfew on purpose"
+@offline character="abigail"
+
+@thought text="4 seconds of messed up video... their jammer scrambled the whole file. lets run it through the decryption thing."
+@comment NEW
+@thought text="ok. breathe. 4 seconds. i can fix 4 seconds."
+@comment NEW
+@thought text="if i mess this up abi will think she imagined it. i cant let that happen."
+
+@choice id="c013"
+  @reply text="[Launch Hacking Tool] Fix Video Frame #01"
+    @goto ep1_hack_1_minigame
+  @choice_locked id="c013_boost" cost="10" text="[10 Coins - Auto-Decrypt] Skip the scramble instantly"
+    @set hack_1_success = true
+    @set evidence_count +1
+    @goto ep1_hack_1_result
+
+:: ep1_hack_1_minigame
+@custom action="launch_hacking_tool" puzzle_id="ep1_vid_frame_01" difficulty="easy" target_file="vid_abigail_corrupted_01.mp4"
+@comment NEW
+@system_message chat="dm_abigail" text="HACKING TOOL: loading frame 01 of 04..."
+@comment NEW
+@system_message chat="dm_abigail" text="HACKING TOOL: signal noise at 78 percent. trying to clean it."
+@comment NEW
+@system_message chat="dm_abigail" text="HACKING TOOL: frame 02 is toast. frame 03 looks fixable."
+@comment NEW
+@thought text="come on. come on. just give me one clear frame."
+@wait_input
+@if puzzle_result == "success"
+  @set hack_1_success = true
+  @set evidence_count +1
+@else
+  @set hack_1_success = false
+@endif
+@goto ep1_hack_1_result
+
+:: ep1_hack_1_result
+@if hack_1_success == true
+  @sound file="hack_success.mp3"
+  @system_message chat="dm_abigail" text="✅ DONE: Frame 03/04 fixed."
+  @comment NEW
+  @system_message chat="dm_abigail" text="HACKING TOOL: 1 frame saved. 3 frames lost to jammer."
+  @image id="m088" chat="dm_abigail" sender="system" file="img_hack1_decrypted_frame.jpg" caption="night vision frame: biohazard crate, someone strapped to a gurney, a woman in a black jacket at the keypad"
+  @comment NEW
+  @thought text="what the hell... she wasnt exaggerating. thats a person strapped to a gurney, and look at the edge of the frame. that black jacket..."
+  @comment NEW
+  @thought text="i need to zoom in. that jacket. i have seen that jacket today."
+  @comment NEW
+  @thought text="ok i am not gonna tell abi the worst part yet. she is already shaking."
+@else
+  @sound file="hack_fail.mp3"
+  @system_message chat="dm_abigail" text="⚠️ PARTIAL FIX: Heavy packet loss. Cant see much."
+  @comment NEW
+  @system_message chat="dm_abigail" text="HACKING TOOL: frame 03 partial. 60 percent pixels missing."
+  @comment NEW
+  @thought text="Too much interference from their tower, i can barely see a metal cart and someone standing by a doorway in dark clothes."
+  @comment NEW
+  @thought text="i can see a shape. maybe a cart. maybe a person. not enough to be sure."
+@endif
+
+@online character="abigail"
+@typing character="abigail" duration="2"
+@message id="m089" chat="dm_abigail" sender="abigail" text="well?? tell me im not losing my mind."
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m089a" chat="dm_abigail" sender="abigail" text="u have been quiet for like 3 mins. that is a bad sign"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m089b" chat="dm_abigail" sender="abigail" text="did it work? did u see anything?"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m089c" chat="dm_abigail" sender="abigail" text="i am literally staring at my phone. pls answer"
+
+@choice id="c014"
+  @choice_if hack_1_success == true
+    @reply text="i fixed the frame abi. u werent imagining it, theres someone strapped to a gurney, and someone in a black jacket by the door."
+      @set trust_abigail +1
+      @goto ep1_abigail_reaction
+  @choice_if hack_1_success == false
+    @reply text="the signal messed it up, i can barely see anything, but i believe u."
+      @goto ep1_abigail_reaction
+
+:: ep1_abigail_reaction
+@if hack_1_success == false
+  @typing character="abigail" duration="3"
+  @message id="m090a" chat="dm_abigail" sender="abigail" text="ugh of course its messed up. i cant see anything on my end either."
+  @comment NEW
+  @typing character="abigail" duration="2"
+  @message id="m090a1" chat="dm_abigail" sender="abigail" text="my camera screen is still flickering. i think the jammer broke it"
+  @comment NEW
+  @typing character="abigail" duration="2"
+  @message id="m090a2" chat="dm_abigail" sender="abigail" text="i tried to play the clip again and it is just static now"
+  @typing character="abigail" duration="3"
+  @message id="m090b" chat="dm_abigail" sender="abigail" text="wait i can try to describe it. there was def a gurney. and someone in a black jacket... a woman i think? standing by the keypad."
+  @comment NEW
+  @typing character="abigail" duration="2"
+  @message id="m090b1" chat="dm_abigail" sender="abigail" text="she was not helping. she was just standing there. like watching"
+  @comment NEW
+  @typing character="abigail" duration="2"
+  @message id="m090b2" chat="dm_abigail" sender="abigail" text="i only saw her for a sec. but it was a woman. i am pretty sure"
+  @thought text="A woman in a black jacket... Jessica was wearing hers all evening."
+  @comment NEW
+  @thought text="jessica had her black jacket on at dinner. and she vanished for an hour. i hate that i noticed that."
+@else
+  @thought text="what the hell... abigail wasnt exaggerating. thats a person strapped to a metal gurney, and look at the edge of the frame. that black jacket..."
+  @comment NEW
+  @thought text="i should not show abi the full frame yet. she is already scared enough."
+@endif
+
+@typing character="abigail" duration="3"
+@message id="m090" chat="dm_abigail" sender="abigail" text="wait... a black jacket? {player_name}, jessica was wearing her black lab jacket all evening."
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m090c" chat="dm_abigail" sender="abigail" text="she had it on at dinner. then she left. then she came back without it"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m090d" chat="dm_abigail" sender="abigail" text="wait. did she? or am i mixing it up. my brain is fried"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m090e" chat="dm_abigail" sender="abigail" text="i need to stop. i am gonna accuse my friend of something crazy"
+@typing character="abigail" duration="3"
+@message id="m091" chat="dm_abigail" sender="abigail" text="no. no way. jess is blunt and stressed out, she wouldnt be part of whatever sick experiment that was."
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m091a" chat="dm_abigail" sender="abigail" text="jess cries when she sees a dog with a broken leg. she would not do this"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m091b" chat="dm_abigail" sender="abigail" text="she is the one who always says we should call for help. not hide stuff"
+
+@typing character="abigail" duration="3"
+@message id="m092" chat="dm_abigail" sender="abigail" text="unless... remember how she vanished for over an hour right after dinner? and how bad she needs money for her moms chemo?"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m092a" chat="dm_abigail" sender="abigail" text="she said the new treatment is 40k. 40k. who has 40k"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m092b" chat="dm_abigail" sender="abigail" text="and she was gone 70 mins. she said it was signal. what if it was not signal"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m092c" chat="dm_abigail" sender="abigail" text="i feel gross for even thinking this. she is my friend"
+@typing character="abigail" duration="2"
+@message id="m093" chat="dm_abigail" sender="abigail" text="god i feel sick even typing that. look im obsessed with 【entity-american horror story¦canonical_name=american horror story】, i dont actually wanna live inside an episode."
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m093a" chat="dm_abigail" sender="abigail" text="i watch that show and i am like ha ha scary. this is not ha ha scary"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m093b" chat="dm_abigail" sender="abigail" text="i want to go home. i want to be in my apartment with my cat videos"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m093c" chat="dm_abigail" sender="abigail" text="can u just tell me i am overthinking? pls"
+
+@choice id="c015"
+  @reply text="dont jump to conclusions yet. stay in ur room and let me dig from my end."
+    @set trust_abigail +1
+    @goto ep1_home_late_check
+  @reply text="keep an eye on jessica tomorrow, just in case. dont let her know u were outside."
+    @set suspicion +1
+    @goto ep1_home_late_check
+
+:: ep1_home_late_check
+@typing character="abigail" duration="2"
+@message id="m094" chat="dm_abigail" sender="abigail" text="deal. be careful {player_name}. ur the only one who can look stuff up without bh watching the wifi."
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m094a" chat="dm_abigail" sender="abigail" text="they watch our wifi here. i know they do. my pics took forever to upload"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m094b" chat="dm_abigail" sender="abigail" text="u are safe at home. u can google stuff. i cant"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m094c" chat="dm_abigail" sender="abigail" text="ok i am gonna try to sleep. door locked. lights off. phone on silent"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m094d" chat="dm_abigail" sender="abigail" text="text me in the morning. if i dont answer, come find me lol. not lol"
+@offline character="abigail"
+
+@delay seconds="2"
+@environment time="11:24 PM"
+@sound file="notification_chime.mp3"
+@notification chat="dm_sister" sender="Chloe (Sister)" text="Why is your bedroom light still on? It's almost midnight."
+
+@comment HOME THREAD - SISTER LATE NIGHT DIGGING
+@ui open="dm_sister"
+@online character="sister"
+@typing character="sister" duration="2"
+@message id="m095" chat="dm_sister" sender="sister" text="why is ur bedroom light still on? its almost midnight."
+@comment NEW
+@typing character="sister" duration="2"
+@message id="m095a" chat="dm_sister" sender="sister" text="i can see ur light from the hallway. mom already went to bed"
+@comment NEW
+@typing character="sister" duration="2"
+@message id="m095b" chat="dm_sister" sender="sister" text="are u still on ur phone with beatrice and them?"
+@comment NEW
+@typing character="sister" duration="2"
+@message id="m095c" chat="dm_sister" sender="sister" text="u look tired. u have been on ur phone all night"
+@typing character="sister" duration="2"
+@message id="m096" chat="dm_sister" sender="sister" text="mom already went to sleep. did u get her meds earlier?"
+@comment NEW
+@typing character="sister" duration="2"
+@message id="m096a" chat="dm_sister" sender="sister" text="she asked me if u got them. i said yes but i did not actually know"
+@comment NEW
+@typing character="sister" duration="2"
+@message id="m096b" chat="dm_sister" sender="sister" text="did u? pls say yes. she gets mad when we forget"
+
+@choice id="c016"
+  @reply text="yeah left them on the kitchen counter before dinner. go to sleep chloe."
+    @goto ep1_sister_digging
+  @reply text="just finishing some stuff up. u have class tomorrow, go to bed."
+    @goto ep1_sister_digging
+
+:: ep1_sister_digging
+@if sister_suspicious == true
+  @typing character="sister" duration="3"
+  @message id="m097" chat="dm_sister" sender="sister" text="funny u mention that, cuz i couldnt sleep either, so i looked up bh on some offshore company registry."
+  @comment NEW
+  @typing character="sister" duration="2"
+  @message id="m097a" chat="dm_sister" sender="sister" text="i could not sleep so i did the thing u told me not to do"
+  @comment NEW
+  @typing character="sister" duration="2"
+  @message id="m097b" chat="dm_sister" sender="sister" text="i was just gonna check one page. then it was 3 pages. then it was like 20"
+  @typing character="sister" duration="3"
+  @message id="m098" chat="dm_sister" sender="sister" text="theyre not a normal biotech startup {bro_sis}. three of their board members used to run defense shell companies."
+  @comment NEW
+  @typing character="sister" duration="2"
+  @message id="m098a" chat="dm_sister" sender="sister" text="defense. like military contracts. not vitamins"
+  @comment NEW
+  @typing character="sister" duration="2"
+  @message id="m098b" chat="dm_sister" sender="sister" text="one of them had a company that does not even have a website. just a PO box"
+  @typing character="sister" duration="3"
+  @message id="m099" chat="dm_sister" sender="sister" text="and get this, they got sued four years ago over an unlicensed trial in eastern europe, then settled and wiped the news articles."
+  @comment NEW
+  @typing character="sister" duration="2"
+  @message id="m099a" chat="dm_sister" sender="sister" text="sued. settled. then all the articles are gone. like poof"
+  @comment NEW
+  @typing character="sister" duration="2"
+  @message id="m099b" chat="dm_sister" sender="sister" text="i found one cached copy. it was about a trial with no license. people got sick"
+  @comment NEW
+  @typing character="sister" duration="2"
+  @message id="m099c" chat="dm_sister" sender="sister" text="i screenshot it. i have it. do u want it?"
+  @add_evidence id="ev_bh_shell_history" title="Chloe's Corporate Registry Find" description="B.H. is tied to old defense guys and a hidden lawsuit about unlicensed human trials."
+  @set evidence_count +1
+@else
+  @typing character="sister" duration="2"
+  @message id="m097" chat="dm_sister" sender="sister" text="ok ok mom mode off 🙄"
+  @comment NEW
+  @typing character="sister" duration="2"
+  @message id="m097a" chat="dm_sister" sender="sister" text="i am not mom. i am just tired and nosy"
+  @comment NEW
+  @typing character="sister" duration="2"
+  @message id="m097b" chat="dm_sister" sender="sister" text="i am gonna go sleep for real now"
+  @typing character="sister" duration="3"
+  @message id="m098" chat="dm_sister" sender="sister" text="tell beatrice i said hi when she wakes up tomorrow. goodnight!"
+  @comment NEW
+  @typing character="sister" duration="2"
+  @message id="m098a" chat="dm_sister" sender="sister" text="tell her i miss her. and tell maya her scarf is still at moms"
+  @comment NEW
+  @typing character="sister" duration="2"
+  @message id="m098b" chat="dm_sister" sender="sister" text="ok. goodnight for real. love u"
+@endif
+
+@choice id="c017"
+  @choice_if sister_suspicious == true
+    @reply text="chloe listen to me, delete ur search history and DO NOT look them up again ok?"
+      @set home_safe = true
+      @goto ep1_sister_sleep
+  @choice_if sister_suspicious == true
+    @reply text="send me the link to that registry page rn, thats huge."
+      @set home_safe = false
+      @set stress +1
+      @goto ep1_sister_sleep
+  @choice_if sister_suspicious == false
+    @reply text="will do. night chloe."
+      @goto ep1_sister_sleep
+
+:: ep1_sister_sleep
+@if sister_suspicious == true
+  @if home_safe == true
+    @typing character="sister" duration="2"
+    @message id="m100" chat="dm_sister" sender="sister" text="ok now ur actually scaring me. wiping my browser now. night."
+    @comment NEW
+    @typing character="sister" duration="2"
+    @message id="m100a" chat="dm_sister" sender="sister" text="i wiped it. history, cookies, all of it"
+    @comment NEW
+    @typing character="sister" duration="2"
+    @message id="m100b" chat="dm_sister" sender="sister" text="i am kinda scared now. but i am gonna sleep"
+  @else
+    @typing character="sister" duration="2"
+    @message id="m100" chat="dm_sister" sender="sister" text="sent it to ur inbox. be careful whatever is going on."
+    @comment NEW
+    @typing character="sister" duration="2"
+    @message id="m100a" chat="dm_sister" sender="sister" text="sent. check ur inbox. it has 2 links"
+    @comment NEW
+    @typing character="sister" duration="2"
+    @message id="m100b" chat="dm_sister" sender="sister" text="if those links stop working, screenshot them fast"
+  @endif
+@endif
+@comment NEW
+@typing character="sister" duration="2"
+@message id="m100c" chat="dm_sister" sender="sister" text="night. lock ur door too. i dont know why i said that. just lock it"
+@offline character="sister"
+
+@comment CONSEQUENCE - SISTER LATE NIGHT DISCOVERY
+@delay seconds="4"
+@if sister_suspicious == true && home_safe == false
+  @sound file="notification_chime.mp3"
+  @notification chat="dm_sister" sender="Chloe (Sister)" text="Wait. I clicked on one of the links and it said the page was taken down an hour ago. That's not normal."
+  @comment NEW
+  @typing character="sister" duration="2"
+  @message id="m100d" chat="dm_sister" sender="sister" text="the page is gone. like 404 gone"
+  @comment NEW
+  @typing character="sister" duration="2"
+  @message id="m100e" chat="dm_sister" sender="sister" text="i clicked it 10 mins ago and it worked. now it is gone"
+  @comment NEW
+  @typing character="sister" duration="2"
+  @message id="m100f" chat="dm_sister" sender="sister" text="that is not normal. websites do not just vanish like that"
+  @add_evidence id="ev_bh_taken_down" title="Chloe's Late Night Discovery" description="B.H. is actively deleting its company history."
+  @set evidence_count +1
+@endif
+
+@comment INVESTIGATING THE WIRE TRANSFER AND LATE NIGHT GROUP CHAT
+@delay seconds="2"
+@environment time="11:52 PM"
+@thought text="if theyre hiding behind shell companies, lets check their public payouts..."
+@comment NEW
+@thought text="ok. chloe found shell companies. lets see if they paid anyone recently."
+@comment NEW
+@thought text="public escrow records are boring. that is why no one checks them. perfect."
+@custom action="database_lookup" query="BH_Organization_Contractor_Escrow"
+@delay seconds="2"
+@system_message chat="system" text="📄 PUBLIC ESCROW RECORD FOUND: Ref #BH-9941-VANCE"
+@comment NEW
+@system_message chat="system" text="PUBLIC ESCROW: 1 record found. 3 days before boat trip."
+@comment NEW
+@thought text="wait... Ref #BH-9941-VANCE. Date: Three days before the boat trip. Amount: $85,000. Memo: 'Phase-1 Subject Acquisition and Lab Clearance, J. Vance.'"
+@comment NEW
+@thought text="85k. 3 days before they left. under jessica's name."
+@comment NEW
+@thought text="this could be her normal contract pay. or it could be something else. i need to be careful."
+@comment NEW
+@thought text="i am not gonna tell abi this yet. she will spiral."
+@add_evidence id="ev_jessica_wire" title="Escrow Record #BH-9941-VANCE" description="An $85,000 B.H. payment under Jessica Vance's name three days before they left."
+@set evidence_count +1
+
+@sound file="notification_chime.mp3"
+@notification chat="group_island" sender="Maya" text="Guys?? Is anyone else awake right now?"
+
+@ui open="group_island"
+@online character="maya"
+@online character="beatrice"
+@typing character="maya" duration="2"
+@message id="m101" chat="group_island" sender="maya" text="guys?? is anyone else awake rn?"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m101a" chat="group_island" sender="maya" text="pls someone answer. i am freaking out"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m101b" chat="group_island" sender="maya" text="i can hear something in the hallway. i am not joking"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m101c" chat="group_island" sender="maya" text="i was trying to sleep and then i heard it"
+@typing character="beatrice" duration="2"
+@message id="m102" chat="group_island" sender="beatrice" text="i am. whats wrong maya? why r u texting at midnight?"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m102a" chat="group_island" sender="beatrice" text="i was still up reading. what happened?"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m102b" chat="group_island" sender="beatrice" text="are u in ur room? is ur door locked?"
+
+@typing character="maya" duration="3"
+@message id="m103" chat="group_island" sender="maya" text="something is scratching the metal vents in the hallway outside my door"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m103a" chat="group_island" sender="maya" text="it is the vent right outside my door. not far. right there"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m103b" chat="group_island" sender="maya" text="it stops. then it starts again. like it knows i am listening"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m103c" chat="group_island" sender="maya" text="i put my ear to the door and it got louder"
+@typing character="maya" duration="2"
+@message id="m104" chat="group_island" sender="maya" text="its not a rat. it sounds like... nails on metal. fingernails."
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m104a" chat="group_island" sender="maya" text="rats do not sound like that. rats are quick. this is slow"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m104b" chat="group_island" sender="maya" text="it is like someone dragging nails down the vent. slow"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m104c" chat="group_island" sender="maya" text="i am gonna throw up. i swear i am gonna throw up"
+
+@online character="abigail"
+@typing character="abigail" duration="2"
+@message id="m105" chat="group_island" sender="abigail" text="i hear it too!! it just passed my room heading toward wing b!"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m105a" chat="group_island" sender="abigail" text="i was just about to sleep and then i heard it"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m105b" chat="group_island" sender="abigail" text="it went past my door. i heard it move"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m105c" chat="group_island" sender="abigail" text="it is heading toward wing b. toward jessica's room"
+
+@typing character="beatrice" duration="3"
+@message id="m106" chat="group_island" sender="beatrice" text="stay inside ur rooms and lock the doors. im texting kathy rn."
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m106a" chat="group_island" sender="beatrice" text="everyone lock ur doors. now. do not open them"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m106b" chat="group_island" sender="beatrice" text="i am texting kathy. she is on duty tonight"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m106c" chat="group_island" sender="beatrice" text="if it is an animal, kathy will handle it. if it is not, still kathy"
+@typing character="maya" duration="2"
+@message id="m107" chat="group_island" sender="maya" text="where is jessica?! her room is right next to the wing b stairs!"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m107a" chat="group_island" sender="maya" text="jessica's room is next to the stairs. she is closest to it"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m107b" chat="group_island" sender="maya" text="jessica pls answer. jessica"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m107c" chat="group_island" sender="maya" text="she is not answering. she was supposed to be asleep"
+
+@choice id="c018"
+  @reply text="everyone lock ur doors and stay away from the vents! wheres kathy?!"
+    @goto ep1_part2_bridge
+  @reply text="has anyone heard from jessica since she went to bed?!"
+    @set suspicion +1
+    @goto ep1_part2_bridge
+
+:: ep1_part2_bridge
+@online character="kathy"
+@typing character="kathy" duration="2"
+@message id="m108" chat="group_island" sender="kathy" text="All personnel: stay in your rooms with lights off. Do NOT open your doors for anyone except me."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m108a" chat="group_island" sender="kathy" text="Lights off. Doors locked. Do not open for anyone except me."
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m108b" chat="group_island" sender="kathy" text="I am doing a hallway check now. Stay inside."
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m108c" chat="group_island" sender="beatrice" text="copy. doors locked. lights off. we are inside"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m108d" chat="group_island" sender="maya" text="my lights are off. i am in my bed with my blanket"
+@typing character="maya" duration="2"
+@message id="m109" chat="group_island" sender="maya" text="kathy what is happening?! theres someone screaming downstairs!!"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m109a" chat="group_island" sender="maya" text="i can hear screaming. downstairs. not an animal. a person"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m109b" chat="group_island" sender="maya" text="it sounds like someone is calling for help"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m109c" chat="group_island" sender="abigail" text="i hear it too. it is faint. but it is there"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m109d" chat="group_island" sender="beatrice" text="do not go downstairs. maya. abi. do not move"
+
+@sound file="distant_alarm.mp3"
+@vibration pattern="short"
+@typing character="beatrice" duration="2"
+@message id="m110" chat="group_island" sender="beatrice" text="the power in the hallway just flickered, my wristband is flashing red!"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m110a" chat="group_island" sender="beatrice" text="my wristband just went red. it was green before"
+@comment NEW
+@typing character="beatrice" duration="2"
+@message id="m110b" chat="group_island" sender="beatrice" text="the hallway lights flickered twice. then they went dim"
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m110c" chat="group_island" sender="maya" text="mine is red too. mine is flashing red"
+@comment NEW
+@typing character="abigail" duration="2"
+@message id="m110d" chat="group_island" sender="abigail" text="mine too. all of ours? is that normal?"
+@comment NEW
+@typing character="kathy" duration="2"
+@message id="m110e" chat="group_island" sender="kathy" text="Stay inside. Red means stay inside. I am handling it."
+@comment NEW
+@typing character="maya" duration="2"
+@message id="m110f" chat="group_island" sender="maya" text="{player_name} are u still there? pls stay on"
+
+@comment MULTIMEDIA PACKAGE - PART 2 - OPTIONAL - DOES NOT COUNT IN 700
+@if multimedia_package_owned == true
+  @system_message chat="system" text="MULTIMEDIA PACKAGE: 5 file notes and 5 private DMs unlocked for Part 2"
+  @comment NEW FILE NOTE 1 - ABIGAIL CAMERA SETTINGS
+  @ui open="dm_abigail"
+  @typing character="abigail" duration="2"
+  @message id="mm_p2_f1_msg" chat="dm_abigail" sender="abigail" text="package only. this is what my camera was set to that night. iso 6400, shutter 1/60."
+  @image id="mm_p2_f1_img" chat="dm_abigail" sender="abigail" file="doc_abigail_camera_settings.jpg" caption="Abigail camera settings - night mode, lens 50mm, timestamp 22:48, battery 12 percent"
+  @typing character="abigail" duration="2"
+  @message id="mm_p2_f1_msg2" chat="dm_abigail" sender="abigail" text="my battery was at 12 percent. that is why it glitched so fast. not just the jammer."
+  @comment NEW FILE NOTE 2 - CHLOE REGISTRY SCREENSHOT
+  @ui open="dm_sister"
+  @typing character="sister" duration="2"
+  @message id="mm_p2_f2_msg" chat="dm_sister" sender="sister" text="package only. this is the registry page i found. i screenshot it before it vanished."
+  @image id="mm_p2_f2_img" chat="dm_sister" sender="sister" file="doc_chloe_registry_screenshot.jpg" caption="Offshore registry - B.H. parent company listed, board members redacted, page cached 11:31 PM"
+  @typing character="sister" duration="2"
+  @message id="mm_p2_f2_msg2" chat="dm_sister" sender="sister" text="see the board list? three names are blacked out. i did not black them out. they were already like that."
+  @comment NEW FILE NOTE 3 - KAI WEATHER LOG
+  @ui open="dm_kai"
+  @typing character="kai" duration="2"
+  @message id="mm_p2_f3_msg" chat="dm_kai" sender="kai" text="package only. my weather log for tonight. wind calm, sea calm, no storm."
+  @image id="mm_p2_f3_img" chat="dm_kai" sender="kai" file="doc_kai_weather_log.jpg" caption="Kai weather log - wind 4 knots, sea state calm, visibility 2 miles, anchor position south cove"
+  @typing character="kai" duration="2"
+  @message id="mm_p2_f3_msg2" chat="dm_kai" sender="kai" text="no storm tonight. so if the power flickered, it was not weather."
+  @comment NEW FILE NOTE 4 - KATHY CURFEW LOG
+  @ui open="dm_kathy"
+  @typing character="kathy" duration="2"
+  @message id="mm_p2_f4_msg" chat="dm_kathy" sender="kathy" text="package only. my curfew check log. i do this every night at 22:00."
+  @image id="mm_p2_f4_img" chat="dm_kathy" sender="kathy" file="doc_kathy_curfew_log.jpg" caption="Kathy curfew log - all rooms checked 22:00, hallway B clear, east door locked"
+  @typing character="kathy" duration="2"
+  @message id="mm_p2_f4_msg2" chat="dm_kathy" sender="kathy" text="at 22:00 everything was clear. something changed after midnight."
+  @comment NEW FILE NOTE 5 - JESSICA MOM BILL REDACTED
+  @ui open="dm_jessica"
+  @typing character="jessica" duration="2"
+  @message id="mm_p2_f5_msg" chat="dm_jessica" sender="jessica" text="package only. this is the hospital letter. i blacked out the amounts. i do not want pity."
+  @image id="mm_p2_f5_img" chat="dm_jessica" sender="jessica" file="doc_jessica_hospital_letter.jpg" caption="Hospital letter - treatment schedule, amounts redacted, next appointment next week"
+  @typing character="jessica" duration="2"
+  @message id="mm_p2_f5_msg2" chat="dm_jessica" sender="jessica" text="i just want people to know i am not making it up. it is real. it is a lot."
+  @comment NEW PRIVATE DM KATHY - PART 2
+  @ui open="dm_kathy"
+  @online character="kathy"
+  @typing character="kathy" duration="2"
+  @message id="mm_p2_kathy_01" chat="dm_kathy" sender="kathy" text="Can I ask you something off the record?"
+  @typing character="kathy" duration="2"
+  @message id="mm_p2_kathy_02" chat="dm_kathy" sender="kathy" text="I have worked for B.H. for ten years. I have never seen wristbands go red like that."
+  @typing character="kathy" duration="2"
+  @message id="mm_p2_kathy_03" chat="dm_kathy" sender="kathy" text="Red used to mean medical emergency. Now it means stay inside. They changed the manual last month."
+  @typing character="kathy" duration="2"
+  @message id="mm_p2_kathy_04" chat="dm_kathy" sender="kathy" text="I did not get a memo about why. I just got the new manual."
+  @typing character="kathy" duration="2"
+  @message id="mm_p2_kathy_05" chat="dm_kathy" sender="kathy" text="Do not tell the girls I am worried. I need them to think I have a plan."
+  @set trust_kathy +1
+  @comment NEW PRIVATE DM JESSICA - PART 2
+  @ui open="dm_jessica"
+  @online character="jessica"
+  @typing character="jessica" duration="2"
+  @message id="mm_p2_jess_01" chat="dm_jessica" sender="jessica" text="hey. sorry i was weird at dinner."
+  @typing character="jessica" duration="2"
+  @message id="mm_p2_jess_02" chat="dm_jessica" sender="jessica" text="my mom called and the hospital said the new treatment might work but it is expensive."
+  @typing character="jessica" duration="2"
+  @message id="mm_p2_jess_03" chat="dm_jessica" sender="jessica" text="i went to the north courtyard to get signal because the hallway has dead zones."
+  @typing character="jessica" duration="2"
+  @message id="mm_p2_jess_04" chat="dm_jessica" sender="jessica" text="i was not hiding. i was just trying to hear my mom's doctor without crying in front of everyone."
+  @set trust_jessica +1
+  @comment NEW PRIVATE DM ABIGAIL - PART 2
+  @ui open="dm_abigail"
+  @online character="abigail"
+  @typing character="abigail" duration="2"
+  @message id="mm_p2_abi_01" chat="dm_abigail" sender="abigail" text="u know what is weird? i film everything because i am scared i will forget."
+  @typing character="abigail" duration="2"
+  @message id="mm_p2_abi_02" chat="dm_abigail" sender="abigail" text="my dad used to film everything too. he said if u have it on camera, no one can say u made it up."
+  @typing character="abigail" duration="2"
+  @message id="mm_p2_abi_03" chat="dm_abigail" sender="abigail" text="tonight i filmed something and i still feel like no one will believe me."
+  @typing character="abigail" duration="2"
+  @message id="mm_p2_abi_04" chat="dm_abigail" sender="abigail" text="thank u for believing me. even when the frame was messed up."
+  @set trust_abigail +1
+  @comment NEW PRIVATE DM MAYA - PART 2
+  @ui open="dm_maya"
+  @online character="maya"
+  @typing character="maya" duration="2"
+  @message id="mm_p2_maya_01" chat="dm_maya" sender="maya" text="hey. i am still awake. i cant sleep after that scratching sound."
+  @typing character="maya" duration="2"
+  @message id="mm_p2_maya_02" chat="dm_maya" sender="maya" text="i keep thinking about the vents. what if it is an animal? what if it is not?"
+  @typing character="maya" duration="2"
+  @message id="mm_p2_maya_03" chat="dm_maya" sender="maya" text="u are the only one who knows how scared i get at night. i used to sleep with the light on at my aunt's house."
+  @typing character="maya" duration="2"
+  @message id="mm_p2_maya_04" chat="dm_maya" sender="maya" text="dont tell the others i am scared. i need to look okay for them."
+  @set trust_maya +1
+  @comment NEW PRIVATE DM KAI - PART 2
+  @ui open="dm_kai"
+  @online character="kai"
+  @typing character="kai" duration="2"
+  @message id="mm_p2_kai_01" chat="dm_kai" sender="kai" text="u still up? i saw the lights flicker from the boat."
+  @typing character="kai" duration="2"
+  @message id="mm_p2_kai_02" chat="dm_kai" sender="kai" text="from out here the whole building flickered. just for a sec. then it went back."
+  @typing character="kai" duration="2"
+  @message id="mm_p2_kai_03" chat="dm_kai" sender="kai" text="my kids ask me why i stay out here at night. i tell them it is because someone has to watch the water."
+  @typing character="kai" duration="2"
+  @message id="mm_p2_kai_04" chat="dm_kai" sender="kai" text="i am watching. engine on. if your friends need me, i am here."
+  @set trust_kai +1
+@endif
+
+@comment JUMP TO PART 3
+@goto ep1_part3_chaos
