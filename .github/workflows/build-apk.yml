@@ -162,12 +162,20 @@ jobs:
       - name: Build APK
         if: ${{ inputs.build_type == '' || inputs.build_type == 'apk' || inputs.build_type == 'both' }}
         run: |
+          set +e
           flutter build apk --release \
             --dart-define=NTB_STORE=${{ inputs.store_rail || 'googleplay' }} \
             --dart-define=REVENUECAT_ANDROID_KEY=${{ secrets.REVENUECAT_ANDROID_KEY }} \
             ${{ (inputs.with_xsolla_sdk == true && '-PwithXsolla') || '' }} \
             --build-name 1.0.0 \
-            --build-number ${{ github.run_number }}
+            --build-number ${{ github.run_number }} 2>&1 | tee /tmp/build-apk.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            while IFS= read -r line; do
+              [ -n "$line" ] && echo "::error title=build apk::${line}"
+            done < <(grep -aiE 'error|failed|could not|not found|exception|FAILURE:|Execution failed' /tmp/build-apk.log | head -40)
+            exit "$status"
+          fi
 
       - name: Build AAB
         if: ${{ inputs.build_type == 'aab' || inputs.build_type == 'both' }}

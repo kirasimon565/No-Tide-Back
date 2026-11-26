@@ -1,36 +1,51 @@
-name: Probe dependency resolution
+name: Probe Gradle build
 
-# Temporary diagnostic: prints the real pub resolver output for the pinned
-# dependency set. Deleted once the package versions are locked in.
+# Temporary diagnostic: runs the release APK build and publishes the last 40
+# meaningful log lines as check annotations, so failures are visible without
+# downloading run logs. Removed once the Android build is green.
 
 on:
   workflow_dispatch:
   push:
     paths:
-      - 'pubspec.yaml'
+      - 'android/**'
+      - 'lib/**'
 
 permissions:
   contents: read
 
 jobs:
-  probe:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
-      - name: Show error via annotations
+
+      - name: Deps
         run: |
           set +e
-          flutter --version
-          flutter pub get 2>&1 | tee /tmp/pub.log
-          status=${PIPESTATUS[0]}
-          echo "EXIT=$status" > /tmp/status
-          # annotate only resolver-relevant lines (the banner noise is ignored)
-          while IFS= read -r line; do
-            [ -n "$line" ] && echo "::error title=pub::${line}"
-          done < <(grep -iaE 'because|error|version solving|sdk|constraint|incompatible|failed|depends on|not found' /tmp/pub.log | head -40)
+          flutter pub get 2>&1 | tail -5
           exit 0
+
+      - name: Build (annotations on failure)
+        run: |
+          set +e
+          flutter build apk --release --no-tree-shake-icons > /tmp/build.log 2>&1
+          status=$?
+          echo "build exit=$status"
+          if [ "$status" -ne 0 ]; then
+            while IFS= read -r line; do
+              [ -n "$line" ] && echo "::error title=gradle::${line}"
+            done < <(grep -aiE 'error|failed|could not|not found|exception|FAILURE:|Execution failed|what went wrong' /tmp/build.log | tail -40)
+            exit 0
+          fi
