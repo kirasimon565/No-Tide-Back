@@ -177,8 +177,12 @@ jobs:
           if [ "$status" -ne 0 ]; then
             # Publish the tail as one multi-line annotation: run logs and
             # artifacts are not always retrievable from the API.
-            msg=$(tail -n 45 /tmp/build-apk.log \
-              | tr -d '\r' | sed -e 's/%/%25/g' | awk '{ printf "%s%%0A", $0 }')
+            msg=$(awk '/What went wrong/,/Try:|Get more help/' /tmp/build-apk.log \
+              | head -n 60 | tr -d '\r' | sed -e 's/%/%25/g' | awk '{ printf "%s%%0A", $0 }')
+            if [ -z "$msg" ]; then
+              msg=$(grep -aE 'e: |error:|FAILURE' /tmp/build-apk.log | head -n 40 \
+                | tr -d '\r' | sed -e 's/%/%25/g' | awk '{ printf "%s%%0A", $0 }')
+            fi
             echo "::error title=build apk (tail)::${msg}"
 
             exit "$status"
