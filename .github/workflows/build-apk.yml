@@ -98,8 +98,8 @@ jobs:
           status=${PIPESTATUS[0]}
           if [ "$status" -ne 0 ]; then
             while IFS= read -r line; do
-              [ -n "$line" ] && echo "::error title=pub get::$line"
-            done < <(tail -n 25 /tmp/pub-get.log)
+              [ -n "$line" ] && echo "::error title=pub get::${line}"
+            done < <(grep -iaE 'because|version solving|incompatible|failed|depends on|sdk' /tmp/pub-get.log | head -30)
             exit "$status"
           fi
 

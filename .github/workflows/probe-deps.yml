@@ -29,8 +29,8 @@ jobs:
           flutter pub get 2>&1 | tee /tmp/pub.log
           status=${PIPESTATUS[0]}
           echo "EXIT=$status" > /tmp/status
-          # one error annotation per line so nothing is lost without log access
+          # annotate only resolver-relevant lines (the banner noise is ignored)
           while IFS= read -r line; do
-            [ -n "$line" ] && echo "::error title=pub::$line"
-          done < <(tail -n 40 /tmp/pub.log)
+            [ -n "$line" ] && echo "::error title=pub::${line}"
+          done < <(grep -iaE 'because|error|version solving|sdk|constraint|incompatible|failed|depends on|not found' /tmp/pub.log | head -40)
           exit 0

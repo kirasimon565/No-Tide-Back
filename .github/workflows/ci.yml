@@ -47,8 +47,8 @@ jobs:
             # Surface the resolver output as check annotations so failures are
             # readable straight from the pull request / commit view.
             while IFS= read -r line; do
-              [ -n "$line" ] && echo "::error title=pub get::$line"
-            done < <(tail -n 25 /tmp/pub-get.log)
+              [ -n "$line" ] && echo "::error title=pub get::${line}"
+            done < <(grep -iaE 'because|version solving|incompatible|failed|depends on|sdk' /tmp/pub-get.log | head -30)
             exit "$status"
           fi
 
