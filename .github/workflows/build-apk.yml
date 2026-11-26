@@ -179,6 +179,12 @@ jobs:
             # artifacts are not always retrievable from the API.
             msg=$(awk '/What went wrong/,/Try:|Get more help/' /tmp/build-apk.log \
               | head -n 60 | tr -d '\r' | sed -e 's/%/%25/g' | awk '{ printf "%s%%0A", $0 }')
+            ctx=$(grep -n 'What went wrong' /tmp/build-apk.log | head -n 1 | cut -d: -f1)
+            if [ -n "$ctx" ]; then
+              prev=$(head -n "$ctx" /tmp/build-apk.log | tail -n 45 | tr -d '\r' | sed -e 's/%/%25/g' | awk '{ printf "%s%%0A", $0 }')
+              echo "::error title=build apk (pre-error context)::${prev}"
+            fi
+
             # Kotlin/Dart compiler diagnostics are always worth surfacing.
             diag=$(grep -aE 'e: file:|error:|Unresolved reference|Missing class|R8|Warning: |ERROR:' /tmp/build-apk.log | head -n 40)
             if [ -n "$diag" ]; then
