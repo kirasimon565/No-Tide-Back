@@ -1,31 +1,54 @@
 #!/bin/sh
 # ---------------------------------------------------------------------------
-# Minimal Gradle launcher (posix). Equivalent behaviour to the Gradle wrapper:
-# it downloads the distribution pinned in gradle/wrapper/gradle-wrapper.properties
-# into ~/.gradle/wrapper/dists and executes it. This keeps the repository free of
-# the large wrapper JAR while remaining fully reproducible in CI.
+# Gradle launcher (posix).
+#
+# Downloads the distribution pinned in gradle/wrapper/gradle-wrapper.properties
+# into ~/.gradle/wrapper/dists and runs it. The repository therefore does not
+# need to carry the ~50 KB wrapper JAR while staying reproducible in CI, and
+# the distribution archive is cached between jobs.
+#
+# Note: the archive always unpacks into `gradle-<version>`, which is *not* the
+# archive filename for the `-all`/`-bin` variants, so the launcher locates the
+# binary instead of assuming the directory name.
 # ---------------------------------------------------------------------------
 set -e
 
 APP_HOME=$(cd "$(dirname "$0")" && pwd)
 PROPS="$APP_HOME/gradle/wrapper/gradle-wrapper.properties"
 
-dist_url=$(sed -n 's/^distributionUrl=//p' "$PROPS" | sed 's/\\:/:/g')
-dist_name=$(basename "$dist_url" .zip)
-gradle_dir="$HOME/.gradle/wrapper/dists/$dist_name"
+dist_url=$(sed -n 's/^distributionUrl=//p' "$PROPS" | sed 's/\\:/:/g; s/\\//g')
+[ -n "$dist_url" ] || { echo "gradle-wrapper.properties has no distributionUrl" >&2; exit 1; }
 
-if [ ! -x "$gradle_dir/$dist_name/bin/gradle" ]; then
+dist_name=$(basename "$dist_url" .zip)
+cache_root="${GRADLE_USER_HOME:-$HOME/.gradle}/wrapper/dists"
+dist_dir="$cache_root/$dist_name"
+
+find_gradle() {
+    # Prefer the exact layout, then fall back to a search (archive name != dir name).
+    if [ -x "$dist_dir/$dist_name/bin/gradle" ]; then
+        echo "$dist_dir/$dist_name/bin/gradle"
+        return 0
+    fi
+    found=$(find "$dist_dir" -maxdepth 3 -type f -name gradle -path '*/bin/gradle' 2>/dev/null | head -n 1)
+    [ -n "$found" ] && echo "$found"
+}
+
+gradle_bin=$(find_gradle || true)
+
+if [ -z "$gradle_bin" ]; then
     echo "Downloading $dist_url"
-    mkdir -p "$gradle_dir"
-    tmp_zip="$gradle_dir/dist.zip"
+    mkdir -p "$dist_dir"
+    tmp_zip="$dist_dir/dist.zip"
     if command -v curl >/dev/null 2>&1; then
-        curl -fsSL "$dist_url" -o "$tmp_zip"
+        curl -fL --retry 3 --retry-delay 2 "$dist_url" -o "$tmp_zip"
     else
         wget -q "$dist_url" -O "$tmp_zip"
     fi
-    unzip -q -o "$tmp_zip" -d "$gradle_dir"
+    unzip -q -o "$tmp_zip" -d "$dist_dir"
     rm -f "$tmp_zip"
-    chmod +x "$gradle_dir/$dist_name/bin/gradle"
+    gradle_bin=$(find_gradle || true)
+    [ -n "$gradle_bin" ] || { echo "Gradle distribution unpacked without a gradle binary" >&2; exit 1; }
+    chmod +x "$gradle_bin"
 fi
 
-exec "$gradle_dir/$dist_name/bin/gradle" -p "$APP_HOME" "$@"
+exec "$gradle_bin" -p "$APP_HOME" "$@"

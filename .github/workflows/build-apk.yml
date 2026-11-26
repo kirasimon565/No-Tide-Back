@@ -99,11 +99,11 @@ jobs:
           if [ "$status" -ne 0 ]; then
             # Publish the tail of the log as one multi-line annotation: run logs
             # and artifacts are not always retrievable from the API.
-            msg=$(tail -n 60 /tmp/build-apk.log \
+            msg=$(tail -n 40 /tmp/pub-get.log \
               | tr -d '\r' \
               | sed -e 's/%/%25/g' \
               | awk '{ printf "%s%%0A", $0 }')
-            echo "::error title=build apk (tail)::${msg}"
+            echo "::error title=pub get (tail)::${msg}"
             exit "$status"
           fi
 
