@@ -44,7 +44,7 @@ class NtbOverlayHost extends ConsumerWidget {
                   child: Text(
                     state.showTextBanner!,
                     textAlign: TextAlign.center,
-                    style: AppTypography.mono
+                    style: AppTypography.monoBase
                         .copyWith(fontSize: 22, letterSpacing: 5, height: 1.4)
                         .copyWith(
                           color: state.showTextBanner!.toUpperCase().contains('EPISODE 2')

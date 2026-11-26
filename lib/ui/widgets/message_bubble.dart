@@ -396,7 +396,7 @@ class _ImageAttachment extends StatelessWidget {
               style: FilledButton.styleFrom(
                 minimumSize: const Size(0, 34),
                 padding: const EdgeInsets.symmetric(horizontal: 12),
-                textStyle: AppTypography.mono.copyWith(
+                textStyle: AppTypography.monoBase.copyWith(
                   fontSize: 10,
                   letterSpacing: 1.6,
                   fontWeight: FontWeight.w700,

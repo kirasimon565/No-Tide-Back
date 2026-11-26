@@ -95,7 +95,7 @@ class _MediaViewerPage extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       title.toUpperCase(),
-                      style: AppTypography.mono.copyWith(
+                      style: AppTypography.monoBase.copyWith(
                         fontSize: 13,
                         letterSpacing: 1.6,
                         color: AppColors.textPrimary,

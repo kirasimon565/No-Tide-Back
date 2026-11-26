@@ -42,7 +42,7 @@ class HackingToolScreen extends ConsumerStatefulWidget {
 
 class _HackingToolScreenState extends ConsumerState<HackingToolScreen> {
   final List<String> _log = <String>[];
-  final Random _random = math.Random();
+  final math.Random _random = math.Random();
 
   int _nodes = 6;
   int _matched = 0;
@@ -224,7 +224,7 @@ class _HackingToolScreenState extends ConsumerState<HackingToolScreen> {
                   const SizedBox(height: 14),
                   Text(
                     widget.targetFile.isEmpty ? 'UNKNOWN FILE' : widget.targetFile,
-                    style: AppTypography.mono.copyWith(
+                    style: AppTypography.monoBase.copyWith(
                       fontSize: 13,
                       color: AppColors.textPrimary,
                       letterSpacing: 0.6,
@@ -521,7 +521,7 @@ class _ResultPanel extends StatelessWidget {
         children: <Widget>[
           Text(
             success ? '✅ FRAME 03/04 RECOVERED' : '⚠️ PARTIAL FIX — PACKET LOSS',
-            style: AppTypography.mono.copyWith(
+            style: AppTypography.monoBase.copyWith(
               fontSize: 13,
               color: success ? AppColors.accentSuccess : AppColors.accentCrimson,
               fontWeight: FontWeight.w700,

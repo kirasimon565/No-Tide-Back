@@ -499,7 +499,7 @@ class _EpisodeCard extends StatelessWidget {
                 const Spacer(),
                 Text(
                   title,
-                  style: AppTypography.mono.copyWith(
+                  style: AppTypography.monoBase.copyWith(
                     fontSize: 15,
                     height: 1.35,
                     letterSpacing: 1.7,
@@ -593,7 +593,7 @@ class _ResumeCard extends StatelessWidget {
               value,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: AppTypography.mono.copyWith(
+              style: AppTypography.monoBase.copyWith(
                 fontSize: 11.5,
                 color: AppColors.textPrimary,
               ),
@@ -619,7 +619,7 @@ class _MiniStat extends StatelessWidget {
         children: <Widget>[
           Icon(icon, size: 16, color: AppColors.textSecondary),
           const SizedBox(height: 10),
-          Text(value, style: AppTypography.mono.copyWith(fontSize: 14, color: AppColors.textPrimary)),
+          Text(value, style: AppTypography.monoBase.copyWith(fontSize: 14, color: AppColors.textPrimary)),
           const SizedBox(height: 3),
           Text(label, style: AppTypography.monoCaption.copyWith(fontSize: 8.5, letterSpacing: 1.2)),
         ],

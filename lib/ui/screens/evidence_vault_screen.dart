@@ -237,7 +237,7 @@ class _EvidenceCard extends StatelessWidget {
                       item.title.toUpperCase(),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTypography.mono.copyWith(
+                      style: AppTypography.monoBase.copyWith(
                         fontSize: 10.5,
                         height: 1.35,
                         letterSpacing: 0.5,

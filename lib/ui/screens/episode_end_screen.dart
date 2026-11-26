@@ -113,7 +113,7 @@ class _EpisodeEndScreenState extends ConsumerState<EpisodeEndScreen>
                   Text(
                     ending?.title.replaceFirst('END OF ', '') ??
                         'EPISODE 1: THE CONTRACT',
-                    style: AppTypography.mono.copyWith(
+                    style: AppTypography.monoBase.copyWith(
                       fontSize: 21,
                       height: 1.35,
                       letterSpacing: 2,
@@ -266,7 +266,7 @@ class _EpisodeEndScreenState extends ConsumerState<EpisodeEndScreen>
                         Text(
                           '${AppConfig.nextEpisodeTitle.toUpperCase()} — IN DEVELOPMENT',
                           textAlign: TextAlign.center,
-                          style: AppTypography.mono.copyWith(
+                          style: AppTypography.monoBase.copyWith(
                             fontSize: 14,
                             letterSpacing: 1.8,
                             color: AppColors.textPrimary,

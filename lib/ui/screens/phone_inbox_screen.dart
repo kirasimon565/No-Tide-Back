@@ -181,7 +181,7 @@ class _PhoneInboxScreenState extends ConsumerState<PhoneInboxScreen> {
             Expanded(
               child: Text(
                 value,
-                style: AppTypography.mono.copyWith(fontSize: 11.5, color: AppColors.textPrimary),
+                style: AppTypography.monoBase.copyWith(fontSize: 11.5, color: AppColors.textPrimary),
               ),
             ),
           ],
@@ -231,7 +231,7 @@ class _StatusBar extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       game.environmentTime,
-                      style: AppTypography.mono.copyWith(
+                      style: AppTypography.monoBase.copyWith(
                         fontSize: 13,
                         color: AppColors.textPrimary,
                         fontWeight: FontWeight.w700,

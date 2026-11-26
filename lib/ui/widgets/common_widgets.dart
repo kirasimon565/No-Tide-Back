@@ -51,7 +51,7 @@ class NtbTag extends StatelessWidget {
           ],
           Text(
             label,
-            style: AppTypography.mono.copyWith(
+            style: AppTypography.monoBase.copyWith(
               fontSize: 10,
               height: 1.1,
               letterSpacing: 1.4,

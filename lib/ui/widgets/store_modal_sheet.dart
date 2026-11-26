@@ -166,7 +166,7 @@ class _StoreModalSheetState extends ConsumerState<StoreModalSheet> {
                         Expanded(
                           child: Text(
                             'THE MULTIMEDIA PACKAGE',
-                            style: AppTypography.mono.copyWith(
+                            style: AppTypography.monoBase.copyWith(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 1.4,
@@ -404,7 +404,7 @@ class _CoinPackCard extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       '${pack.coins} COINS',
-                      style: AppTypography.mono.copyWith(
+                      style: AppTypography.monoBase.copyWith(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
@@ -434,7 +434,7 @@ class _CoinPackCard extends StatelessWidget {
               style: FilledButton.styleFrom(
                 minimumSize: const Size(74, 36),
                 padding: const EdgeInsets.symmetric(horizontal: 14),
-                textStyle: AppTypography.mono.copyWith(
+                textStyle: AppTypography.monoBase.copyWith(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1.2,

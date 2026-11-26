@@ -4,8 +4,18 @@ import 'app_colors.dart';
 
 /// Inter for the phone UI, JetBrains Mono for anything forensic.
 abstract final class AppTypography {
+  /// Font family names (for ThemeData / fontFamily overrides).
   static const String inter = 'Inter';
   static const String mono = 'JetBrainsMono';
+
+  /// Base monospace style. `AppTypography.mono` is a family name, so UI code
+  /// that needs a style starts from [monoBase] (or one of the styles below).
+  static const TextStyle monoBase = TextStyle(
+    fontFamily: mono,
+    fontSize: 13,
+    color: AppColors.textPrimary,
+    letterSpacing: 0.3,
+  );
 
   /// Chat message body.
   static const TextStyle body = TextStyle(
