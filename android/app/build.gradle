@@ -36,7 +36,7 @@ if (hasReleaseKeystore) {
 
 android {
     namespace "com.eyeswatchinggames.no_tide_back"
-    compileSdk 35
+    compileSdk 36
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -47,7 +47,7 @@ android {
         // Must match android/app/google-services.json and MainActivity.kt package.
         applicationId "com.eyeswatchinggames.no_tide_back"
         minSdk 24
-        targetSdk 35
+        targetSdk 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
