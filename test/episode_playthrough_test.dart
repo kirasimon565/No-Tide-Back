@@ -294,6 +294,12 @@ void main() {
 
     test('emits evidence, notifications and sound cues', timeout: const Timeout(Duration(minutes: 4)), () async {
       final _RecordingRuntime run = await _play();
+      // Surfaced in CI as a check notice so coverage is visible without logs.
+      // ignore: avoid_print
+      print('PLAYTHROUGH messages=${run.messages.length} choices=${run.choiceCount} '
+          'scenes=${run.scenes.length} evidence=${run.evidence.length} '
+          'pings=${run.notifications.length} sounds=${run.sounds.length} '
+          'ended=${run.ended} endTitle=${run.endTitle}');
       expect(run.evidence, isNotEmpty, reason: '@add_evidence never fired');
       expect(run.notifications, isNotEmpty, reason: '@notification never fired');
       expect(run.sounds, isNotEmpty, reason: '@sound/@music never fired');
