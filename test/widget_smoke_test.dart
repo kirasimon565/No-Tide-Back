@@ -150,7 +150,8 @@ void main() {
         if (find.byType(PhoneInboxScreen).evaluate().isNotEmpty) break;
       }
       expect(find.byType(PhoneInboxScreen), findsOneWidget);
-      expect(find.text('BEGIN DEVICE'), findsNothing);
+      // The boot plate must be off the screen entirely: no lingering spinner.
+      expect(find.byType(PlayerSetupScreen), findsNothing);
 
       await tester.pumpWidget(const SizedBox());
       await tester.pump(const Duration(seconds: 2));
@@ -210,12 +211,13 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(EpisodeWaitingScreen), findsOneWidget);
-      // The crimson relay pill and the four action tiles are the point of the
+      // The crimson relay pill and the action tiles are the point of the
       // screen; both must survive layout at phone width.
       expect(find.text(EpisodeWaitConfig.relayBanner), findsOneWidget);
       expect(find.text('WHILE YOU WAIT'), findsOneWidget);
       expect(find.text('REVIEW CHAT LOGS'), findsOneWidget);
       expect(find.text('REPLAY EPISODE 1'), findsOneWidget);
+      expect(tester.takeException(), isNull);
 
       await tester.pumpWidget(const SizedBox());
       await tester.pump(const Duration(seconds: 6));

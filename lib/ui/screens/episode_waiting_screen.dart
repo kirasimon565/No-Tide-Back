@@ -146,17 +146,17 @@ class _EpisodeWaitingScreenState extends ConsumerState<EpisodeWaitingScreen> {
     final GameScreenState game = ref.watch(gameStateProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.bootBlack,
+      backgroundColor: AppColors.bgVoid,
       body: Stack(
         children: <Widget>[
           Positioned.fill(
             child: Image.asset(
               AssetCatalog.titleBackground,
               fit: BoxFit.cover,
-              color: Colors.black.withValues(alpha: 0.82),
+              color: AppColors.slateHeader.withValues(alpha: 0.9),
               colorBlendMode: BlendMode.darken,
               errorBuilder: (BuildContext _, Object __, StackTrace? ___) =>
-                  const ColoredBox(color: AppColors.bootBlack),
+                  const ColoredBox(color: AppColors.bgVoid),
             ),
           ),
           const Positioned.fill(child: ScanlineOverlay(opacity: 0.04)),
@@ -247,23 +247,11 @@ class _EpisodeWaitingScreenState extends ConsumerState<EpisodeWaitingScreen> {
                 const SizedBox(height: 24),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: OutlinedButton.icon(
+                  child: GhostButton(
+                    label: 'Return to main menu',
+                    icon: Icons.grid_view_rounded,
+                    height: 46,
                     onPressed: _backToHub,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.textSecondary,
-                      side: BorderSide(
-                        color: AppColors.divider.withValues(alpha: 0.9),
-                      ),
-                      minimumSize: const Size.fromHeight(46),
-                    ),
-                    icon: const Icon(Icons.grid_view_rounded, size: 17),
-                    label: Text(
-                      'RETURN TO MAIN MENU',
-                      style: AppTypography.monoLabel.copyWith(
-                        fontSize: 10.5,
-                        letterSpacing: 1.4,
-                      ),
-                    ),
                   ),
                 ),
                 const SizedBox(height: 18),
@@ -356,8 +344,17 @@ class _RelayBannerState extends State<_RelayBanner>
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Stack(
+        borderRadius: BorderRadius.circular(2),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: AppColors.slateHeader.withValues(alpha: 0.82),
+            border: Border.all(
+              color: AppColors.accentCrimson.withValues(alpha: 0.35),
+              width: 0.8,
+            ),
+            borderRadius: BorderRadius.circular(2),
+          ),
+          child: Stack(
           children: <Widget>[
             Positioned.fill(
               child: AnimatedBuilder(
@@ -389,9 +386,9 @@ class _RelayBannerState extends State<_RelayBanner>
                       Expanded(
                         child: Text(
                           EpisodeWaitConfig.relayBanner,
-                          style: AppTypography.monoLabel.copyWith(
-                            fontSize: 10.5,
-                            letterSpacing: 1.2,
+                          style: AppTypography.label.copyWith(
+                            fontSize: 9.5,
+                            letterSpacing: 1.4,
                             color: AppColors.accentCrimson,
                           ),
                         ),
@@ -401,9 +398,9 @@ class _RelayBannerState extends State<_RelayBanner>
                   const SizedBox(height: 5),
                   Text(
                     EpisodeWaitConfig.relayBannerDetail,
-                    style: AppTypography.monoCaption.copyWith(
-                      fontSize: 8.5,
-                      letterSpacing: 1.6,
+                    style: AppTypography.labelDim.copyWith(
+                      fontSize: 7.5,
+                      letterSpacing: 1.8,
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -416,19 +413,19 @@ class _RelayBannerState extends State<_RelayBanner>
                         color: AppColors.textMuted,
                       ),
                       const SizedBox(width: 6),
-                      Text(
-                        'LAST KNOWN COORDINATES',
-                        style: AppTypography.monoCaption.copyWith(
-                          fontSize: 8,
-                          letterSpacing: 1.3,
+                      Flexible(
+                        child: Text(
+                          'LAST KNOWN COORDINATES',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.labelDim.copyWith(fontSize: 7),
                         ),
                       ),
                       const Spacer(),
                       Text(
                         EpisodeWaitConfig.lastKnownCoordinates,
-                        style: AppTypography.monoCaption.copyWith(
-                          fontSize: 8.5,
-                          letterSpacing: 1.3,
+                        style: AppTypography.labelDim.copyWith(
+                          fontSize: 7,
                           color: AppColors.textPrimary,
                         ),
                       ),
@@ -438,6 +435,7 @@ class _RelayBannerState extends State<_RelayBanner>
               ),
             ),
           ],
+        ),
         ),
       ),
     );
@@ -762,24 +760,17 @@ class _ActionTile extends StatelessWidget {
     final bool enabled = onTap != null;
     return Padding(
       padding: const EdgeInsets.only(bottom: 9),
-      child: NtbCard(
-        color: AppColors.surfacePhone.withValues(alpha: 0.85),
+      child: SlatePanel(
+        color: AppColors.surfaceCard.withValues(alpha: 0.6),
         padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
         onTap: onTap,
+        accentEdge: enabled,
         child: Row(
           children: <Widget>[
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: accent.withValues(alpha: enabled ? 0.13 : 0.05),
-                borderRadius: BorderRadius.circular(9),
-              ),
-              child: Icon(
-                icon,
-                size: 17,
-                color: enabled ? accent : AppColors.textMuted,
-              ),
+            Icon(
+              icon,
+              size: 17,
+              color: enabled ? accent : AppColors.textMuted,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -787,17 +778,21 @@ class _ActionTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    label,
-                    style: AppTypography.monoLabel.copyWith(
-                      fontSize: 10,
-                      letterSpacing: 1.1,
+                    label.toUpperCase(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.label.copyWith(
+                      fontSize: 9.5,
+                      letterSpacing: 1.3,
                       color: enabled ? AppColors.textPrimary : AppColors.textMuted,
                     ),
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 5),
                   Text(
                     detail,
-                    style: AppTypography.monoCaption.copyWith(fontSize: 8),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.labelDim.copyWith(fontSize: 7),
                   ),
                 ],
               ),
