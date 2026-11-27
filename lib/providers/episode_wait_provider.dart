@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../engine/ntb_interpreter.dart';
 import '../models/evidence_item.dart';
 import '../models/game_save_state.dart';
 import '../services/isar_service.dart';
@@ -128,7 +127,7 @@ class EpisodeWaitNotifier extends Notifier<EpisodeWaitState> {
       achievements: <String>{
         ...?finished?.achievements,
         ...?live?.achievements,
-        ...?game.achievements,
+        ...game.achievements,
       }.toList(growable: false),
     );
   }

@@ -9,6 +9,7 @@ import '../../core/constants/app_config.dart';
 import '../../core/constants/asset_catalog.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
+import '../../providers/app_providers.dart';
 import '../../providers/auth_store_provider.dart';
 import '../../providers/episode_wait_provider.dart';
 import '../../providers/game_state_provider.dart';
@@ -99,7 +100,8 @@ class _EpisodeWaitingScreenState extends ConsumerState<EpisodeWaitingScreen> {
     setState(() => _replaying = true);
     try {
       final GameStateNotifier notifier = ref.read(gameStateProvider.notifier);
-      final program = (await ref.read(ntbProgramProvider.future)).program;
+      final NtbParserResult parsed = await ref.read(ntbProgramProvider.future);
+      final program = parsed.program;
       // Coins/unlocks are re-asserted from Firestore into the fresh variables
       // block, so the replay can never spend a stale local flag.
       await ref.read(economyProvider.notifier).refresh();

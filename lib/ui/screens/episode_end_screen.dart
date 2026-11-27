@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_config.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
+import '../../providers/auth_store_provider.dart';
 import '../../providers/episode_wait_provider.dart';
 import '../../providers/game_state_provider.dart';
 import '../widgets/episode_stinger.dart';
