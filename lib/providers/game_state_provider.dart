@@ -1049,9 +1049,12 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
   Future<NtbNode?> requestChoice(List<NtbNode> options) async {
     final Completer<NtbNode?> completer = Completer<NtbNode?>();
     _choiceCompleter = completer;
+    // The script has something on screen: the "loading / syncing" banner is
+    // finished even though `run()` will not return until the player picks.
     state = state.copyWith(
       activeChoice: options,
       interpreterStatus: InterpreterStatus.awaitingChoice,
+      clearBoot: true,
     );
     return completer.future;
   }
@@ -1061,7 +1064,10 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
     if (_inputCompleter != null) return;
     final Completer<void> completer = Completer<void>();
     _inputCompleter = completer;
-    state = state.copyWith(interpreterStatus: InterpreterStatus.awaitingInput);
+    state = state.copyWith(
+      interpreterStatus: InterpreterStatus.awaitingInput,
+      clearBoot: true,
+    );
     await completer.future;
   }
 }

@@ -234,13 +234,15 @@ void main() {
 
       // The interpreter is parked on the choice; the caller must still return.
       expect(watch.elapsed, lessThan(const Duration(seconds: 5)));
-      // And it must have driven, not bailed: the save is still live and the
-      // interpreter is waiting on the player rather than idle.
-      expect(container.read(gameStateProvider).save, isNotNull);
-      expect(
-        container.read(gameStateProvider).interpreterStatus,
-        isNot(InterpreterStatus.idle),
-      );
+      // And it must have driven, not bailed: the save is live and the script is
+      // sitting on the choice it stopped at.
+      final GameScreenState after = container.read(gameStateProvider);
+      expect(after.save, isNotNull);
+      expect(after.interpreterStatus, InterpreterStatus.awaitingChoice);
+      // The loading banner must be gone the moment the script has something on
+      // screen — it used to depend on `run()` returning, which never happens
+      // while parked on a choice.
+      expect(after.bootStatus, isNull);
     });
 
     testWidgets('inbox starts with only the group chat; DMs appear when written',
