@@ -29,3 +29,5 @@ build-output/
 *.apk
 *.aab
 *.ipa
+android/app/upload-keystore.jks
+**/upload-keystore.jks
