@@ -48,9 +48,12 @@ Reference sizes from CI (downscaled media, obfuscated release build):
 
 | Artifact | Size |
 | --- | --- |
-| Universal APK (all ABIs) | ~133 MB |
+| Universal APK (all ABIs) | ~62 MB |
 | arm64-v8a APK | ~56 MB |
 | AAB (Play) | ~65 MB |
+
+Sizes measured on the release build of `main`-bound commit `419c962`; media optimisation took
+`assets/images` from 83 MB to 15 MB before any of this.
 
 `assets/images` was downscaled to keep the bundle Play-friendly — avatars 640×640,
 documents ≤1400 px, evidence ≤1280 px, backgrounds ≤1200 px.

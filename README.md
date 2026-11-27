@@ -230,9 +230,9 @@ dismisses the drawer once a scene repeats.
 | `flutter analyze` | clean (no errors or warnings in `lib/` or `test/`) |
 | `flutter test` | 23 passed |
 | `.ntb` validation | 47 media references resolve, all `@goto` labels exist |
-| Release APK (universal) | built, ~133 MB |
+| Release APK (universal) | built, ~62 MB |
 | Release APK (arm64-v8a) | built, ~56 MB |
-| Release AAB | built, ~65 MB |
+| Release AAB (Play) | built, ~65 MB |
 | Keystore signing | verified with a throwaway keystore (`apksigner verify` passes) |
 
 Bundle size is dominated by art, music and the one MP4 — that is expected for a
