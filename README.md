@@ -35,9 +35,26 @@ flutter build apk --release --dart-define=NTB_STORE=samsung      # RevenueCat Ga
 flutter build apk --release --dart-define=NTB_STORE=xsolla -PwithXsolla
 ```
 
-`-PwithXsolla` adds the Xsolla Android SDK Gradle dependencies and repo. Without it the Kotlin
+`-PwithXsolla` adds the Xsolla Mobile SDK Gradle dependency and repo. Without it the Kotlin
 bridge compiles and runs fine — it resolves the SDK reflectively and reports
 "Xsolla SDK not bundled in this build" if a purchase is attempted.
+
+Overridable without editing Gradle:
+
+```bash
+-PwithXsolla -PxsollaSdkVersion=3.1.4
+-PwithXsolla -PxsollaMavenUrl=https://raw.githubusercontent.com/xsolla/xsolla-sdk-android/main
+```
+
+Xsolla retired the `com.xsolla.android:login` / `payments` / `store` `3.1.0` artifacts the
+original design named — building with them fails with
+`Could not find com.xsolla.android:store:3.1.0`. The current SDK is a single
+`com.xsolla.android:mobile` artifact (Google-Play-Billing-shaped API, settles through Xsolla Pay
+Station) served from a raw Maven tree on GitHub; that is what the bridge targets. The bridge is
+reflective on purpose, so default builds never need the AAR on the classpath.
+
+`.github/workflows/xsolla-rail.yml` builds with `-PwithXsolla` on every `android/**` change, so
+the optional rail cannot rot silently again.
 
 ---
 
@@ -232,6 +249,7 @@ Both files are git-ignored.
 | --- | --- | --- |
 | `.github/workflows/ci.yml` | push / PR | `flutter analyze`, unit tests, `.ntb` asset + label validation |
 | `.github/workflows/build-apk.yml` | push / PR / manual | APK (and optionally AAB), manual inputs for rail + Xsolla SDK |
+| `.github/workflows/xsolla-rail.yml` | `android/**` changes / manual | release APK built with `-PwithXsolla` (keeps the Xsolla rail resolving + compiling) |
 | `.github/workflows/release.yml` | tag `v*` | split-ABI + universal APK attached to a GitHub Release |
 
 Manual run (Actions → Build Android APK → Run workflow) lets you pick `apk` / `aab` / `both`,
