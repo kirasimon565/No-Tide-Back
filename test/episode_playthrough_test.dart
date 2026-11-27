@@ -56,7 +56,7 @@ class _RecordingRuntime implements NtbRuntime {
   void onEnvironment({String? time, String? location, String? weather, String? network}) {}
 
   @override
-  void onEvidence(EvidenceItem item) => evidence.add(item.id);
+  void onEvidence(EvidenceItem item) => evidence.add(item.evidenceId);
 
   @override
   void onReaction({
