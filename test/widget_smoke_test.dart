@@ -2,10 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:no_tide_back/core/theme/app_colors.dart';
 import 'package:no_tide_back/core/theme/app_typography.dart';
 import 'package:no_tide_back/models/chat_message.dart';
+import 'package:no_tide_back/services/isar_service.dart';
+import 'package:no_tide_back/services/local_store.dart';
 import 'package:no_tide_back/ui/screens/chat_room_screen.dart';
 import 'package:no_tide_back/ui/screens/evidence_vault_screen.dart';
 import 'package:no_tide_back/ui/screens/hacking_tool_screen.dart';
@@ -32,6 +35,15 @@ Widget _host(Widget child) {
 }
 
 void main() {
+  // The screens hydrate from the local mirror. Opening it against the in-memory
+  // preferences mock exercises the real first-launch path (empty store, seeded
+  // threads) instead of the "database unavailable" guard.
+  setUpAll(() async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    await LocalStore.open();
+    await IsarService.open();
+  });
+
   group('screen smoke tests', () {
     testWidgets('studio intro renders the logo and boot readout', (WidgetTester tester) async {
       await tester.pumpWidget(_host(StudioIntroScreen(onFinished: () {}, firebaseReady: false)));
