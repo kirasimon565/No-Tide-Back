@@ -184,7 +184,9 @@ Future<_RecordingRuntime> _play({
   final NtbInterpreter interpreter = NtbInterpreter(
     program: program,
     runtime: runtime,
-    paceMultiplier: 0, // no real waiting in tests
+    // Pacing is a divisor (`seconds / paceMultiplier`), so the delays collapse
+    // to ~0 instead of stretching: a full read-through runs in milliseconds.
+    paceMultiplier: 10000,
   );
 
   // `run()` returns whenever it needs the player; keep going until the script
@@ -206,6 +208,7 @@ Future<_RecordingRuntime> _play({
 }
 
 void main() {
+  // The read-through exercises ~3,000 instructions in five passes.
   group('Episode 1 playthrough (real scripts)', () {
     test('parses all four parts into one program', () async {
       final NtbProgram program = await _parseRealEpisode();
@@ -236,7 +239,7 @@ void main() {
       expect(gotos, 68);
     });
 
-    test('plays from the first scene to the stinger without premium', () async {
+    test('plays from the first scene to the stinger without premium', timeout: const Timeout(Duration(minutes: 4)), () async {
       final _RecordingRuntime run = await _play();
 
       expect(run.messages, isNotEmpty, reason: 'no dialogue was emitted');
@@ -259,7 +262,7 @@ void main() {
       );
     });
 
-    test('multimedia-owned run unlocks the premium branches', () async {
+    test('multimedia-owned run unlocks the premium branches', timeout: const Timeout(Duration(minutes: 4)), () async {
       final _RecordingRuntime locked = await _play();
       final _RecordingRuntime unlocked = await _play(premiumUnlocked: true);
 
@@ -272,7 +275,7 @@ void main() {
       );
     });
 
-    test('emits evidence, notifications and sound cues', () async {
+    test('emits evidence, notifications and sound cues', timeout: const Timeout(Duration(minutes: 4)), () async {
       final _RecordingRuntime run = await _play();
       expect(run.evidence, isNotEmpty, reason: '@add_evidence never fired');
       expect(run.notifications, isNotEmpty, reason: '@notification never fired');
