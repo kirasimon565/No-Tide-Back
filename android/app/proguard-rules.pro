@@ -12,3 +12,8 @@
 
 # Flutter
 -keep class io.flutter.** { *; }
+
+# Flutter deferred components reference Play Core classes that may be absent
+# from the runtime classpath in non-Play builds (Amazon / Samsung / Xsolla).
+-dontwarn com.google.android.play.core.**
+-keep class com.google.android.play.core.** { *; }

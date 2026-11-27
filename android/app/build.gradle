@@ -107,6 +107,12 @@ flutter {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:2.4.20"
 
+    // Flutter's PlayStoreDeferredComponentManager links against Play Core even
+    // when the app never uses deferred components; without it R8 fails on the
+    // missing com.google.android.play.core.* classes.
+    implementation "com.google.android.play:feature-delivery:2.1.0"
+    implementation "com.google.android.play:review:2.0.2"
+
     // Xsolla Android SDK (optional). Enable with: flutter build apk -PwithXsolla
     // The Kotlin bridge in MainActivity only touches these classes when invoked.
     if (project.hasProperty("withXsolla")) {
