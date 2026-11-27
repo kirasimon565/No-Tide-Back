@@ -43,11 +43,17 @@ actionable message if a purchase is attempted (never a bare failure).
 | --- | --- |
 | `NTB_STORE=xsolla` + `-PwithXsolla` | Opens the **Xsolla Pay Station** window, then writes the grant to Firestore |
 | `NTB_STORE=xsolla` without the AAR | Says the SDK is not bundled and how to rebuild |
-| `NTB_STORE=googleplay` / `amazon` / `samsung` | RevenueCat rail (if a key is configured), then the Xsolla rail |
+| `NTB_STORE=googleplay` / `amazon` / `samsung` | RevenueCat rail (if a key is configured for the *installed* store), then the Xsolla rail |
 | debug, no rail at all | Simulated grant, flagged in the sheet as sandbox |
 
 The release workflow builds both APK targets with `-PwithXsolla` and `NTB_STORE=xsolla`, so the
 artifacts people install can actually open the payment window.
+
+The compile-time value is only a **fallback**. At startup the app asks Android for its install
+source (`getInstallSourceInfo`, via the `…/store` channel) and picks the matching rail, so one APK
+behaves correctly on Play, the Galaxy Store and the Amazon Appstore. RevenueCat's generic key is
+used only on a genuine Play install; on any other store the app uses that store's key or falls
+through to the Pay Station instead of asking the Play project about a SKU it does not have.
 
 Overridable without editing Gradle:
 
@@ -81,6 +87,12 @@ game — it is the wrong feature and its form will not accept the SKUs:
 `GameStore._buyWithRevenueCat` looks the SKU up as a product; a currency code is invisible to it,
 so it reports `no product` and hands over to the next rail. The coin balance in this game lives in
 Firestore (`players/{uid}.coins`), granted by `grantCoins` — never in RevenueCat.
+
+**Entitlements are optional.** `Attach` is offered next to every product, but this game reads
+purchases (`CustomerInfo.allPurchasedProductIdentifiers`), not entitlements, because it sells
+fixed packs rather than subscriptions. Leave them unattached, or create one `multimedia` entitlement
+and attach only `multimedia_pack` — both work now. Before, restore looked *only* at entitlements, so
+a correct catalogue showed "nothing to restore".
 
 Create these as **products** (one-time / non-consumable), with the identifier matching exactly:
 

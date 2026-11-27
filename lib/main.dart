@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app.dart';
 import 'services/audio_service.dart';
+import 'providers/app_providers.dart';
 import 'services/isar_service.dart';
 
 /// Entry point.
@@ -40,6 +41,18 @@ Future<void> main() async {
   }
 
   await IsarService.open();
+
+  // Resolve the billing rail from the *install source* before any purchase can
+  // happen. This is what makes an Amazon or Galaxy install pick the matching
+  // RevenueCat key instead of the build flag's Google Play one.
+  final ProviderContainer bootstrap = ProviderContainer();
+  try {
+    await bootstrap.read(gameStoreProvider).resolveStoreType();
+  } catch (error) {
+    debugPrint('Store rail resolve failed, keeping build default: $error');
+  } finally {
+    bootstrap.dispose();
+  }
 
   runApp(
     ProviderScope(

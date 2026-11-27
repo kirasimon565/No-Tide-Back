@@ -299,10 +299,26 @@ class _StoreModalSheetState extends ConsumerState<StoreModalSheet> {
                 style: AppTypography.labelDim.copyWith(fontSize: 7, height: 2.1),
               ),
               const SizedBox(height: 8),
+              // The rail comes from the install source, so this line tells the
+              // player (and support) which project a payment would bill through.
               Text(
                 'RAIL: ${store.storeType.label.toUpperCase()}',
-                style: AppTypography.labelDim.copyWith(fontSize: 7),
+                style: AppTypography.labelDim.copyWith(
+                  fontSize: 7,
+                  color: store.hasConfiguredRail
+                      ? AppColors.textMuted
+                      : AppColors.accentPremium,
+                ),
               ),
+              if (!store.hasConfiguredRail) ...<Widget>[
+                const SizedBox(height: 6),
+                const _Notice(
+                  tone: _Tone.danger,
+                  text: 'No payment method is configured for this store build. '
+                      'Install from Google Play, the Galaxy Store or the Amazon '
+                      'Appstore to buy coins.',
+                ),
+              ],
             ],
           ),
         );

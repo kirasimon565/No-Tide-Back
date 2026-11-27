@@ -7,6 +7,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 import '../core/constants/app_config.dart';
+import 'store_channel.dart';
 import '../core/constants/store_skus.dart';
 import '../models/player_profile.dart';
 
@@ -112,11 +113,39 @@ class GameStore {
 
   static const MethodChannel _xsollaChannel = MethodChannel(StoreSkus.xsollaChannel);
 
-  final StoreType storeType = StoreType.fromEnvironment();
+  /// Rail chosen at compile time. Only the fallback: [storeType] is the
+  /// authority once the install source is known.
+  final StoreType _compiledStoreType = StoreType.fromEnvironment();
+
+  StoreType _storeType = StoreType.fromEnvironment();
+
+  /// The rail this install should use.
+  ///
+  /// On a Galaxy or Amazon device this differs from the compiled value, which is
+  /// what stopped those builds from charging at all: the RevenueCat key was
+  /// selected from the *build flag*, so an Amazon install was handed the Google
+  /// Play key (empty) and then reported "RevenueCat has no product".
+  StoreType get storeType => _storeType;
 
   bool _purchasesConfigured = false;
   String? _configuredUid;
   final _LocalPlayerCache _local = _LocalPlayerCache();
+
+  /// Resolves the rail from the install source. Called once during bootstrap;
+  /// safe to call again (the installer never changes for a live install).
+  Future<StoreType> resolveStoreType() async {
+    final String? installer = await StoreChannel.installerPackage();
+    _storeType = StoreChannel.resolve(installer, _compiledStoreType);
+    if (_storeType != _compiledStoreType) {
+      debugPrint(
+        'GameStore: installed by ${installer ?? '(sideload)'} — '
+        'using ${_storeType.label}, built for ${_compiledStoreType.label}',
+      );
+    }
+    // A different rail can mean a different RevenueCat project key.
+    _purchasesConfigured = false;
+    return _storeType;
+  }
 
   // ---------------------------------------------------------------------- auth
   User? get currentUser => _auth.currentUser;
@@ -422,11 +451,22 @@ class GameStore {
   String? _revenueCatKey() {
     final String storeKey = StoreSkus.installerKeys[storeType.installerPackage] ?? '';
     if (storeKey.isNotEmpty) return storeKey;
-    if (StoreSkus.revenueCatAndroidKey.isNotEmpty) {
+    // The generic key belongs to the Play project. Using it on a Galaxy or
+    // Amazon build asks the wrong project about the SKU and produces a
+    // misleading "no product" for a product that does exist.
+    if (storeType == StoreType.googlePlay &&
+        StoreSkus.revenueCatAndroidKey.isNotEmpty) {
       return StoreSkus.revenueCatAndroidKey;
     }
     return null;
   }
+
+  /// True when this rail has no way to charge, so the sheet can say so before
+  /// the player taps BUY.
+  bool get hasConfiguredRail =>
+      _revenueCatKey() != null ||
+      storeType == StoreType.xsolla ||
+      storeType == StoreType.googlePlay;
 
   /// Routes a SKU to the right rail and returns the verified result.
   ///
@@ -609,10 +649,38 @@ class GameStore {
     }
 
     // 2) RevenueCat, when this build has a key.
+    //
+    // The app reads *non-consumable purchases*, not entitlements: attaching the
+    // SKUs to an entitlement in the dashboard is optional, and the old check
+    // here looked only at entitlements — so a catalogue that was correct but
+    // had nothing attached reported "nothing to restore" after a restore.
     if (_revenueCatKey() == null) return false;
     try {
       if (!_purchasesConfigured) await _configurePurchases(userId);
       final CustomerInfo info = await Purchases.restorePurchases();
+
+      // `allPurchasedProductIdentifiers` covers one-time products, which is all
+      // this game sells. Entitlements are checked only as a fallback, since the
+      // dashboard does not require attaching them.
+      for (final String sku in <String>[
+        StoreSkus.multimediaPack,
+        StoreSkus.coins100,
+        StoreSkus.coins500,
+        StoreSkus.coins1500,
+      ]) {
+        if (info.allPurchasedProductIdentifiers.contains(sku)) {
+          await applyPurchase(
+            PurchaseResult(
+              success: true,
+              sku: sku,
+              // Deterministic, so restoring twice cannot re-credit the grant.
+              transactionId: 'rc_restore_${sku}_$userId',
+            ),
+          );
+          return true;
+        }
+      }
+
       final bool entitled =
           info.entitlements.all.values.any((EntitlementInfo e) => e.isActive);
       if (entitled) {

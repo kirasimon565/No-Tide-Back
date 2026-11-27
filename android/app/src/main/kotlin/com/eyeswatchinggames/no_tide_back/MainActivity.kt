@@ -37,6 +37,9 @@ class MainActivity : FlutterActivity() {
     private companion object {
         const val CHANNEL = "com.eyeswatchinggames.no_tide_back/xsolla"
 
+        /// Matches StoreChannel._channel in lib/services/store_channel.dart.
+        const val STORE_CHANNEL = "com.eyeswatchinggames.no_tide_back/store"
+
         // ------------------------------------------------------------------
         // Xsolla credentials — do not alter.
         // ------------------------------------------------------------------
@@ -77,6 +80,31 @@ class MainActivity : FlutterActivity() {
                     else -> result.notImplemented()
                 }
             }
+
+        // Install source: which store this APK came from. RevenueCat needs the
+        // matching project key, and the compiled rail cannot know whether the
+        // user installed from Play, Galaxy, or Amazon.
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, STORE_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "installerPackage" -> result.success(installerPackage())
+                    else -> result.notImplemented()
+                }
+            }
+    }
+
+    /// `com.android.vending`, `com.amazon.venezia`, `com.sec.android.app.samsungapps`,
+    /// or null for a sideload (a null name here is normal, not an error).
+    private fun installerPackage(): String? = try {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            packageManager.getInstallSourceInfo(packageName).installingPackageName
+        } else {
+            @Suppress("DEPRECATION")
+            packageManager.getInstallerPackageName(packageName)
+        }
+    } catch (e: Exception) {
+        android.util.Log.w("StoreChannel", "installerPackage unavailable", e)
+        null
     }
 
     // ------------------------------------------------------------------------

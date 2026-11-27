@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:no_tide_back/providers/app_providers.dart';
 import 'package:no_tide_back/services/game_store.dart';
+import 'package:no_tide_back/services/store_channel.dart';
 import 'package:no_tide_back/core/constants/app_config.dart';
 import 'package:no_tide_back/core/theme/app_colors.dart';
 import 'package:no_tide_back/core/theme/app_typography.dart';
@@ -166,6 +167,27 @@ void main() {
       await tester.pumpWidget(const SizedBox());
       await tester.pump(const Duration(seconds: 2));
       tester.takeException();
+    });
+
+    test('the billing rail follows the install source, not just the build flag', () {
+      // The release APK is compiled for Google Play. On a Galaxy or Amazon
+      // device that used to keep the Play rail, so RevenueCat was handed the
+      // wrong project key and reported a product that does exist as missing.
+      expect(StoreChannel.resolve('com.android.vending', StoreType.googlePlay),
+          StoreType.googlePlay);
+      expect(StoreChannel.resolve('com.amazon.venezia', StoreType.googlePlay),
+          StoreType.amazon);
+      expect(
+          StoreChannel.resolve(
+              'com.sec.android.app.samsungapps', StoreType.googlePlay),
+          StoreType.samsung);
+
+      // Sideloaded APKs (a browser download, a release page) have no installer:
+      // keep whatever the build was compiled for.
+      expect(StoreChannel.resolve(null, StoreType.xsolla), StoreType.xsolla);
+      expect(StoreChannel.resolve('', StoreType.amazon), StoreType.amazon);
+      expect(StoreChannel.resolve('com.example.filemanager', StoreType.xsolla),
+          StoreType.xsolla);
     });
 
     test('story clock advances between bubbles and honours script anchors', () {
