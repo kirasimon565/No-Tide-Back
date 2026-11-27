@@ -189,13 +189,13 @@ void main() {
       expect(StoryClock.advance('11:58 AM'), '12:00 PM');
     });
 
-    testWidgets('resume from the hub does not park on a choice',
-        (WidgetTester tester) async {
+    test('resume from the hub does not park on a choice', () async {
       // Regression guard for the reported "SYNCING..." freeze: `resume()`
       // awaited the interpreter, which stops on the first @choice. Returning
       // from that await required a choice the player could not see.
-      await tester.binding.setSurfaceSize(const Size(400, 900));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      //
+      // A plain `test`, not `testWidgets`: this drives real timers, and the
+      // widget tester's fake clock would never let the script advance.
 
       final NtbParser parser = NtbParser(assetLoader: (String _) async => '');
       final NtbProgram mini = parser.parseSource(
@@ -220,6 +220,9 @@ void main() {
       addTearDown(container.dispose);
 
       final GameStateNotifier notifier = container.read(gameStateProvider.notifier);
+      // Collapse the delivery/typing beats: this test is about the await, not
+      // the pacing.
+      await notifier.setPace(100);
       await notifier.startNewGame(program: mini);
 
       // This is the freeze: the call must come back while the script is still
