@@ -315,8 +315,16 @@ void main() {
       }
 
       // The description of where balances live must survive the whole scroll.
-      expect(find.textContaining('RAIL:'), findsOneWidget);
+      // (The sheet is denser than six drags of 260 dp; scroll to the end.)
+      await tester.scrollUntilVisible(
+        find.textContaining('RAIL:'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+        maxScrolls: 30,
+      );
+      await tester.pump(const Duration(milliseconds: 120));
       expect(find.textContaining('FIRESTORE'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('phone inbox renders the thread list', (WidgetTester tester) async {
