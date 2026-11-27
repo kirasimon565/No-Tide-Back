@@ -6,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:no_tide_back/core/theme/app_colors.dart';
 import 'package:no_tide_back/core/theme/app_typography.dart';
 import 'package:no_tide_back/models/chat_message.dart';
-import 'package:no_tide_back/providers/app_providers.dart';
 import 'package:no_tide_back/ui/screens/chat_room_screen.dart';
 import 'package:no_tide_back/ui/screens/evidence_vault_screen.dart';
 import 'package:no_tide_back/ui/screens/hacking_tool_screen.dart';
@@ -15,15 +14,12 @@ import 'package:no_tide_back/ui/screens/player_setup_screen.dart';
 import 'package:no_tide_back/ui/screens/studio_intro_screen.dart';
 import 'package:no_tide_back/ui/widgets/message_bubble.dart';
 
-/// Every screen is mounted once with Firebase/database providers replaced by
-/// inert values, so a layout exception (overflow, null provider, bad asset
-/// path) fails CI instead of shipping.
-Widget _host(Widget child, {List<Override> overrides = const <Override>[]}) {
+/// Every screen is mounted once, so a layout exception (overflow, null
+/// provider, bad asset path) fails CI instead of shipping. The screens read
+/// their state from providers that are seeded from the local mirror, which is
+/// empty in a test — exactly the first-launch path.
+Widget _host(Widget child) {
   return ProviderScope(
-    overrides: <Override>[
-      // Boot controller would otherwise parse the scripts from the bundle.
-      ...overrides,
-    ],
     child: MaterialApp(
       theme: ThemeData(
         fontFamily: AppTypography.inter,
@@ -103,6 +99,7 @@ void main() {
                 senderId: 'abigail',
                 messageType: MessageType.text,
                 bodyText: 'Do not go back to the pier.',
+                sequenceOrder: 1,
               ),
               isGroup: true,
             ),
@@ -113,6 +110,7 @@ void main() {
                 senderId: 'player',
                 messageType: MessageType.playerReply,
                 bodyText: 'I am not going anywhere.',
+                sequenceOrder: 2,
               ),
               isGroup: true,
             ),
