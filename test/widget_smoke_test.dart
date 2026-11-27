@@ -11,6 +11,7 @@ import 'package:no_tide_back/services/game_store.dart';
 import 'package:no_tide_back/core/constants/app_config.dart';
 import 'package:no_tide_back/core/theme/app_colors.dart';
 import 'package:no_tide_back/core/theme/app_typography.dart';
+import 'package:no_tide_back/engine/ntb_interpreter.dart';
 import 'package:no_tide_back/engine/ntb_parser.dart';
 import 'package:no_tide_back/providers/chat_threads_provider.dart';
 import 'package:no_tide_back/providers/game_state_provider.dart';
