@@ -1,10 +1,7 @@
 name: Probe AAB
 on:
   push:
-    paths:
-      - 'android/**'
-      - 'lib/**'
-      - 'pubspec.yaml'
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
