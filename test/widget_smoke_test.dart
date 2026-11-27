@@ -11,6 +11,7 @@ import 'package:no_tide_back/core/constants/app_config.dart';
 import 'package:no_tide_back/core/theme/app_colors.dart';
 import 'package:no_tide_back/core/theme/app_typography.dart';
 import 'package:no_tide_back/engine/ntb_parser.dart';
+import 'package:no_tide_back/models/ntb_ast_node.dart';
 import 'package:no_tide_back/models/chat_message.dart';
 import 'package:no_tide_back/services/isar_service.dart';
 import 'package:no_tide_back/services/local_store.dart';
