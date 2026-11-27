@@ -167,7 +167,9 @@ jobs:
         if: ${{ inputs.build_type == '' || inputs.build_type == 'apk' || inputs.build_type == 'both' }}
         run: |
           set +e
-          flutter build apk --release -v \
+          # --split-per-abi keeps each APK near 1/3 the size of the universal
+          # one, which matters on Play (and for sideloading over mobile data).
+          flutter build apk --release --split-per-abi -v \
             --dart-define=NTB_STORE=${{ inputs.store_rail || 'googleplay' }} \
             --dart-define=REVENUECAT_ANDROID_KEY=${{ secrets.REVENUECAT_ANDROID_KEY }} \
             ${{ (inputs.with_xsolla_sdk == true && '-PwithXsolla') || '' }} \
@@ -226,6 +228,8 @@ jobs:
         run: |
           mkdir -p build-output
           find build/app/outputs/flutter-apk -name "*.apk" -exec cp {} build-output/ \; 2>/dev/null || true
+          # Also publish one universal APK for testers who sideload on any device.
+          cp build/app/outputs/flutter-apk/app-release.apk build-output/app-universal-release.apk 2>/dev/null || true
           find build/app/outputs/bundle -name "*.aab" -exec cp {} build-output/ \; 2>/dev/null || true
           ls -lh build-output
 
