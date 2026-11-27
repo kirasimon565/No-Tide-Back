@@ -7,9 +7,13 @@ cloud saves, and a custom `.ntb` script engine that drives every message, choice
 ```
 Package / Application ID : com.eyeswatchinggames.no_tide_back
 Studio                   : EyesWatching Games
-Episode 1 script         : 4 linked parts, 3,026 lines, 38 scenes, 68 gotos, 700+ messages
+Episode 1 script         : 4 linked parts, 38 scenes, 68 gotos, 700+ messages
 Firebase project         : no-tide-back (android/app/google-services.json)
+Build verified by CI     : flutter 3.50.x stable · Gradle 9.5.0 · AGP 9.3.1 · JDK 21
 ```
+
+**Status:** `flutter analyze` clean, `flutter test` green, and the release APK + AAB build
+successfully in GitHub Actions on every push to this branch.
 
 ---
 

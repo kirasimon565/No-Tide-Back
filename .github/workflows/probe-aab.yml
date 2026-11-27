@@ -30,5 +30,6 @@ jobs:
             echo "::error title=aab (tail)::${msg}"
             exit 0
           fi
-          ls -lh build/app/outputs/bundle/release/
-          du -h build/app/outputs/bundle/release/*.aab
+          ls -lh build/app/outputs/bundle/release/ | head -5
+          info=$(ls -l build/app/outputs/bundle/release/*.aab | awk '{printf "%s bytes (%.1f MB)", $5, $5/1048576}')
+          echo "::notice title=aab size::${info}"
