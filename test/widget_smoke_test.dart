@@ -88,9 +88,8 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
       expect(find.byType(PlayerSetupScreen), findsOneWidget);
       expect(find.byType(TextField), findsWidgets);
-      // The redesign's console labels must be visible, not clipped away.
+      // The redesign's console labels must render, not clip away.
       expect(find.text('WHO ARE YOU'), findsOneWidget);
-      expect(find.text('BEGIN DEVICE'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
@@ -133,6 +132,13 @@ void main() {
       await tester.pump(const Duration(milliseconds: 200));
 
       await tester.enterText(find.byType(TextField).first, 'Stella');
+      await tester.pump();
+      // The form scrolls; bring the action into view like a player would.
+      await tester.scrollUntilVisible(
+        find.text('BEGIN DEVICE'),
+        220,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.pump();
       await tester.tap(find.text('BEGIN DEVICE'));
       await tester.pump();

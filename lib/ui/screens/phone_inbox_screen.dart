@@ -257,7 +257,8 @@ class _StatusBar extends StatelessWidget {
                 child: Icon(Icons.arrow_back_ios_new_rounded, size: 15, color: AppColors.textSecondary),
               ),
             ),
-            Column(
+            Expanded(
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
@@ -274,9 +275,13 @@ class _StatusBar extends StatelessWidget {
                     const SizedBox(width: 8),
                     Container(width: 1, height: 9, color: AppColors.divider),
                     const SizedBox(width: 8),
-                    Text(
-                      game.environmentLocation.toUpperCase(),
-                      style: AppTypography.labelDim.copyWith(fontSize: 7.5),
+                    Flexible(
+                      child: Text(
+                        game.environmentLocation.toUpperCase(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.labelDim.copyWith(fontSize: 7.5),
+                      ),
                     ),
                   ],
                 ),
@@ -292,18 +297,23 @@ class _StatusBar extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    Text(
-                      interfering ? 'RELAY INTERFERENCE' : game.networkStatus,
-                      style: AppTypography.labelDim.copyWith(
-                        fontSize: 7,
-                        color: interfering ? AppColors.accentCrimson : AppColors.textMuted,
+                    Flexible(
+                      child: Text(
+                        interfering ? 'RELAY INTERFERENCE' : game.networkStatus,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.labelDim.copyWith(
+                          fontSize: 7,
+                          color: interfering ? AppColors.accentCrimson : AppColors.textMuted,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ],
+              ),
             ),
-            const Spacer(),
+            const SizedBox(width: 8),
             InkResponse(
               onTap: onStore,
               radius: 20,
