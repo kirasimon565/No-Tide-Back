@@ -83,7 +83,7 @@ red adaptive-icon background.
 | 6 | Hacking & decryption tool | `ui/screens/hacking_tool_screen.dart` |
 | 7 | Evidence vault & case board | `ui/screens/evidence_vault_screen.dart` |
 | 8 | Store & Multimedia Package sheet | `ui/widgets/store_modal_sheet.dart` |
-| 9 | Episode end & stinger | `ui/screens/episode_end_screen.dart` |
+| 9 | Episode end stinger → Episode 2 waiting hub | `ui/screens/episode_end_screen.dart`, `ui/screens/episode_waiting_screen.dart` |
 
 ---
 
@@ -115,6 +115,47 @@ red adaptive-icon background.
   (`sister_suspicious == true && home_safe == false`).
 
 `lib/engine/ntb_expression.dart` is a tiny evaluator for those conditions.
+
+---
+
+## 4b. Screen 9 — the stinger and the waiting hub
+
+`@end_scene` (part 4, line 606) does not drop the player back to a menu. Screen 9 runs the
+authored tail of the script and then parks them on a persistent waiting dashboard:
+
+**Stinger** (`ui/widgets/episode_stinger.dart`) — executes the directives in script order:
+
+| Directive | What the screen does |
+| --- | --- |
+| `@autosave slot="ep1_complete"` | commits the checkpoint, shows the cloud tick in the toast |
+| `@unlock_achievement ach_ep1_clear` | achievement banner slides down over the fading scene |
+| `@fade_out duration="3"` | 3 s fade to pure `#000000` with drifting ocean mist |
+| `@stop_music fade_out="2"` → `@music bgm_to_be_continued.mp3` | crossfade |
+| `@fade_in` + `@show_text` × 4 | NO TIDE BACK → EPISODE 2: SIDE EFFECTS → IN DEVELOPMENT → *hang in there until the next episode.* (italic, `#94A3B8`, faint `#22D3EE` glow) |
+| `@fade_out duration="2"` | hands off to the waiting hub |
+
+The cards come from the interpreter: `@show_text` is captured as an ordered `ShowTextLine`
+list per run, so the stinger replays exactly what the script emitted (with
+`defaultStingerCards` as the fallback when arriving from a finished save).
+
+**Waiting hub** (`ui/screens/episode_waiting_screen.dart`):
+
+* Crimson `⚠ SECTOR FOUR RELAY: OFFLINE — AWAITING SIGNAL RESTORATION` pill over a pulsing
+  sonar sweep, last known coordinates `50 MILES OFFSHORE`.
+* Episode badge: `EPISODE 1 COMPLETED • 100%` next to `EPISODE 2: SIDE EFFECTS — IN DEVELOPMENT`.
+* Horizontally swipeable last-known-status cards for every character at `01:03 AM`
+  (Suite A-2 signal lost, Jessica severed, Kathy unreachable, Kai standing by, Mom & Chloe
+  unaware) — each card opens that thread in **read-only archive mode**.
+* While You Wait: Review Chat Logs, Open Evidence Vault (`n/5 COLLECTED`), Replay Episode 1
+  (re-asserts the Firestore economy first, so coins and the Multimedia Package survive),
+  Follow EyesWatching Games (copies the studio link), plus the Multimedia Package upsell when
+  it is not owned.
+
+`ChatRoomScreen(readOnly: true)` suppresses the composer, the choice drawer and the puzzle
+push, so re-reading history can never advance the script or spend coins.
+
+Home Hub's RESUME RELAY detects a completed save and becomes `WAITING FOR SIGNAL` →
+`ENTER WAITING HUB`, so a finished player always lands here until Episode 2 ships.
 
 ---
 
