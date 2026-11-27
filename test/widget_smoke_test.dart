@@ -194,6 +194,18 @@ void main() {
       expect(missing, isEmpty, reason: 'missing assets: $missing');
     });
 
+    test('every declared font file exists on disk', () {
+      final String pubspec = File('pubspec.yaml').readAsStringSync();
+      final List<String> fonts = RegExp(r'asset:\s+(assets/fonts/[^\s#]+)')
+          .allMatches(pubspec)
+          .map((RegExpMatch m) => m.group(1)!)
+          .toList();
+      expect(fonts.length, greaterThanOrEqualTo(8));
+      for (final String font in fonts) {
+        expect(File(font).existsSync(), isTrue, reason: '$font is missing');
+      }
+    });
+
     test('scripts referenced by the parser loader exist', () {
       for (final String path in <String>[
         'assets/scripts/episode_01_part_1.ntb',
