@@ -53,6 +53,17 @@ class _LocalPlayerCache {
   final Set<String> purchases = <String>{};
 }
 
+/// Raised when a payment succeeded but the entitlement could not be persisted to
+/// Firestore. Distinct from a failed purchase: the player *has* been charged.
+class PurchasePersistenceException implements Exception {
+  const PurchasePersistenceException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
 class PurchaseResult {
   const PurchaseResult({
     required this.success,
@@ -61,6 +72,7 @@ class PurchaseResult {
     this.cancelled = false,
     this.message,
     this.simulated = false,
+    this.cloudSynced = false,
   });
 
   final bool success;
@@ -72,6 +84,10 @@ class PurchaseResult {
   /// True when the entitlement came from a simulated purchase (debug builds
   /// without a billing rail available). Never trusted in release.
   final bool simulated;
+
+  /// True once the entitlement is confirmed in `players/{uid}`. The UI must not
+  /// tell the player their purchase is saved unless this is true.
+  final bool cloudSynced;
 
   static PurchaseResult cancelledByUser() =>
       const PurchaseResult(success: false, cancelled: true, message: 'Purchase cancelled');
@@ -323,10 +339,14 @@ class GameStore {
         'createdAt': FieldValue.serverTimestamp(),
       });
     }).catchError((Object error) {
+      // Keep the player's coins in the local mirror so the entitlement is not
+      // lost, then rethrow: a paid purchase that never reached Firestore must
+      // be reported, not silently labelled "saved".
       debugPrint('GameStore.grantCoins failed, using local cache: $error');
       if (_local.purchases.add(orderId ?? 'local_$sku')) {
         _local.coins += amount;
       }
+      throw PurchasePersistenceException(error.toString());
     });
   }
 
@@ -338,19 +358,26 @@ class GameStore {
     if (userId == null) return;
     final DocumentReference<Map<String, dynamic>> doc =
         _firestore.collection(StoreSkus.playersCollection).doc(userId);
-    await doc.set(<String, dynamic>{
-      FirestoreFields.multimediaUnlocked: true,
-      FirestoreFields.updatedAt: FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
-    await doc.collection('purchases').doc(
-          orderId ?? '${sku}_${DateTime.now().millisecondsSinceEpoch}',
-        ).set(<String, dynamic>{
-      'sku': sku,
-      'store': storeType.name,
-      'createdAt': FieldValue.serverTimestamp(),
-    }).catchError((Object error) {
+    try {
+      await doc.set(<String, dynamic>{
+        FirestoreFields.multimediaUnlocked: true,
+        FirestoreFields.unlockedEntitlements: FieldValue.arrayUnion(<String>[sku]),
+        FirestoreFields.updatedAt: FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      // Ledger row: makes RESTORE / support able to prove the order, and lets a
+      // replayed transaction be detected instead of granting twice.
+      await doc
+          .collection('purchases')
+          .doc(orderId ?? '${sku}_${DateTime.now().millisecondsSinceEpoch}')
+          .set(<String, dynamic>{
+        'sku': sku,
+        'store': storeType.name,
+        'createdAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (error) {
       debugPrint('GameStore.grantMultimediaPackage: $error');
-    });
+      throw PurchasePersistenceException(error.toString());
+    }
   }
 
   // ------------------------------------------------------------------ profile
@@ -520,28 +547,66 @@ class GameStore {
   }
 
   /// Applies a verified purchase to the Firestore economy ledger.
-  Future<void> applyPurchase(PurchaseResult result) async {
+  /// Writes a paid purchase to `players/{uid}`.
+  ///
+  /// Returns the document snapshot the grant left behind, or null when the sku
+  /// is unknown. Throws `PurchasePersistenceException` when the payment went
+  /// through but the cloud write did not — the player has been charged, so the
+  /// caller must say so rather than pretend it succeeded.
+  Future<Map<String, dynamic>?> applyPurchase(PurchaseResult result) async {
     final String? sku = result.sku;
-    if (!result.success || sku == null) return;
+    if (!result.success || sku == null) return null;
     final int? coins = StoreSkus.coinsForSku(sku);
-    if (coins != null) {
-      await grantCoins(coins, sku: sku, orderId: result.transactionId);
-      return;
+    try {
+      if (coins != null) {
+        await grantCoins(coins, sku: sku, orderId: result.transactionId);
+      } else if (sku == StoreSkus.multimediaPack) {
+        await grantMultimediaPackage(sku: sku, orderId: result.transactionId);
+      } else {
+        return null;
+      }
+    } catch (error) {
+      throw PurchasePersistenceException(
+        'Payment went through, but the cloud write to players/{uid} failed: $error. '
+        'The grant is queued locally — sign in with the same account and use RESTORE.',
+      );
     }
-    if (sku == StoreSkus.multimediaPack) {
-      await grantMultimediaPackage(sku: sku, orderId: result.transactionId);
-    }
+    return fetchPlayer();
   }
 
+  /// Restores entitlements.
+  ///
+  /// The authoritative record for *every* rail is the `players/{uid}` document
+  /// written by [applyPurchase], so the cloud read comes first — that is what
+  /// makes a reinstall or a new device recover the purchase. RevenueCat is only
+  /// consulted when it is configured and the cloud document is empty.
   Future<bool> restorePurchases() async {
+    final String? userId = uid;
+    if (userId == null) return false;
+
+    // 1) Cloud Firestore — the source of truth.
+    try {
+      final DocumentSnapshot<Map<String, dynamic>> snap = await _firestore
+          .collection(StoreSkus.playersCollection)
+          .doc(userId)
+          .get();
+      final Map<String, dynamic> data = snap.data() ?? <String, dynamic>{};
+      final int coins = (data[FirestoreFields.coins] as num?)?.toInt() ?? 0;
+      final bool pack = data[FirestoreFields.multimediaUnlocked] == true;
+      if (pack) _local.multimediaUnlocked = true;
+      if (coins > 0) _local.coins = coins;
+      if (pack || coins > 0) return true;
+    } catch (error) {
+      debugPrint('GameStore.restorePurchases (cloud) failed: $error');
+    }
+
+    // 2) RevenueCat, when this build has a key.
     if (_revenueCatKey() == null) return false;
     try {
-      if (!_purchasesConfigured && uid != null) {
-        await _configurePurchases(uid!);
-      }
+      if (!_purchasesConfigured) await _configurePurchases(userId);
       final CustomerInfo info = await Purchases.restorePurchases();
-      final bool entitled = info.entitlements.all.values
-          .any((EntitlementInfo e) => e.isActive);
+      final bool entitled =
+          info.entitlements.all.values.any((EntitlementInfo e) => e.isActive);
       if (entitled) {
         await grantMultimediaPackage(sku: StoreSkus.multimediaPack);
       }
@@ -551,4 +616,5 @@ class GameStore {
       return false;
     }
   }
+
 }

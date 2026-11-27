@@ -88,12 +88,16 @@ class _StoreModalSheetState extends ConsumerState<StoreModalSheet> {
     if (!mounted) return;
     if (result.success) {
       setState(() {
-        _phase = _Phase.done;
-        _status = 'SAVED TO YOUR RELAY';
-        _messageIsError = false;
-        _message = result.simulated
-            ? 'Sandbox purchase applied (no live billing rail in this build).'
-            : 'Payment confirmed — your balance is updated in Cloud Firestore.';
+        _phase = result.cloudSynced ? _Phase.done : _Phase.failed;
+        _status = result.cloudSynced ? 'SAVED TO YOUR RELAY' : 'GRANTED LOCALLY';
+        _messageIsError = !result.cloudSynced;
+        _message = !result.cloudSynced
+            // Payment cleared, cloud write did not. Say exactly that.
+            ? (result.message ??
+                'Payment cleared, but the cloud save failed. Use RESTORE to sync it.')
+            : result.simulated
+                ? 'Sandbox purchase applied (no live billing rail in this build).'
+                : 'Payment confirmed — coins and entitlements are on players/{uid}.';
       });
       await notifier.refresh();
       if (mounted) setState(() => _busySku = null);
@@ -117,6 +121,9 @@ class _StoreModalSheetState extends ConsumerState<StoreModalSheet> {
   @override
   Widget build(BuildContext context) {
     final PlayerEconomyState economy = ref.watch(economyProvider);
+    // Purchases are written to the signed-in uid, so the sheet blocks them
+    // before a payment window opens, not after a charge.
+    final bool signedIn = economy.isSignedIn;
     final GameStore store = ref.watch(gameStoreProvider);
     final double bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
@@ -175,7 +182,19 @@ class _StoreModalSheetState extends ConsumerState<StoreModalSheet> {
                 ],
               ),
               const SizedBox(height: 14),
-              _BalanceStrip(coins: economy.coins, signedIn: economy.isSignedIn),
+              _BalanceStrip(
+                coins: economy.coins,
+                signedIn: signedIn,
+                syncing: economy.isSyncing,
+              ),
+              if (!signedIn) ...<Widget>[
+                const SizedBox(height: 10),
+                const _Notice(
+                  tone: _Tone.danger,
+                  text: 'Not signed in. Coins and the package are stored on your Google '
+                      'uid so they survive a reinstall — sign in from the hub first.',
+                ),
+              ],
               if (widget.missingCoins != null) ...<Widget>[
                 const SizedBox(height: 12),
                 _Notice(
@@ -190,7 +209,7 @@ class _StoreModalSheetState extends ConsumerState<StoreModalSheet> {
               _PackagePanel(
                 owned: economy.multimediaUnlocked,
                 busy: _busySku == StoreSkus.multimediaPack,
-                disabled: _busySku != null,
+                disabled: _busySku != null || !signedIn,
                 onBuy: () => _buy(StoreSkus.multimediaPack),
               ),
               const SizedBox(height: 24),
@@ -202,7 +221,7 @@ class _StoreModalSheetState extends ConsumerState<StoreModalSheet> {
                   child: _CoinPackCard(
                     pack: pack,
                     busy: _busySku == pack.sku,
-                    disabled: _busySku != null,
+                    disabled: _busySku != null || !signedIn,
                     onBuy: () => _buy(pack.sku),
                   ),
                 ),
@@ -296,10 +315,15 @@ enum _Tone { info, danger, success }
 
 /// Coin balance + account state, top of the sheet.
 class _BalanceStrip extends StatelessWidget {
-  const _BalanceStrip({required this.coins, required this.signedIn});
+  const _BalanceStrip({
+    required this.coins,
+    required this.signedIn,
+    this.syncing = false,
+  });
 
   final int coins;
   final bool signedIn;
+  final bool syncing;
 
   @override
   Widget build(BuildContext context) {
@@ -329,6 +353,14 @@ class _BalanceStrip extends StatelessWidget {
           const SizedBox(width: 6),
           Text('COINS', style: AppTypography.labelDim.copyWith(fontSize: 7)),
           const Spacer(),
+          if (syncing) ...<Widget>[
+            const SizedBox(
+              width: 11,
+              height: 11,
+              child: CircularProgressIndicator(strokeWidth: 1.4),
+            ),
+            const SizedBox(width: 8),
+          ],
           StatusPill(
             signedIn ? 'CLOUD LINKED' : 'OFFLINE',
             color: signedIn ? AppColors.accentTide : AppColors.accentPremium,
@@ -652,6 +684,7 @@ class _PurchaseResult extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool success = phase == _Phase.done && !isError;
+    final bool cancelled = phase == _Phase.idle && !isError;
     final Color color = success
         ? AppColors.accentSuccess
         : (isError ? AppColors.accentCrimson : AppColors.textSecondary);
@@ -669,14 +702,22 @@ class _PurchaseResult extends StatelessWidget {
           Row(
             children: <Widget>[
               Icon(
-                success ? Icons.check_circle_outline : Icons.error_outline_rounded,
+                success
+                    ? Icons.check_circle_outline
+                    : cancelled
+                        ? Icons.remove_circle_outline
+                        : Icons.error_outline_rounded,
                 size: 14,
                 color: color,
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  success ? 'SAVED TO YOUR RELAY' : (isError ? 'PURCHASE FAILED' : 'CANCELLED'),
+                  success
+                      ? 'SAVED TO YOUR RELAY'
+                      : cancelled
+                          ? 'CANCELLED'
+                          : 'NOT SAVED TO THE CLOUD',
                   style: AppTypography.label.copyWith(fontSize: 9, color: color),
                 ),
               ),

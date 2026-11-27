@@ -196,11 +196,32 @@ class EconomyNotifier extends Notifier<PlayerEconomyState> {
   /// Buys a SKU and applies the verified entitlement to Firestore.
   Future<PurchaseResult> purchase(String sku) async {
     final PurchaseResult result = await _store.buy(sku);
-    if (result.success) {
+    if (!result.success) return result;
+
+    try {
       await _store.applyPurchase(result);
+    } on PurchasePersistenceException catch (error) {
+      // The charge is real. Keep the local grant (applyPurchase already did)
+      // and return a message that never claims the cloud write worked.
       await refresh();
+      return PurchaseResult(
+        success: true,
+        sku: result.sku,
+        transactionId: result.transactionId,
+        simulated: result.simulated,
+        message: error.message,
+        cloudSynced: false,
+      );
     }
-    return result;
+    await refresh();
+    return PurchaseResult(
+      success: true,
+      sku: result.sku,
+      transactionId: result.transactionId,
+      simulated: result.simulated,
+      message: result.message,
+      cloudSynced: true,
+    );
   }
 
   Future<bool> restore() async {

@@ -45,6 +45,9 @@ abstract final class FirestoreFields {
   static const String updatedAt = 'updatedAt';
   static const String createdAt = 'createdAt';
   static const String hasSeenIntro = 'hasSeenIntro';
+  /// Array of purchased skus, appended on every successful payment so an
+  /// entitlement survives even if the boolean/coin fields are reset.
+  static const String unlockedEntitlements = 'unlockedEntitlements';
 }
 
 /// Screen 9 (waiting hub) content: where each character was left at the end of
