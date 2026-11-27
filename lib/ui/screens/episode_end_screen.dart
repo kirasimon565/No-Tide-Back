@@ -107,13 +107,19 @@ class _EpisodeEndScreenState extends ConsumerState<EpisodeEndScreen> {
             )
             .toList(growable: false);
 
+    // Only celebrate an achievement the script actually unlocked. This used to
+    // fall back to a generic "Episode Complete" toast, so finishing showed an
+    // award card for something the save did not contain.
+    final bool cleared = game.achievements.contains('ach_ep1_clear');
+
     return EpisodeStinger(
       cards: cards,
       synced: _synced,
-      achievementTitle: game.achievements.contains('ach_ep1_clear')
-          ? 'The Contract'
-          : 'Episode Complete',
-      achievementDescription: ending?.title ?? 'Completed Episode 1: The Contract.',
+      showAchievementToast: cleared,
+      achievementTitle: cleared ? 'The Contract' : null,
+      achievementDescription: cleared
+          ? 'Completed Episode 1: The Contract.'
+          : null,
       onFinished: _openWaitingHub,
     );
   }

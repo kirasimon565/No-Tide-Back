@@ -25,6 +25,7 @@ import 'package:no_tide_back/app.dart';
 
 import 'stub_firebase.dart';
 import 'package:no_tide_back/ui/screens/chat_room_screen.dart';
+import 'package:no_tide_back/ui/widgets/store_modal_sheet.dart';
 import 'package:no_tide_back/ui/screens/episode_waiting_screen.dart';
 import 'package:no_tide_back/ui/screens/evidence_vault_screen.dart';
 import 'package:no_tide_back/ui/screens/hacking_tool_screen.dart';
@@ -283,6 +284,32 @@ void main() {
             .map((ChatThread t) => t.threadId),
         isEmpty,
       );
+    });
+
+    testWidgets('store sheet explains a failed payment instead of a flat refusal',
+        (WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        _host(const Scaffold(body: StoreModalSheet()), store: offlineStore),
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Signed out in the offline store: the sheet must say why BUY is closed
+      // rather than opening a payment window that can only fail.
+      expect(find.text('RELAY STORE'), findsOneWidget);
+      expect(find.textContaining('Not signed in'), findsWidgets);
+      final Iterable<ConsoleButton> buys =
+          tester.widgetList<ConsoleButton>(find.byType(ConsoleButton)).where(
+                (ConsoleButton b) => b.label.toUpperCase() == 'BUY',
+              );
+      expect(buys, isNotEmpty);
+      expect(buys.every((ConsoleButton b) => b.onPressed == null), isTrue);
+
+      // The rail is named, so a support report says which one failed.
+      expect(find.textContaining('RAIL:'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('phone inbox renders the thread list', (WidgetTester tester) async {

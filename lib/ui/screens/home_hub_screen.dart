@@ -189,13 +189,45 @@ class _HomeHubScreenState extends ConsumerState<HomeHubScreen> {
                         auth: auth,
                         onStore: () => _openStore(),
                         onMultimedia: () => _openStore(focusMultimedia: true),
+                        onResync: () => ref.read(economyProvider.notifier).refresh(),
                         onSignOut: () async {
+                          // The avatar was a one-tap sign-out: no label, no
+                          // confirmation, straight back to the splash.
+                          final bool? confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (BuildContext context) => AlertDialog(
+                              backgroundColor: AppColors.surfaceCard,
+                              title: Text(
+                                'SIGN OUT?',
+                                style: AppTypography.label.copyWith(fontSize: 12),
+                              ),
+                              content: Text(
+                                'Coins, the Multimedia Package and your saves stay on '
+                                'your Google uid. Sign in again to pick them back up.',
+                                style: AppTypography.bodySmall.copyWith(
+                                  fontSize: 12.5,
+                                  height: 1.5,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              actions: <Widget>[
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(false),
+                                  child: const Text('STAY'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(true),
+                                  child: const Text('SIGN OUT'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirmed != true) return;
                           await ref.read(economyProvider.notifier).signOut();
-                          if (!mounted) return;
+                          if (!context.mounted) return;
                           Navigator.of(context)
                               .popUntil((Route<dynamic> route) => route.isFirst);
                         },
-                        onSync: () => ref.read(economyProvider.notifier).refresh(),
                       ),
                       const SizedBox(height: 26),
                       Row(
@@ -325,7 +357,7 @@ class _TopBar extends StatelessWidget {
     required this.onStore,
     required this.onMultimedia,
     required this.onSignOut,
-    required this.onSync,
+    required this.onResync,
   });
 
   final PlayerEconomyState economy;
@@ -333,7 +365,9 @@ class _TopBar extends StatelessWidget {
   final VoidCallback onStore;
   final VoidCallback onMultimedia;
   final VoidCallback onSignOut;
-  final VoidCallback onSync;
+
+  /// Long-press: pull the balance back down from Firestore.
+  final VoidCallback onResync;
 
   @override
   Widget build(BuildContext context) {
@@ -343,6 +377,7 @@ class _TopBar extends StatelessWidget {
         // Identity disc. Signed in → Google avatar; offline → hollow ring.
         GestureDetector(
           onTap: signedIn ? onSignOut : null,
+          onLongPress: signedIn ? onResync : null,
           child: Container(
             width: 34,
             height: 34,
@@ -401,7 +436,7 @@ class _TopBar extends StatelessWidget {
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  signedIn ? 'local + cloud' : 'local session',
+                  signedIn ? 'tap: account' : 'local session',
                   maxLines: 1,
                   style: AppTypography.bodySmall.copyWith(
                     fontSize: 10,
