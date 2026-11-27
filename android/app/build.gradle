@@ -113,11 +113,14 @@ dependencies {
     implementation "com.google.android.play:feature-delivery:2.1.0"
     implementation "com.google.android.play:review:2.0.2"
 
-    // Xsolla Android SDK (optional). Enable with: flutter build apk -PwithXsolla
-    // The Kotlin bridge in MainActivity only touches these classes when invoked.
+    // Xsolla Mobile SDK (optional). Enable with: flutter build apk -PwithXsolla
+    //
+    // Single artifact since Xsolla retired login/payments/store 3.1.0 — see the
+    // repository comment in android/build.gradle. Version is overridable so a
+    // new release does not need a code change:
+    //   -PwithXsolla -PxsollaSdkVersion=3.1.4
     if (project.hasProperty("withXsolla")) {
-        implementation "com.xsolla.android:login:3.1.0"
-        implementation "com.xsolla.android:payments:3.1.0"
-        implementation "com.xsolla.android:store:3.1.0"
+        def xsollaVersion = (findProperty("xsollaSdkVersion") ?: "3.1.4").toString()
+        implementation "com.xsolla.android:mobile:${xsollaVersion}"
     }
 }

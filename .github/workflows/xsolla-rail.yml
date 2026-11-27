@@ -1,0 +1,65 @@
+name: Xsolla rail
+
+# The Xsolla SDK is optional, which means a broken coordinate would otherwise
+# only surface the day someone builds that rail. This job resolves and compiles
+# it on every push, so the integration can never silently rot again.
+
+on:
+  push:
+    branches: [main, 'arena/**']
+    paths:
+      - 'android/**'
+      - '.github/workflows/xsolla-rail.yml'
+  pull_request:
+    paths:
+      - 'android/**'
+  workflow_dispatch:
+    inputs:
+      xsolla_sdk_version:
+        description: 'com.xsolla.android:mobile version'
+        required: false
+        default: '3.1.4'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build-with-xsolla:
+    name: Build APK with the Xsolla SDK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Build with -PwithXsolla
+        run: |
+          set +e
+          flutter build apk --release -PwithXsolla \
+            -PxsollaSdkVersion=${{ inputs.xsolla_sdk_version || '3.1.4' }} \
+            --dart-define=NTB_STORE=xsolla > /tmp/xsolla.log 2>&1
+          status=$?
+          echo "exit=$status"
+          if [ "$status" -ne 0 ]; then
+            msg=$(awk '/What went wrong/,/Try:/' /tmp/xsolla.log | head -n 40 \
+              | tr -d '\r' | sed -e 's/%/%25/g' | awk '{ printf "%s%%0A", $0 }')
+            diag=$(grep -aE 'Could not find|Could not resolve|Unresolved reference|e: file:' /tmp/xsolla.log \
+              | head -n 15 | tr -d '\r' | sed -e 's/%/%25/g' | awk '{ printf "%s%%0A", $0 }')
+            echo "::error title=xsolla build (tail)::${msg}"
+            [ -n "$diag" ] && echo "::error title=xsolla resolution::${diag}"
+            exit "$status"
+          fi
+          ls -lh build/app/outputs/flutter-apk/ | head -5

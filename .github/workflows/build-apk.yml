@@ -40,10 +40,15 @@ on:
         type: choice
         options: [googleplay, amazon, samsung, xsolla]
       with_xsolla_sdk:
-        description: 'Bundle the Xsolla Android SDK (adds its Gradle repo)'
+        description: 'Bundle the Xsolla Mobile SDK (adds its Gradle repo)'
         required: false
         default: false
         type: boolean
+      xsolla_sdk_version:
+        description: 'com.xsolla.android:mobile version (only used with the SDK)'
+        required: false
+        default: '3.1.4'
+        type: string
 
 permissions:
   contents: read
@@ -173,6 +178,7 @@ jobs:
             --dart-define=NTB_STORE=${{ inputs.store_rail || 'googleplay' }} \
             --dart-define=REVENUECAT_ANDROID_KEY=${{ secrets.REVENUECAT_ANDROID_KEY }} \
             ${{ (inputs.with_xsolla_sdk == true && '-PwithXsolla') || '' }} \
+            ${{ (inputs.with_xsolla_sdk == true && '-PxsollaSdkVersion=') || '' }}${{ inputs.xsolla_sdk_version }} \
             --build-name 1.0.0 \
             --build-number ${{ github.run_number }} 2>&1 | tee /tmp/build-apk.log
           status=${PIPESTATUS[0]}

@@ -412,15 +412,24 @@ class GameStore {
   Future<PurchaseResult> _buyWithXsolla(String sku) async {
     try {
       await _xsollaChannel.invokeMethod<bool>('initXsolla');
-      final bool? ok = await _xsollaChannel.invokeMethod<bool>(
+
+      // The Xsolla Mobile SDK reports the Pay Station purchase token back so
+      // the order can be reconciled server-side. Older bridges returned a bare
+      // bool, which is still accepted here.
+      final Object? response = await _xsollaChannel.invokeMethod<Object?>(
         'buySku',
         <String, dynamic>{'sku': sku},
       );
-      if (ok == true) {
+      final bool completed = response == true ||
+          (response is Map && (response['purchaseToken'] as String?)?.isNotEmpty == true);
+      if (completed) {
+        final String? token = response is Map
+            ? response['purchaseToken'] as String?
+            : null;
         return PurchaseResult(
           success: true,
           sku: sku,
-          transactionId: 'XS_${DateTime.now().millisecondsSinceEpoch}',
+          transactionId: token ?? 'XS_${DateTime.now().millisecondsSinceEpoch}',
         );
       }
       return PurchaseResult.failure('Xsolla order was not completed');
