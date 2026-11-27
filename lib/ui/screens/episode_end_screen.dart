@@ -90,7 +90,6 @@ class _EpisodeEndScreenState extends ConsumerState<EpisodeEndScreen> {
   @override
   Widget build(BuildContext context) {
     final GameScreenState game = ref.watch(gameStateProvider);
-    final EpisodeEnding? ending = game.ending;
 
     final List<StingerCard> cards = game.showTextCards.isEmpty
         ? defaultStingerCards
