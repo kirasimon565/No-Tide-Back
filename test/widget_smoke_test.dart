@@ -220,29 +220,33 @@ void main() {
       addTearDown(container.dispose);
 
       final GameStateNotifier notifier = container.read(gameStateProvider.notifier);
-      // A save exists, so this is a resume rather than a fresh boot.
       await notifier.startNewGame(program: mini);
-      await tester.pump(const Duration(milliseconds: 50));
 
+      // This is the freeze: the call must come back while the script is still
+      // parked on the choice.
       final Stopwatch watch = Stopwatch()..start();
       try {
         await notifier.resume(program: mini).timeout(const Duration(seconds: 5));
       } on TimeoutException {
-        fail('resume() blocked on the interpreter for 5s — the SYNCING freeze is back');
+        fail('resume() blocked on the interpreter for 5 s — the SYNCING freeze is back');
       }
       watch.stop();
-
-      // The interpreter is parked on the choice; the caller must still return.
       expect(watch.elapsed, lessThan(const Duration(seconds: 5)));
-      // And it must have driven, not bailed: the save is live and the script is
-      // sitting on the choice it stopped at.
+
+      // The background drive must then actually reach the choice, and the
+      // loading banner must clear there rather than waiting for run() to end.
+      for (int i = 0; i < 60; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        if (container.read(gameStateProvider).interpreterStatus ==
+            InterpreterStatus.awaitingChoice) {
+          break;
+        }
+      }
       final GameScreenState after = container.read(gameStateProvider);
       expect(after.save, isNotNull);
       expect(after.interpreterStatus, InterpreterStatus.awaitingChoice);
-      // The loading banner must be gone the moment the script has something on
-      // screen — it used to depend on `run()` returning, which never happens
-      // while parked on a choice.
       expect(after.bootStatus, isNull);
+      expect(after.activeChoice, isNotNull);
     });
 
     testWidgets('inbox starts with only the group chat; DMs appear when written',
