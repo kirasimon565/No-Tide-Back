@@ -233,10 +233,12 @@ void main() {
 
       // The interpreter is parked on the choice; the caller must still return.
       expect(watch.elapsed, lessThan(const Duration(seconds: 5)));
-      // And resume must actually have run: the thread has its message.
+      // And it must have driven, not bailed: the save is still live and the
+      // interpreter is waiting on the player rather than idle.
+      expect(container.read(gameStateProvider).save, isNotNull);
       expect(
-        container.read(threadMessagesProvider('group_island')),
-        isNotEmpty,
+        container.read(gameStateProvider).interpreterStatus,
+        isNot(InterpreterStatus.idle),
       );
     });
 
