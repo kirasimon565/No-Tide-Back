@@ -69,7 +69,7 @@ jobs:
           if [ "$status" -ne 0 ]; then
             while IFS= read -r line; do
               [ -n "$line" ] && echo "::error title=test::${line}"
-            done < <(grep -aE 'Error:|error:|Expected:|Actual:|failed' /tmp/test.log | head -40)
+            done < <(grep -aE 'Error:|error:|Expected:|Actual:|failed|\[E\]|Test failed' /tmp/test.log | head -60)
             exit "$status"
           fi
 
