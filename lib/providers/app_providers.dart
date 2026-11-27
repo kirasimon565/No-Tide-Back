@@ -112,9 +112,16 @@ class AuthUserInfo {
 
 final authUserProvider =
     StreamProvider<AuthUserInfo>((Ref ref) {
-  return FirebaseAuth.instance
-      .authStateChanges()
-      .map(AuthUserInfo.fromFirebase);
+  // Firebase is optional at runtime (widget tests, a device without a valid
+  // google-services.json). Fall back to a signed-out stream instead of
+  // throwing, so the UI degrades to the offline path.
+  try {
+    return FirebaseAuth.instance
+        .authStateChanges()
+        .map(AuthUserInfo.fromFirebase);
+  } catch (_) {
+    return Stream<AuthUserInfo>.value(const AuthUserInfo());
+  }
 });
 
 /// Parsed Episode 1 programme (all four parts linked into one stream).

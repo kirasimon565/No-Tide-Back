@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:no_tide_back/core/theme/app_colors.dart';
@@ -9,6 +10,8 @@ import 'package:no_tide_back/core/theme/app_typography.dart';
 import 'package:no_tide_back/models/chat_message.dart';
 import 'package:no_tide_back/services/isar_service.dart';
 import 'package:no_tide_back/services/local_store.dart';
+
+import 'stub_firebase.dart';
 import 'package:no_tide_back/ui/screens/chat_room_screen.dart';
 import 'package:no_tide_back/ui/screens/evidence_vault_screen.dart';
 import 'package:no_tide_back/ui/screens/hacking_tool_screen.dart';
@@ -21,8 +24,11 @@ import 'package:no_tide_back/ui/widgets/message_bubble.dart';
 /// provider, bad asset path) fails CI instead of shipping. The screens read
 /// their state from providers that are seeded from the local mirror, which is
 /// empty in a test — exactly the first-launch path.
-Widget _host(Widget child) {
+Widget _host(Widget child, {_OfflineGameStore? store}) {
   return ProviderScope(
+    overrides: <Override>[
+      if (store != null) gameStoreProvider.overrideWithValue(store),
+    ],
     child: MaterialApp(
       theme: ThemeData(
         fontFamily: AppTypography.inter,
@@ -38,15 +44,24 @@ void main() {
   // The screens hydrate from the local mirror. Opening it against the in-memory
   // preferences mock exercises the real first-launch path (empty store, seeded
   // threads) instead of the "database unavailable" guard.
+  //
+  // Firebase is not initialised in a widget test, so the economy comes from the
+  // local fallback and the cloud-backed services are replaced with stubs.
   setUpAll(() async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     await LocalStore.open();
     await IsarService.open();
   });
 
+  late _OfflineGameStore offlineStore;
+
+  setUp(() {
+    offlineStore = _OfflineGameStore();
+  });
+
   group('screen smoke tests', () {
     testWidgets('studio intro renders the logo and boot readout', (WidgetTester tester) async {
-      await tester.pumpWidget(_host(StudioIntroScreen(onFinished: () {}, firebaseReady: false)));
+      await tester.pumpWidget(_host(StudioIntroScreen(onFinished: () {}, firebaseReady: false), store: offlineStore));
       await tester.pump(const Duration(milliseconds: 400));
       expect(find.byType(StudioIntroScreen), findsOneWidget);
       expect(tester.takeException(), isNull);
@@ -54,7 +69,7 @@ void main() {
 
     testWidgets('player setup renders the identity form', (WidgetTester tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 900));
-      await tester.pumpWidget(_host(const PlayerSetupScreen()));
+      await tester.pumpWidget(_host(const PlayerSetupScreen(), store: offlineStore));
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.byType(PlayerSetupScreen), findsOneWidget);
       expect(find.byType(TextField), findsWidgets);
@@ -63,7 +78,7 @@ void main() {
 
     testWidgets('phone inbox renders the thread list', (WidgetTester tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 900));
-      await tester.pumpWidget(_host(const PhoneInboxScreen()));
+      await tester.pumpWidget(_host(const PhoneInboxScreen(), store: offlineStore));
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.byType(PhoneInboxScreen), findsOneWidget);
       expect(tester.takeException(), isNull);
@@ -71,7 +86,7 @@ void main() {
 
     testWidgets('chat room opens a seeded thread', (WidgetTester tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 900));
-      await tester.pumpWidget(_host(const ChatRoomScreen(threadId: 'group_island')));
+      await tester.pumpWidget(_host(const ChatRoomScreen(threadId: 'group_island'), store: offlineStore));
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.byType(ChatRoomScreen), findsOneWidget);
       expect(tester.takeException(), isNull);
@@ -79,12 +94,15 @@ void main() {
 
     testWidgets('hacking tool renders the puzzle grid', (WidgetTester tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 900));
-      await tester.pumpWidget(_host(const HackingToolScreen(
-        puzzleId: 'p_maya_vent',
-        difficulty: 'medium',
-        targetFile: 'img_maya_vent_hallway.jpg',
-        manual: true,
-      )));
+      await tester.pumpWidget(_host(
+        const HackingToolScreen(
+          puzzleId: 'p_maya_vent',
+          difficulty: 'medium',
+          targetFile: 'img_maya_vent_hallway.jpg',
+          manual: true,
+        ),
+        store: offlineStore,
+      ));
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.byType(HackingToolScreen), findsOneWidget);
       expect(tester.takeException(), isNull);
@@ -92,7 +110,7 @@ void main() {
 
     testWidgets('evidence vault renders the case board', (WidgetTester tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 900));
-      await tester.pumpWidget(_host(const EvidenceVaultScreen()));
+      await tester.pumpWidget(_host(const EvidenceVaultScreen(), store: offlineStore));
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.byType(EvidenceVaultScreen), findsOneWidget);
       expect(tester.takeException(), isNull);
@@ -100,7 +118,9 @@ void main() {
 
     testWidgets('message bubble lays out each message type', (WidgetTester tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 900));
-      await tester.pumpWidget(_host(Scaffold(
+      await tester.pumpWidget(_host(
+        store: offlineStore,
+        Scaffold(
         backgroundColor: AppColors.bgVoid,
         body: ListView(
           children: <Widget>[
@@ -167,4 +187,30 @@ void main() {
       }
     });
   });
+}
+
+/// GameStore with no Firebase app: every cloud call falls back to the local
+/// values, which is what the app does on a signed-out device.
+class _OfflineGameStore extends GameStore {
+  _OfflineGameStore()
+      : super(auth: StubFirebaseAuth(), firestore: StubFirestore());
+
+  @override
+  Stream<Map<String, dynamic>?> watchPlayer() =>
+      Stream<Map<String, dynamic>?>.value(<String, dynamic>{
+        'coins': 120,
+        'multimediaUnlocked': false,
+      });
+
+  @override
+  Future<Map<String, dynamic>?> fetchPlayer() async => <String, dynamic>{
+        'coins': 120,
+        'multimediaUnlocked': false,
+      };
+
+  @override
+  Future<bool> spendCoins(int cost) async => false;
+
+  @override
+  Future<User?> signInWithGoogle() async => null;
 }

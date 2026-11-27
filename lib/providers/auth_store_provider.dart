@@ -55,7 +55,7 @@ class EconomyNotifier extends Notifier<PlayerEconomyState> {
   @override
   PlayerEconomyState build() {
     ref.onDispose(() => _sub?.cancel());
-    final User? user = FirebaseAuth.instance.currentUser;
+    final User? user = _currentUser;
     if (user != null) {
       _listenToPlayerDoc(user.uid);
       // Pull once so the pills and the two-way unlock check are correct on the
@@ -66,6 +66,16 @@ class EconomyNotifier extends Notifier<PlayerEconomyState> {
   }
 
   GameStore get _store => ref.read(gameStoreProvider);
+
+  /// Firebase is optional: widget tests and a device with a broken
+  /// google-services.json run without it. Reading auth must never throw.
+  static User? get _currentUser {
+    try {
+      return FirebaseAuth.instance.currentUser;
+    } catch (_) {
+      return null;
+    }
+  }
 
   void _listenToPlayerDoc(String uid) {
     unawaited(_sub?.cancel());
