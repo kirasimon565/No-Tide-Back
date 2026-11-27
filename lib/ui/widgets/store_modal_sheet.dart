@@ -50,7 +50,7 @@ class StoreModalSheet extends ConsumerStatefulWidget {
   ConsumerState<StoreModalSheet> createState() => _StoreModalSheetState();
 }
 
-enum _Phase { idle, opening, confirming, done, failed }
+enum _Phase { idle, opening, done, failed }
 
 class _StoreModalSheetState extends ConsumerState<StoreModalSheet> {
   String? _busySku;
@@ -65,7 +65,7 @@ class _StoreModalSheetState extends ConsumerState<StoreModalSheet> {
 
     // Purchases are tied to the Google UID, because that is the document the
     // entitlement is written to. Say so before opening a payment window.
-    if (!notifier.state.isSignedIn) {
+    if (!ref.read(economyProvider).isSignedIn) {
       setState(() {
         _busySku = null;
         _phase = _Phase.failed;

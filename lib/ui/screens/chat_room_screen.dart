@@ -226,7 +226,11 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                   children: <Widget>[
                     NotificationListener<ScrollNotification>(
                       onNotification: (ScrollNotification notification) {
-                        if (notification is ScrollEnd && _newMessageUnread && _pinnedToBottom) {
+                        // `ScrollEnd` is a scroll *activity*; the notification is
+                        // `ScrollEndNotification`.
+                        if (notification is ScrollEndNotification &&
+                            _newMessageUnread &&
+                            _pinnedToBottom) {
                           setState(() => _newMessageUnread = false);
                         }
                         return false;

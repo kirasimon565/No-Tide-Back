@@ -223,7 +223,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
 
       final Stopwatch watch = Stopwatch()..start();
-      await notifier.resume(program: mini).timeout(const Duration(seconds: 5));
+      try {
+        await notifier.resume(program: mini).timeout(const Duration(seconds: 5));
+      } on TimeoutException {
+        fail('resume() blocked on the interpreter for 5s — the SYNCING freeze is back');
+      }
       watch.stop();
 
       // The interpreter is parked on the choice; the caller must still return.

@@ -56,9 +56,12 @@ final threadMessagesProvider = Provider.family<List<ChatMessage>, String>((Ref r
 /// identity alone would not invalidate this provider.
 final visibleThreadsProvider =
     Provider.family<List<ChatThread>, ChatCategory?>((Ref ref, ChatCategory? category) {
-  ref.watch(gameStateProvider);
+  // `state` is read from the provider rather than off the notifier: the
+  // notifier's `state` is protected API, and the provider read is what
+  // registers the dependency anyway.
+  final GameScreenState state = ref.watch(gameStateProvider);
   final GameStateNotifier notifier = ref.read(gameStateProvider.notifier);
-  return notifier.state.threadsFor(
+  return state.threadsFor(
     category,
     startedThreads: notifier.startedThreads,
   );
@@ -66,9 +69,9 @@ final visibleThreadsProvider =
 
 /// Total thread count for the waiting-hub readout.
 final startedThreadCountProvider = Provider<int>((Ref ref) {
-  ref.watch(gameStateProvider);
+  final GameScreenState state = ref.watch(gameStateProvider);
   final GameStateNotifier notifier = ref.read(gameStateProvider.notifier);
-  return notifier.state
+  return state
       .threadsFor(null, startedThreads: notifier.startedThreads)
       .length;
 });
