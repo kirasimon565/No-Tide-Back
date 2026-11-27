@@ -190,10 +190,11 @@ jobs:
             fi
             echo "::error title=build apk (tail)::${msg}"
 
-            # R8 emits its diagnostics *before* the failing task line.
-            r8line=$(grep -n 'minifyReleaseWithR8 FAILED' /tmp/build-apk.log | head -n 1 | cut -d: -f1)
-            if [ -n "$r8line" ]; then
-              r8ctx=$(head -n "$r8line" /tmp/build-apk.log | tail -n 80 | tr -d '\r' | sed -e 's/%/%25/g' | awk '{ printf "%s%%0A", $0 }')
+            # R8 reports missing classes / kept-member errors as their own lines.
+            r8ctx=$(grep -aE 'Missing class|R8:|Absent class|Warning: |ERROR: ' /tmp/build-apk.log \
+              | grep -av 'Expected stack map table' | tail -n 40 \
+              | tr -d '\r' | sed -e 's/%/%25/g' | awk '{ printf "%s%%0A", $0 }')
+            if [ -n "$r8ctx" ]; then
               echo "::error title=R8 (context)::${r8ctx}"
             fi
 
