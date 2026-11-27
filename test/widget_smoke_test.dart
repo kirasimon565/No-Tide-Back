@@ -323,7 +323,9 @@ void main() {
         maxScrolls: 30,
       );
       await tester.pump(const Duration(milliseconds: 120));
-      expect(find.textContaining('FIRESTORE'), findsOneWidget);
+      // The offline stub is signed out, so the footer states the local-only
+      // truth rather than the cloud copy.
+      expect(find.textContaining('NOT SIGNED IN'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
