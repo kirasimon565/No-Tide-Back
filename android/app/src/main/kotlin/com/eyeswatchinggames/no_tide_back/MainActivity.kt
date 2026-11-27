@@ -304,7 +304,11 @@ class MainActivity : FlutterActivity() {
             return
         }
 
-        val purchase = purchases.first()
+        val purchase = purchases.firstOrNull()
+        if (purchase == null) {
+            failPending("XSOLLA_PURCHASE", "Purchase list was empty")
+            return
+        }
         val token = purchase.javaClass.getMethod("getPurchaseToken").invoke(purchase) as? String
         failOrSucceed(token)
     }
