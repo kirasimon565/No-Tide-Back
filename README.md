@@ -36,8 +36,18 @@ flutter build apk --release --dart-define=NTB_STORE=xsolla -PwithXsolla
 ```
 
 `-PwithXsolla` adds the Xsolla Mobile SDK Gradle dependency and repo. Without it the Kotlin
-bridge compiles and runs fine — it resolves the SDK reflectively and reports
-"Xsolla SDK not bundled in this build" if a purchase is attempted.
+bridge compiles and runs fine — it resolves the SDK reflectively and reports a specific,
+actionable message if a purchase is attempted (never a bare failure).
+
+| build | what a BUY does |
+| --- | --- |
+| `NTB_STORE=xsolla` + `-PwithXsolla` | Opens the **Xsolla Pay Station** window, then writes the grant to Firestore |
+| `NTB_STORE=xsolla` without the AAR | Says the SDK is not bundled and how to rebuild |
+| `NTB_STORE=googleplay` / `amazon` / `samsung` | RevenueCat rail (if a key is configured), then the Xsolla rail |
+| debug, no rail at all | Simulated grant, flagged in the sheet as sandbox |
+
+The release workflow builds both APK targets with `-PwithXsolla` and `NTB_STORE=xsolla`, so the
+artifacts people install can actually open the payment window.
 
 Overridable without editing Gradle:
 
@@ -54,7 +64,36 @@ Station) served from a raw Maven tree on GitHub; that is what the bridge targets
 reflective on purpose, so default builds never need the AAR on the classpath.
 
 `.github/workflows/xsolla-rail.yml` builds with `-PwithXsolla` on every `android/**` change, so
-the optional rail cannot rot silently again.
+the optional rail cannot rot silently again. `build-apk.yml` derives the Gradle flag from the
+selected `store_rail`, so the two can no longer disagree.
+
+### Where a purchase is stored
+
+One document is the source of truth for every rail: `players/{uid}`.
+
+```
+players/{uid}
+  coins: 1500                     # incremented transactionally
+  multimediaUnlocked: true        # the permanent package
+  unlockedEntitlements: [sku,…]   # appended on every payment
+  updatedAt: <serverTimestamp>
+  purchases/{orderId}             # ledger row: sku, store, createdAt
+```
+
+`applyPurchase` returns the post-write document and raises
+`PurchasePersistenceException` if the cloud write fails, so the store sheet can distinguish
+"paid and saved" from "paid but not saved" — it never claims the cloud copy exists when it does
+not. `RESTORE` reads that document first (that is what recovers a purchase after a reinstall)
+and only falls back to RevenueCat.
+
+**Two things only the project owner can do**, and the Pay Station cannot charge without them:
+
+1. Add the catalog in Xsolla Publisher Account → Store for project `322198`, using exactly
+   the SKUs the app sends: `coins_100`, `coins_500`, `coins_1500`, `multimedia_pack`.
+   A missing SKU is reported in the sheet by name.
+2. Deploy the Firestore rules (`firebase deploy --only firestore:rules`) so
+   `players/{uid}` is writable by its owner; otherwise the payment succeeds and the sheet says
+   `NOT SAVED TO THE CLOUD` instead.
 
 ---
 
