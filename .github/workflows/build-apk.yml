@@ -40,9 +40,9 @@ on:
         type: choice
         options: [googleplay, amazon, samsung, xsolla]
       with_xsolla_sdk:
-        description: 'Bundle the Xsolla Mobile SDK (adds its Gradle repo)'
+        description: 'Bundle the Xsolla Mobile SDK (auto-on when store_rail=xsolla)'
         required: false
-        default: false
+        default: true
         type: boolean
       xsolla_sdk_version:
         description: 'com.xsolla.android:mobile version (only used with the SDK)'
@@ -172,13 +172,20 @@ jobs:
         if: ${{ inputs.build_type == '' || inputs.build_type == 'apk' || inputs.build_type == 'both' }}
         run: |
           set +e
+          # The Xsolla rail needs the AAR on the classpath; without it the
+          # bridge can only report "no payment window available". Derive the
+          # Gradle flag from the rail so the two can never disagree.
+          XSOLLA_FLAGS=""
+          if [ "${{ inputs.store_rail }}" = "xsolla" ] || [ "${{ inputs.with_xsolla_sdk }}" = "true" ]; then
+            XSOLLA_FLAGS="-PwithXsolla -PxsollaSdkVersion=${{ inputs.xsolla_sdk_version || '3.1.4' }}"
+            echo "Bundling Xsolla SDK: $XSOLLA_FLAGS" | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
           # Universal APK: one file that sideloads on any device. The Play
           # deliverable is the AAB below (Play generates the split APKs).
           flutter build apk --release -v \
             --dart-define=NTB_STORE=${{ inputs.store_rail || 'googleplay' }} \
             --dart-define=REVENUECAT_ANDROID_KEY=${{ secrets.REVENUECAT_ANDROID_KEY }} \
-            ${{ (inputs.with_xsolla_sdk == true && '-PwithXsolla') || '' }} \
-            ${{ (inputs.with_xsolla_sdk == true && '-PxsollaSdkVersion=') || '' }}${{ inputs.xsolla_sdk_version }} \
+            ${XSOLLA_FLAGS} \
             --build-name 1.0.0 \
             --build-number ${{ github.run_number }} 2>&1 | tee /tmp/build-apk.log
           status=${PIPESTATUS[0]}
@@ -223,10 +230,14 @@ jobs:
       - name: Build AAB
         if: ${{ inputs.build_type == 'aab' || inputs.build_type == 'both' }}
         run: |
+          XSOLLA_FLAGS=""
+          if [ "${{ inputs.store_rail }}" = "xsolla" ] || [ "${{ inputs.with_xsolla_sdk }}" = "true" ]; then
+            XSOLLA_FLAGS="-PwithXsolla -PxsollaSdkVersion=${{ inputs.xsolla_sdk_version || '3.1.4' }}"
+          fi
           flutter build appbundle --release \
             --dart-define=NTB_STORE=${{ inputs.store_rail || 'googleplay' }} \
             --dart-define=REVENUECAT_ANDROID_KEY=${{ secrets.REVENUECAT_ANDROID_KEY }} \
-            ${{ (inputs.with_xsolla_sdk == true && '-PwithXsolla') || '' }} \
+            ${XSOLLA_FLAGS} \
             --build-name 1.0.0 \
             --build-number ${{ github.run_number }}
 

@@ -49,10 +49,28 @@ final threadMessagesProvider = Provider.family<List<ChatMessage>, String>((Ref r
   return List<ChatMessage>.unmodifiable(decorated);
 });
 
-/// Thread list for the inbox, filtered by tab.
-final visibleThreadsProvider = Provider.family<List<ChatThread>, ChatCategory?>((Ref ref, ChatCategory? category) {
-  final GameScreenState state = ref.watch(gameStateProvider);
-  return state.threadsFor(category);
+/// Thread list for the inbox, filtered by tab and by "has this DM started?".
+///
+/// Watching the notifier (not just the state object) is what makes a newly
+/// revealed DM appear: `startedThreads` lives on the notifier, so the state
+/// identity alone would not invalidate this provider.
+final visibleThreadsProvider =
+    Provider.family<List<ChatThread>, ChatCategory?>((Ref ref, ChatCategory? category) {
+  ref.watch(gameStateProvider);
+  final GameStateNotifier notifier = ref.read(gameStateProvider.notifier);
+  return notifier.state.threadsFor(
+    category,
+    startedThreads: notifier.startedThreads,
+  );
+});
+
+/// Total thread count for the waiting-hub readout.
+final startedThreadCountProvider = Provider<int>((Ref ref) {
+  ref.watch(gameStateProvider);
+  final GameStateNotifier notifier = ref.read(gameStateProvider.notifier);
+  return notifier.state
+      .threadsFor(null, startedThreads: notifier.startedThreads)
+      .length;
 });
 
 /// Currently open thread (null on the inbox).

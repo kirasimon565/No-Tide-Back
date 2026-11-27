@@ -100,10 +100,22 @@ class GameScreenState {
 
   int get evidenceCount => evidence.length;
 
-  List<ChatThread> threadsFor(ChatCategory? category) {
-    final List<ChatThread> source = category == null
-        ? threads
-        : threads.where((ChatThread t) => t.category == category).toList();
+  /// Messenger-list rule: the group chat is always present, but a private
+  /// thread only exists once that character has actually written to it. Every
+  /// character used to sit in the inbox from the first frame, which spoils the
+  /// cast (Kathy, Kai, Beatrice) before the script ever introduces them.
+  ///
+  /// [startedThreads] is the set of thread ids that ever received a message;
+  /// it is persisted with the save so a resumed run keeps its inbox.
+  List<ChatThread> threadsFor(
+    ChatCategory? category, {
+    Set<String> startedThreads = const <String>{},
+  }) {
+    final List<ChatThread> source = threads.where((ChatThread t) {
+      if (category != null && t.category != category) return false;
+      if (t.isGroup) return true; // the island group chat is always online
+      return startedThreads.contains(t.threadId);
+    }).toList();
     return List<ChatThread>.unmodifiable(source);
   }
 
@@ -259,6 +271,27 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
   bool _syncing = false;
   String _saveSlot = 'active';
 
+  /// Threads that have carried at least one message (or that the script
+  /// explicitly opened). Persisted through the save variables so the inbox
+  /// does not "un-reveal" a conversation on resume.
+  final Set<String> _startedThreads = <String>{};
+
+  Set<String> get startedThreads => Set<String>.unmodifiable(_startedThreads);
+
+  void _markThreadStarted(String threadId) {
+    if (threadId.isEmpty) return;
+    if (_startedThreads.add(threadId)) {
+      // Cheap state bump so the inbox re-renders with the new row.
+      state = state.copyWith(threads: state.threads);
+    }
+  }
+
+  static Set<String> _decodeStarted(Object? raw) {
+    if (raw is List) return raw.map((Object? e) => '$e').toSet();
+    if (raw is String && raw.isNotEmpty) return raw.split(',').toSet();
+    return <String>{};
+  }
+
   IsarService get db {
     final IsarService? service = _db;
     if (service == null) throw StateError('Local mirror is not open yet');
@@ -284,8 +317,13 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
     final GameSaveState? save = service.activeSave;
     final List<EvidenceItem> evidence = service.loadEvidence();
     for (final ChatThread thread in threads) {
-      _messages[thread.threadId] = service.loadMessages(thread.threadId);
+      final List<ChatMessage> stored = service.loadMessages(thread.threadId);
+      _messages[thread.threadId] = stored;
+      // A thread with history is a thread the player has opened the phone for.
+      if (stored.isNotEmpty) _startedThreads.add(thread.threadId);
     }
+    _startedThreads.addAll(_decodeStarted(save?.variables['started_threads']));
+    _startedThreads.add('group_island');
 
     return GameScreenState(
       threads: threads,
@@ -342,6 +380,11 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
 
     await db.saveEvidence(<EvidenceItem>[]);
     await db.saveThreads(ChatThreads.seed);
+
+    // Fresh run: only the island group chat exists until someone DMs you.
+    _startedThreads
+      ..clear()
+      ..add('group_island');
 
     state = state.copyWith(bootStatus: 'SEEDING DEVICE...');
     final GameSaveState fresh = GameSaveState.fresh.copyWith(
@@ -421,12 +464,15 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
       return;
     }
     _program = resolved;
+    _startedThreads.addAll(_decodeStarted(save.variables['started_threads']));
+    _startedThreads.add('group_island');
     _interpreter = NtbInterpreter(
       program: resolved,
       runtime: this,
       initialVariables: <String, dynamic>{
         ...save.variables,
         'multimedia_package_owned': ref.read(economyProvider).multimediaUnlocked,
+        'started_threads': _startedThreads.toList(),
       },
       startIndex: save.instructionPointerIndex.clamp(0, resolved.length - 1).toInt(),
       paceMultiplier: state.paceMultiplier,
@@ -541,6 +587,7 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
           ...?interpreter?.variables,
           'multimedia_package_owned': ref.read(economyProvider).multimediaUnlocked,
           'player_name': _profile.playerName,
+          'started_threads': _startedThreads.toList(),
         },
         unlockedEvidenceIds:
             state.evidence.map((EvidenceItem e) => e.evidenceId).toList(),
@@ -675,6 +722,8 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
         ? message.copyWith(inGameTimestamp: state.environmentTime)
         : message;
     bucket.add(stamped);
+    // A DM appears in the inbox the moment the character writes to it.
+    _markThreadStarted(message.threadId);
   }
 
   @override
@@ -728,6 +777,7 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
 
   @override
   void onUiOpen(String threadId) {
+    _markThreadStarted(threadId);
     final Map<String, int> unread = Map<String, int>.from(state.unreadByThread)
       ..remove(threadId);
     state = state.copyWith(openThreadId: threadId, unreadByThread: unread);

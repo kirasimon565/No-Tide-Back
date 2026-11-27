@@ -45,6 +45,12 @@ class MainActivity : FlutterActivity() {
 
         const val SDK_PACKAGE = "com.xsolla.android.mobile"
         const val DESCRIPTOR = "com.xsolla.android.mobile."
+
+        /// Shown verbatim by the store sheet when the AAR is not on the
+        /// classpath (Play / Amazon / Samsung builds). Never a silent failure.
+        const val NOT_BUNDLED =
+            "This build has no Xsolla SDK bundled. Rebuild with -PwithXsolla " +
+                "(the release workflows do this for the xsolla flavor)."
     }
 
     private var pendingSku: String? = null
@@ -103,7 +109,7 @@ class MainActivity : FlutterActivity() {
      */
     private fun connect(callback: (Boolean, String?) -> Unit) {
         if (!isSdkBundled()) {
-            callback(false, "Xsolla SDK not bundled in this build (-PwithXsolla)")
+            callback(false, NOT_BUNDLED)
             return
         }
         try {
@@ -165,19 +171,41 @@ class MainActivity : FlutterActivity() {
             val stateListener = java.lang.reflect.Proxy.newProxyInstance(
                 classLoader,
                 arrayOf(stateListenerClass),
-            ) { _, method, _ ->
+            ) { _, method, args ->
                 if (method.name == "onBillingSetupFinished") {
-                    // Ready to query products; the purchase flow is SKU-driven.
-                    callback(true, null)
+                    // `startConnection` reports its own failure here; treating
+                    // every callback as success used to hide a bad project id or
+                    // missing network behind a confusing "no product" error.
+                    val result = args?.getOrNull(0)
+                    val code = result?.javaClass?.getMethod("getResponseCode")
+                        ?.invoke(result) as? Int ?: -1
+                    if (code == 0) {
+                        callback(true, null)
+                    } else {
+                        val detail = result?.javaClass?.getMethod("getDebugMessage")
+                            ?.invoke(result) as? String
+                        callback(
+                            false,
+                            detail ?: "Xsolla could not connect (code $code). " +
+                                "Check the project id, the login id and the network.",
+                        )
+                    }
                 }
                 null
             }
             billingClientClass.getMethod("startConnection", stateListenerClass)
                 .invoke(client, stateListener)
         } catch (e: ClassNotFoundException) {
-            callback(false, "Xsolla SDK not bundled in this build (-PwithXsolla)")
+            callback(false, NOT_BUNDLED)
         } catch (e: Throwable) {
-            callback(false, e.cause?.message ?: e.message ?: "Xsolla initialization failed")
+            // Reflection against a moved SDK throws NoSuchMethod/IllegalAccess;
+            // name the class so a version bump is obvious in logcat.
+            android.util.Log.e("XsollaBridge", "connect failed", e)
+            callback(
+                false,
+                e.cause?.message ?: e.message
+                    ?: "${e.javaClass.simpleName} while starting the Xsolla client",
+            )
         }
     }
 
@@ -234,7 +262,15 @@ class MainActivity : FlutterActivity() {
                     val products = args[1] as? List<Any?>
                     val first = products?.firstOrNull()
                     if (first == null) {
-                        failPending("SKU_UNAVAILABLE", "Pay Station has no product for $sku")
+                        // Pay Station answers OK with an empty list when the SKU
+                        // is not in the project's catalog. Say exactly that,
+                        // because it is a dashboard fix, not an app bug.
+                        failPending(
+                            "SKU_UNAVAILABLE",
+                            "No product \"$sku\" in the Xsolla catalog for project " +
+                                "$XSOLLA_PROJECT_ID. Add the SKU (coin packs and the " +
+                                "multimedia pack) in Xsolla Publisher Account → Store.",
+                        )
                     } else {
                         launchFlow(first)
                     }
@@ -242,10 +278,25 @@ class MainActivity : FlutterActivity() {
                 null
             }
 
+            // Watchdog: a dead network used to leave the Dart side awaiting a
+            // result forever, which disabled every BUY button in the sheet.
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(
+                {
+                    if (pendingSku == sku) {
+                        failPending(
+                            "XSOLLA_TIMEOUT",
+                            "Pay Station did not answer within 25 s. Check the connection and retry.",
+                        )
+                    }
+                },
+                25_000,
+            )
+
             billingClientClass
                 .getMethod("queryProductDetailsAsync", paramsClass, listenerClass)
                 .invoke(client, params, listener)
         } catch (e: Throwable) {
+            android.util.Log.e("XsollaBridge", "queryProductDetails failed", e)
             failPending("XSOLLA_QUERY", e.message ?: "Product query failed")
         }
     }

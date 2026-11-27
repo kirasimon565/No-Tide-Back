@@ -11,8 +11,10 @@ import 'package:no_tide_back/core/constants/app_config.dart';
 import 'package:no_tide_back/core/theme/app_colors.dart';
 import 'package:no_tide_back/core/theme/app_typography.dart';
 import 'package:no_tide_back/engine/ntb_parser.dart';
+import 'package:no_tide_back/providers/game_state_provider.dart';
 import 'package:no_tide_back/models/ntb_ast_node.dart';
 import 'package:no_tide_back/models/chat_message.dart';
+import 'package:no_tide_back/models/chat_thread.dart';
 import 'package:no_tide_back/services/isar_service.dart';
 import 'package:no_tide_back/services/local_store.dart';
 import 'package:no_tide_back/app.dart';
@@ -158,6 +160,39 @@ void main() {
       await tester.pumpWidget(const SizedBox());
       await tester.pump(const Duration(seconds: 2));
       tester.takeException();
+    });
+
+    testWidgets('inbox starts with only the group chat; DMs appear when written',
+        (WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      // A brand-new game: the inbox must not spoil the cast.
+      final GameStateNotifier notifier = ProviderContainer(
+        overrides: [gameStoreProvider.overrideWithValue(offlineStore)],
+      ).read(gameStateProvider.notifier);
+
+      final List<String> fresh = notifier.state
+          .threadsFor(null, startedThreads: const <String>{})
+          .map((ChatThread t) => t.threadId)
+          .toList();
+      expect(fresh, <String>['group_island']);
+
+      // Once a character writes, their DM is revealed — and only theirs.
+      final List<String> afterDm = notifier.state
+          .threadsFor(null, startedThreads: const <String>{'dm_jessica'})
+          .map((ChatThread t) => t.threadId)
+          .toList();
+      expect(afterDm, containsAll(<String>['group_island', 'dm_jessica']));
+      expect(afterDm, isNot(contains('dm_kathy')));
+
+      // The category tabs still filter the revealed set.
+      expect(
+        notifier.state
+            .threadsFor(ChatCategory.home, startedThreads: const <String>{'dm_jessica'})
+            .map((ChatThread t) => t.threadId),
+        isEmpty,
+      );
     });
 
     testWidgets('phone inbox renders the thread list', (WidgetTester tester) async {

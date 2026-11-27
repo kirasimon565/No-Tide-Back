@@ -11,6 +11,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/auth_store_provider.dart';
+import '../../providers/chat_threads_provider.dart';
 import '../../providers/episode_wait_provider.dart';
 import '../../providers/game_state_provider.dart';
 import '../widgets/chat_room_screen_route.dart';
@@ -143,7 +144,7 @@ class _EpisodeWaitingScreenState extends ConsumerState<EpisodeWaitingScreen> {
   Widget build(BuildContext context) {
     final EpisodeWaitState wait = ref.watch(episodeWaitProvider);
     final PlayerEconomyState economy = ref.watch(economyProvider);
-    final GameScreenState game = ref.watch(gameStateProvider);
+    final int threadCount = ref.watch(startedThreadCountProvider);
 
     return Scaffold(
       backgroundColor: AppColors.bgVoid,
@@ -192,7 +193,7 @@ class _EpisodeWaitingScreenState extends ConsumerState<EpisodeWaitingScreen> {
                         icon: Icons.forum_rounded,
                         label: 'REVIEW CHAT LOGS',
                         detail: 'READ-ONLY PHONE MODE • '
-                            '${game.threads.length} THREADS',
+                            '$threadCount THREADS',
                         onTap: () async {
                           await Navigator.of(context).push(
                             MaterialPageRoute<void>(

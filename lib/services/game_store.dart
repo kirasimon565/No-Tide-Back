@@ -406,35 +406,48 @@ class GameStore {
   /// Entitlements are applied by [applyPurchase] only after the rail confirms.
   Future<PurchaseResult> buy(String sku) async {
     if (uid == null) {
-      return PurchaseResult.failure('Sign in to make purchases');
+      return PurchaseResult.failure(
+        'Sign in with Google first — purchases are saved to your account.',
+      );
     }
 
-    // 1) RevenueCat (Amazon / Samsung / Play with a configured key)
+    // Collect the *reason* each rail declined, so the sheet can show a real
+    // message instead of a flat "no rail available".
+    final List<String> attempts = <String>[];
+
+    // 1) RevenueCat (Amazon / Samsung / Play when a key is configured).
     if (_revenueCatKey() != null) {
       final PurchaseResult? rc = await _buyWithRevenueCat(sku);
       if (rc != null) return rc;
+      attempts.add('RevenueCat has no product "$sku"');
     }
 
-    // 2) Xsolla (installer rail) through the Kotlin bridge
+    // 2) Xsolla Pay Station through the Kotlin bridge.
     if (storeType == StoreType.xsolla || storeType == StoreType.googlePlay) {
       final PurchaseResult xsolla = await _buyWithXsolla(sku);
       if (xsolla.success || xsolla.cancelled) return xsolla;
+      if (xsolla.message != null) attempts.add(xsolla.message!);
     }
 
-    // 3) No billing rail available in this build: only debug builds may
-    //    simulate, and the result is flagged so the UI can label it.
+    // 3) Nothing opened a payment window. Only debug builds may simulate, and
+    //    the result is flagged so the UI can label it honestly.
     if (kDebugMode || _allowSimulatedPurchases) {
       return PurchaseResult(
         success: true,
         sku: sku,
         transactionId: 'SIM_${DateTime.now().millisecondsSinceEpoch}',
         simulated: true,
-        message: 'Simulated purchase (no billing rail configured)',
+        message: 'Sandbox grant (no billing rail configured)',
       );
     }
 
-    return PurchaseResult.failure('No billing rail available for ${storeType.label}');
+    return PurchaseResult.failure(
+      attempts.isEmpty
+          ? 'No payment method is available for ${storeType.label} in this build.'
+          : attempts.join(' • '),
+    );
   }
+
 
   static const bool _allowSimulatedPurchases =
       bool.fromEnvironment('NTB_ALLOW_SIMULATED_PURCHASES', defaultValue: false);
@@ -497,7 +510,10 @@ class GameStore {
       }
       return PurchaseResult.failure('Xsolla order was not completed');
     } on MissingPluginException {
-      return PurchaseResult.failure('Xsolla bridge unavailable');
+      return PurchaseResult.failure(
+        'The Xsolla bridge is not in this build (missing plugin channel). '
+        'Rebuild with -PwithXsolla.',
+      );
     } on PlatformException catch (error) {
       return PurchaseResult.failure(error.message ?? 'Xsolla purchase failed');
     }
