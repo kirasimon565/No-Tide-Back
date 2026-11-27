@@ -2,115 +2,167 @@ import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
 
-/// Inter for the phone UI, JetBrains Mono for anything forensic.
+/// Typography for the "slate terminal" redesign.
+///
+/// Two voices, matching the Dreadmoor production OS:
+///   • **Michroma** — the console voice. Labels, buttons, headers, titles.
+///     Wide, geometric, uppercase, always letter-spaced.
+///   • **Inter** — the human voice. Chat bodies, prose, form input.
+///
+/// Both are bundled (no runtime font download): a horror game must render its
+/// UI on a plane with no wifi.
 abstract final class AppTypography {
-  /// Font family names (for ThemeData / fontFamily overrides).
-  static const String inter = 'Inter';
-  static const String mono = 'JetBrainsMono';
+  /// Console / display family.
+  static const String display = 'Michroma';
 
-  /// Base monospace style. `AppTypography.mono` is a family name, so UI code
-  /// that needs a style starts from [monoBase] (or one of the styles below).
-  static const TextStyle monoBase = TextStyle(
-    fontFamily: mono,
+  /// Prose family.
+  static const String inter = 'Inter';
+
+  /// Legacy alias — the forensic mono voice is now the console family.
+  static const String mono = display;
+
+  // ------------------------------------------------------------------- tokens
+  static const double _labelSize = 11;
+  static const double _microSize = 9;
+
+  // ------------------------------------------------------------------- family
+  static const TextStyle displayBase = TextStyle(
+    fontFamily: display,
     fontSize: 13,
     color: AppColors.textPrimary,
-    letterSpacing: 0.3,
+    letterSpacing: 1.6,
   );
 
-  /// Chat message body.
+  /// Section / screen kicker: "EPISODE SELECT", "WHO ARE YOU".
+  static const TextStyle kicker = TextStyle(
+    fontFamily: display,
+    fontSize: _labelSize,
+    color: AppColors.accentTide,
+    letterSpacing: 2.4,
+    height: 1.2,
+  );
+
+  /// Screen title in the console voice.
+  static const TextStyle displayTitle = TextStyle(
+    fontFamily: display,
+    fontSize: 26,
+    color: AppColors.textPrimary,
+    letterSpacing: 1.4,
+    height: 1.25,
+  );
+
+  /// Small all-caps console label (form field labels, dock labels).
+  static const TextStyle label = TextStyle(
+    fontFamily: display,
+    fontSize: _labelSize,
+    color: AppColors.textSecondary,
+    letterSpacing: 2.0,
+    height: 1.2,
+  );
+
+  /// The same label, dimmed, for secondary metadata.
+  static const TextStyle labelDim = TextStyle(
+    fontFamily: display,
+    fontSize: _microSize,
+    color: AppColors.textMuted,
+    letterSpacing: 1.8,
+    height: 1.2,
+  );
+
+  /// Button lettering.
+  static const TextStyle button = TextStyle(
+    fontFamily: display,
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    letterSpacing: 2.6,
+    height: 1.1,
+  );
+
+  /// "NO TIDE BACK" wordmark.
+  static const TextStyle wordmark = TextStyle(
+    fontFamily: display,
+    fontSize: 26,
+    color: AppColors.textPrimary,
+    letterSpacing: 4.5,
+    height: 1.2,
+  );
+
+  // --------------------------------------------------------------------- body
   static const TextStyle body = TextStyle(
     fontFamily: inter,
-    fontSize: 15.5,
-    height: 1.34,
+    fontSize: 15,
+    height: 1.42,
     color: AppColors.textPrimary,
-    letterSpacing: 0.05,
+    letterSpacing: 0.1,
   );
 
   static const TextStyle bodySmall = TextStyle(
     fontFamily: inter,
-    fontSize: 13.5,
-    height: 1.32,
+    fontSize: 13,
+    height: 1.45,
     color: AppColors.textSecondary,
   );
 
-  /// Sender names, thread titles.
-  static const TextStyle label = TextStyle(
-    fontFamily: inter,
-    fontSize: 12.5,
-    fontWeight: FontWeight.w600,
-    letterSpacing: 0.2,
-  );
-
-  static const TextStyle title = TextStyle(
-    fontFamily: inter,
-    fontSize: 22,
-    fontWeight: FontWeight.w700,
-    color: AppColors.textPrimary,
-    letterSpacing: -0.2,
-  );
-
+  /// Chat thread titles / card headings in the human voice.
   static const TextStyle sectionTitle = TextStyle(
     fontFamily: inter,
     fontSize: 16,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
+    letterSpacing: 0,
   );
 
-  /// Timestamps, status readouts, terminal logs.
-  static const TextStyle monoCaption = TextStyle(
-    fontFamily: mono,
-    fontSize: 11,
-    color: AppColors.textMuted,
-    letterSpacing: 0.8,
+  static const TextStyle title = TextStyle(
+    fontFamily: display,
+    fontSize: 20,
+    color: AppColors.textPrimary,
+    letterSpacing: 1.2,
+    height: 1.3,
   );
 
+  /// Legacy aliases kept so screens that predate the redesign still compile.
+  static const TextStyle monoBase = displayBase;
+  static const TextStyle monoCaption = labelDim;
   static const TextStyle monoBody = TextStyle(
-    fontFamily: mono,
-    fontSize: 12.5,
+    fontFamily: display,
+    fontSize: 10,
     color: AppColors.textSecondary,
-    height: 1.45,
-    letterSpacing: 0.4,
+    letterSpacing: 1.4,
+    height: 1.8,
   );
+  static const TextStyle monoLabel = kicker;
 
-  static const TextStyle monoLabel = TextStyle(
-    fontFamily: mono,
-    fontSize: 11,
-    fontWeight: FontWeight.w700,
+  /// Terminal readout: cyan console text on the inset well.
+  static const TextStyle terminal = TextStyle(
+    fontFamily: display,
+    fontSize: 10,
     color: AppColors.accentTide,
     letterSpacing: 1.6,
-  );
-
-  /// "NO TIDE BACK" wordmark.
-  static const TextStyle wordmark = TextStyle(
-    fontFamily: mono,
-    fontSize: 34,
-    fontWeight: FontWeight.w700,
-    color: AppColors.textPrimary,
-    letterSpacing: 6,
-    height: 1.05,
+    height: 1.9,
   );
 
   static const TextStyle systemBanner = TextStyle(
-    fontFamily: mono,
-    fontSize: 11.5,
+    fontFamily: display,
+    fontSize: 9,
     color: AppColors.textSecondary,
-    letterSpacing: 0.6,
-    height: 1.3,
+    letterSpacing: 1.6,
+    height: 1.4,
   );
 
   /// Private reflection — italicised, quieter than a sent message.
   static const TextStyle thought = TextStyle(
     fontFamily: inter,
-    fontSize: 14.5,
+    fontSize: 14,
     fontStyle: FontStyle.italic,
-    height: 1.4,
+    height: 1.5,
     color: AppColors.textSecondary,
-    letterSpacing: 0.1,
   );
 
   static TextTheme textTheme() => const TextTheme(
+        headlineLarge: displayTitle,
         titleLarge: title,
         titleMedium: sectionTitle,
+        bodyLarge: body,
         bodyMedium: body,
         bodySmall: bodySmall,
         labelLarge: label,

@@ -12,6 +12,7 @@ import '../widgets/common_widgets.dart';
 import '../widgets/store_modal_sheet.dart';
 import 'evidence_vault_screen.dart';
 import 'hacking_tool_screen.dart';
+import 'home_hub_screen.dart';
 
 /// Screen 4 — Simulated phone inbox.
 ///
@@ -20,7 +21,11 @@ import 'hacking_tool_screen.dart';
 enum _InboxTab { all, island, home }
 
 class PhoneInboxScreen extends ConsumerStatefulWidget {
-  const PhoneInboxScreen({super.key});
+  const PhoneInboxScreen({this.firstLaunch = false, super.key});
+
+  /// True when we came straight from device registration: closing the phone
+  /// then returns to the hub, which is already underneath in the stack.
+  final bool firstLaunch;
 
   @override
   ConsumerState<PhoneInboxScreen> createState() => _PhoneInboxScreenState();
@@ -28,6 +33,23 @@ class PhoneInboxScreen extends ConsumerStatefulWidget {
 
 class _PhoneInboxScreenState extends ConsumerState<PhoneInboxScreen> {
   _InboxTab _tab = _InboxTab.all;
+
+  @override
+  void initState() {
+    super.initState();
+    // A first launch landing on top of the list is wrong twice over: the router
+    // pops back to whatever is first in the stack (the splash), and the scene
+    // is already running behind the list. Closing the phone instead returns to
+    // the hub with the relay live and unread counts intact.
+    if (widget.firstLaunch) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final GameScreenState game = ref.read(gameStateProvider);
+        if (game.openThreadId == null) return;
+        ref.read(gameStateProvider.notifier).closeThread();
+      });
+    }
+  }
 
   ChatCategory? get _category => switch (_tab) {
         _InboxTab.all => null,
@@ -38,9 +60,11 @@ class _PhoneInboxScreenState extends ConsumerState<PhoneInboxScreen> {
   Future<void> _openThread(ChatThread thread) async {
     await ref.read(gameStateProvider.notifier).openThread(thread.threadId);
     if (!mounted) return;
-    await Navigator.of(context).push(
-      chatRoomRoute(thread.threadId),
-    );
+    await _pushThread(thread);
+  }
+
+  Future<void> _pushThread(ChatThread thread) async {
+    await Navigator.of(context).push(chatRoomRoute(thread.threadId));
     // Returning to the inbox clears the open thread so unread badges resume.
     ref.read(gameStateProvider.notifier).closeThread();
   }
@@ -62,7 +86,19 @@ class _PhoneInboxScreenState extends ConsumerState<PhoneInboxScreen> {
               coins: economy.coins,
               onVault: () => _push(const EvidenceVaultScreen()),
               onStore: () => showStoreModalSheet(context),
-              onClose: () => Navigator.of(context).maybePop(),
+              onClose: () {
+                // Everything the phone opened (evidence, hacking, store) pops
+                // first; the phone itself is the root and has nowhere to pop
+                // to, so it would otherwise stay put and look frozen.
+                final NavigatorState nav = Navigator.of(context);
+                if (nav.canPop()) {
+                  nav.pop();
+                } else {
+                  nav.pushReplacement(
+                    MaterialPageRoute<void>(builder: (BuildContext _) => const HomeHubScreen()),
+                  );
+                }
+              },
             ),
             _TabStrip(
               current: _tab,
@@ -207,61 +243,59 @@ class _StatusBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool interfering = game.signalStrength <= 2;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(14, 6, 10, 10),
-      decoration: const BoxDecoration(
-        color: AppColors.surfacePhone,
-        border: Border(bottom: BorderSide(color: AppColors.divider, width: 0.6)),
-      ),
-      child: Row(
-        children: <Widget>[
-          IconButton(
-            onPressed: onClose,
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
-            color: AppColors.textSecondary,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Column(
+    return GlassChrome(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(6, 4, 12, 8),
+        child: Row(
+          children: <Widget>[
+            InkResponse(
+              onTap: onClose,
+              radius: 22,
+              child: const SizedBox(
+                width: 40,
+                height: 40,
+                child: Icon(Icons.arrow_back_ios_new_rounded, size: 15, color: AppColors.textSecondary),
+              ),
+            ),
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Row(
                   children: <Widget>[
                     Text(
                       game.environmentTime,
-                      style: AppTypography.monoBase.copyWith(
-                        fontSize: 13,
+                      style: AppTypography.label.copyWith(
+                        fontSize: 10,
                         color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.4,
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        game.environmentLocation.toUpperCase(),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.monoCaption.copyWith(fontSize: 8.5, letterSpacing: 1.2),
-                      ),
+                    Container(width: 1, height: 9, color: AppColors.divider),
+                    const SizedBox(width: 8),
+                    Text(
+                      game.environmentLocation.toUpperCase(),
+                      style: AppTypography.labelDim.copyWith(fontSize: 7.5),
                     ),
                   ],
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Row(
                   children: <Widget>[
-                    Icon(
-                      interfering ? Icons.warning_amber_rounded : Icons.cell_tower_rounded,
-                      size: 11,
-                      color: interfering ? AppColors.accentCrimson : AppColors.accentSuccess,
+                    Container(
+                      width: 4,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: interfering ? AppColors.accentCrimson : AppColors.accentSuccess,
+                      ),
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 6),
                     Text(
                       interfering ? 'RELAY INTERFERENCE' : game.networkStatus,
-                      style: AppTypography.monoCaption.copyWith(
-                        fontSize: 8.5,
-                        letterSpacing: 1,
+                      style: AppTypography.labelDim.copyWith(
+                        fontSize: 7,
                         color: interfering ? AppColors.accentCrimson : AppColors.textMuted,
                       ),
                     ),
@@ -269,25 +303,44 @@ class _StatusBar extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-          IconButton(
-            onPressed: onVault,
-            icon: const Icon(Icons.folder_copy_outlined, size: 17),
-            color: AppColors.textSecondary,
-            tooltip: 'Evidence vault',
-            constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
-          ),
-          IconButton(
-            onPressed: onStore,
-            icon: const Icon(Icons.monetization_on_outlined, size: 17),
-            color: AppColors.accentPremium,
-            tooltip: 'Store ($coins coins)',
-            constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
-          ),
-          _SignalBars(strength: game.signalStrength),
-          const SizedBox(width: 6),
-          _Battery(level: game.batteryLevel),
-        ],
+            const Spacer(),
+            InkResponse(
+              onTap: onStore,
+              radius: 20,
+              child: Row(
+                children: <Widget>[
+                  Icon(
+                    Icons.monetization_on_outlined,
+                    size: 13,
+                    color: AppColors.accentPremium.withValues(alpha: 0.9),
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    '$coins',
+                    style: AppTypography.label.copyWith(
+                      fontSize: 9,
+                      color: AppColors.accentPremium,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            InkResponse(
+              onTap: onVault,
+              radius: 20,
+              child: const Icon(
+                Icons.folder_copy_outlined,
+                size: 15,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            _SignalBars(strength: game.signalStrength),
+            const SizedBox(width: 8),
+            _Battery(level: game.batteryLevel),
+          ],
+        ),
       ),
     );
   }
@@ -373,49 +426,52 @@ class _TabStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
       child: Row(
         children: <Widget>[
           for (final _InboxTab tab in _InboxTab.values)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: InkWell(
+            Expanded(
+              child: GestureDetector(
                 onTap: () => onChanged(tab),
-                borderRadius: BorderRadius.circular(18),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 160),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                  decoration: BoxDecoration(
-                    color: current == tab
-                        ? AppColors.accentTide.withValues(alpha: 0.14)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: current == tab ? AppColors.accentTide : AppColors.divider,
+                behavior: HitTestBehavior.opaque,
+                child: Column(
+                  children: <Widget>[
+                    Text(
+                      switch (tab) {
+                        _InboxTab.all => 'ALL',
+                        _InboxTab.island => 'ISLAND',
+                        _InboxTab.home => 'HOME',
+                      },
+                      style: AppTypography.label.copyWith(
+                        fontSize: 9,
+                        color: current == tab ? AppColors.accentTide : AppColors.textMuted,
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    switch (tab) {
-                      _InboxTab.all => 'ALL',
-                      _InboxTab.island => 'ISLAND',
-                      _InboxTab.home => 'HOME',
-                    },
-                    style: AppTypography.monoCaption.copyWith(
-                      letterSpacing: 1.6,
-                      fontWeight: FontWeight.w700,
-                      color: current == tab ? AppColors.accentTide : AppColors.textSecondary,
+                    const SizedBox(height: 8),
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      height: 1.5,
+                      color: current == tab ? AppColors.accentTide : Colors.transparent,
                     ),
-                  ),
+                  ],
                 ),
               ),
             ),
-          const Spacer(),
+          const SizedBox(width: 10),
           if (unreadTotal > 0)
-            NtbTag('$unreadTotal NEW', color: AppColors.accentTide, filled: true),
+            StatusPill('$unreadTotal NEW', filled: true)
+          else
+            Text('$_label', style: AppTypography.labelDim.copyWith(fontSize: 7.5)),
         ],
       ),
     );
   }
+
+  String get _label => switch (current) {
+        _InboxTab.all => 'ALL RELAYS',
+        _InboxTab.island => 'ISLAND',
+        _InboxTab.home => 'HOME',
+      };
 }
 
 class _ThreadTile extends StatelessWidget {
@@ -464,7 +520,7 @@ class _ThreadTile extends StatelessWidget {
                           thread.displayName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: AppTypography.label.copyWith(
+                          style: AppTypography.sectionTitle.copyWith(
                             fontSize: 14.5,
                             color: AppColors.textPrimary,
                           ),
@@ -472,7 +528,7 @@ class _ThreadTile extends StatelessWidget {
                       ),
                       if (thread.badge != null) ...<Widget>[
                         const SizedBox(width: 7),
-                        NtbTag(thread.badge!, color: accent, filled: false),
+                        StatusPill(thread.badge!, color: accent, filled: false),
                       ],
                     ],
                   ),
@@ -559,14 +615,16 @@ class _BottomDock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.surfacePhone,
-        border: Border(top: BorderSide(color: AppColors.divider, width: 0.6)),
+        border: Border(
+          top: BorderSide(color: AppColors.divider.withValues(alpha: 0.9), width: 0.7),
+        ),
       ),
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 62,
+          height: 60,
           child: Row(
             children: <Widget>[
               _DockItem(
@@ -622,8 +680,14 @@ class _DockItem extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              height: 1.5,
+              width: active ? 22 : 0,
+              color: AppColors.accentTide,
+            ),
+            const Spacer(),
             Stack(
               clipBehavior: Clip.none,
               children: <Widget>[
@@ -650,15 +714,16 @@ class _DockItem extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(height: 5),
+            const SizedBox(height: 6),
             Text(
               label,
-              style: AppTypography.monoCaption.copyWith(
-                fontSize: 8,
-                letterSpacing: 1.1,
+              style: AppTypography.labelDim.copyWith(
+                fontSize: 6.5,
+                letterSpacing: 1.4,
                 color: color,
               ),
             ),
+            const Spacer(),
           ],
         ),
       ),

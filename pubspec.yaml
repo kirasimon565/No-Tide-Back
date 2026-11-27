@@ -57,6 +57,11 @@ flutter:
     - assets/images/documents/
 
   fonts:
+    # Console voice (labels, headers, buttons). Bundled, not downloaded.
+    - family: Michroma
+      fonts:
+        - asset: assets/fonts/Michroma-Regular.ttf
+    # Prose voice (chat bodies, form input).
     - family: Inter
       fonts:
         - asset: assets/fonts/Inter-Regular.ttf

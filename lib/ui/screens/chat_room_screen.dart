@@ -166,20 +166,24 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
     return Scaffold(
       backgroundColor: AppColors.bgVoid,
       body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: const AssetImage(AssetCatalog.chatBackground),
-            opacity: 0.10,
-            fit: BoxFit.cover,
-            colorFilter: ColorFilter.mode(
-              AppColors.bgVoid.withValues(alpha: 0.6),
-              BlendMode.darken,
+        color: AppColors.bgVoid,
+        child: Stack(
+          children: <Widget>[
+            Positioned.fill(
+              child: Opacity(
+                opacity: 0.07,
+                child: Image.asset(
+                  AssetCatalog.chatBackground,
+                  fit: BoxFit.cover,
+                  errorBuilder: (BuildContext c, Object e, StackTrace? s) =>
+                      const SizedBox.shrink(),
+                ),
+              ),
             ),
-          ),
-        ),
-        child: SafeArea(
-          bottom: false,
-          child: Column(
+            Positioned.fill(child: SlateNoise(opacity: 0.05)),
+            SafeArea(
+              bottom: false,
+              child: Column(
             children: <Widget>[
               _ChatHeader(thread: thread, economy: economy, playerName: ref.read(gameStateProvider.notifier).profile.playerName),
               Expanded(
@@ -240,6 +244,8 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                 ),
             ],
           ),
+            ),
+          ],
         ),
       ),
     );
@@ -268,111 +274,123 @@ class _ChatHeader extends ConsumerWidget {
     final Color accent = AppColors.forCharacter(
       ChatThreads.characterForThread(thread.threadId),
     );
+    final bool typing = thread.onlineStatus == ThreadStatus.typing;
     final String status = switch (thread.onlineStatus) {
-      ThreadStatus.online => 'Online',
-      ThreadStatus.offline => 'Offline',
-      ThreadStatus.typing => 'Typing...',
+      ThreadStatus.online => 'ONLINE',
+      ThreadStatus.offline => 'OFFLINE',
+      ThreadStatus.typing => 'TYPING',
     };
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(6, 6, 10, 8),
-      decoration: const BoxDecoration(
-        color: AppColors.surfacePhone,
-        border: Border(bottom: BorderSide(color: AppColors.divider, width: 0.7)),
-      ),
-      child: Row(
-        children: <Widget>[
-          IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 17),
-            color: AppColors.textSecondary,
-          ),
-          CharacterAvatar(
-            assetPath: thread.avatarPath,
-            label: thread.displayName,
-            isGroup: thread.isGroup,
-            size: 38,
-            accent: accent,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  thread.displayName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.label.copyWith(
-                    fontSize: 14,
-                    color: AppColors.textPrimary,
-                  ),
+    return GlassChrome(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(4, 4, 10, 8),
+        child: Row(
+          children: <Widget>[
+            InkResponse(
+              onTap: () => Navigator.of(context).pop(),
+              radius: 22,
+              child: const SizedBox(
+                width: 40,
+                height: 40,
+                child: Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  size: 15,
+                  color: AppColors.textSecondary,
                 ),
-                const SizedBox(height: 2),
-                Row(
-                  children: <Widget>[
-                    Container(
-                      width: 5,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: thread.onlineStatus == ThreadStatus.offline
-                            ? AppColors.textMuted
-                            : (thread.onlineStatus == ThreadStatus.typing
-                                ? AppColors.accentCrimson
-                                : AppColors.accentSuccess),
-                      ),
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      status,
-                      style: AppTypography.monoCaption.copyWith(
-                        fontSize: 9,
-                        color: thread.onlineStatus == ThreadStatus.typing
-                            ? AppColors.accentTide
-                            : AppColors.textMuted,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          InkWell(
-            onTap: () => showStoreModalSheet(
-              context,
-              focusMultimedia: !economy.multimediaUnlocked,
-            ),
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.accentPremium.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.accentPremium.withValues(alpha: 0.4)),
               ),
-              child: Row(
+            ),
+            CharacterAvatar(
+              assetPath: thread.avatarPath,
+              label: thread.displayName,
+              isGroup: thread.isGroup,
+              size: 34,
+              accent: accent,
+            ),
+            const SizedBox(width: 11),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  Icon(
-                    economy.multimediaUnlocked ? Icons.star_rounded : Icons.monetization_on_outlined,
-                    size: 13,
-                    color: AppColors.accentPremium,
-                  ),
-                  const SizedBox(width: 5),
                   Text(
-                    economy.multimediaUnlocked ? 'FULL' : '${economy.coins}',
-                    style: AppTypography.monoCaption.copyWith(
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.accentPremium,
+                    thread.displayName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.sectionTitle.copyWith(
+                      fontSize: 14.5,
+                      color: AppColors.textPrimary,
                     ),
+                  ),
+                  const SizedBox(height: 3),
+                  Row(
+                    children: <Widget>[
+                      Container(
+                        width: 4,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: thread.onlineStatus == ThreadStatus.offline
+                              ? AppColors.textMuted
+                              : (typing ? AppColors.accentTide : AppColors.accentSuccess),
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        status,
+                        style: AppTypography.labelDim.copyWith(
+                          fontSize: 7,
+                          color: typing ? AppColors.accentTide : AppColors.textMuted,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        thread.isGroup ? 'GROUP RELAY' : 'PRIVATE RELAY',
+                        style: AppTypography.labelDim.copyWith(fontSize: 7),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-          ),
-        ],
+            GestureDetector(
+              onTap: () => showStoreModalSheet(
+                context,
+                focusMultimedia: !economy.multimediaUnlocked,
+              ),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: AppColors.accentPremium.withValues(alpha: 0.4),
+                    width: 0.7,
+                  ),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Icon(
+                      economy.multimediaUnlocked
+                          ? Icons.workspace_premium_rounded
+                          : Icons.monetization_on_outlined,
+                      size: 12,
+                      color: AppColors.accentPremium,
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      economy.multimediaUnlocked ? 'PACK' : '${economy.coins}',
+                      style: AppTypography.label.copyWith(
+                        fontSize: 8.5,
+                        color: AppColors.accentPremium,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -387,12 +405,19 @@ class _TapToContinue extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-        child: FilledButton.icon(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        decoration: BoxDecoration(
+          color: AppColors.surfacePhone,
+          border: Border(
+            top: BorderSide(color: AppColors.divider.withValues(alpha: 0.9), width: 0.7),
+          ),
+        ),
+        child: ConsoleButton(
+          label: 'TAP TO CONTINUE',
+          icon: Icons.touch_app_rounded,
+          height: 46,
           onPressed: onTap,
-          icon: const Icon(Icons.touch_app_rounded, size: 18),
-          label: const Text('TAP TO CONTINUE'),
         ),
       ),
     );
@@ -417,39 +442,50 @@ class _Composer extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
-        decoration: const BoxDecoration(
+        padding: const EdgeInsets.fromLTRB(8, 7, 10, 8),
+        decoration: BoxDecoration(
           color: AppColors.surfacePhone,
-          border: Border(top: BorderSide(color: AppColors.divider, width: 0.7)),
+          border: Border(
+            top: BorderSide(color: AppColors.divider.withValues(alpha: 0.9), width: 0.7),
+          ),
         ),
         child: Row(
           children: <Widget>[
-            IconButton(
-              onPressed: onMute,
-              icon: Icon(
-                muted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-                size: 18,
+            InkResponse(
+              onTap: onMute,
+              radius: 20,
+              child: SizedBox(
+                width: 36,
+                height: 36,
+                child: Icon(
+                  muted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                  size: 16,
+                  color: muted ? AppColors.textMuted : AppColors.textSecondary,
+                ),
               ),
-              color: muted ? AppColors.textMuted : AppColors.textSecondary,
-              tooltip: muted ? 'Unmute relay' : 'Mute relay',
             ),
             Expanded(
               child: Container(
-                height: 38,
+                height: 36,
                 alignment: Alignment.centerLeft,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
+                padding: const EdgeInsets.symmetric(horizontal: 13),
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceCard,
-                  borderRadius: BorderRadius.circular(19),
-                  border: Border.all(color: AppColors.divider, width: 0.7),
-                ),
-                child: Text(
-                  'Awaiting transmission...',
-                  style: AppTypography.bodySmall.copyWith(
-                    fontSize: 12.5,
-                    fontStyle: FontStyle.italic,
-                    color: AppColors.textMuted,
+                  color: AppColors.surfaceCard.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(2),
+                  border: Border.all(
+                    color: AppColors.divider.withValues(alpha: 0.8),
+                    width: 0.7,
                   ),
+                ),
+                child: Row(
+                  children: <Widget>[
+                    Container(width: 5, height: 5, color: AppColors.accentTide),
+                    const SizedBox(width: 8),
+                    Text(
+                      'AWAITING TRANSMISSION',
+                      style: AppTypography.labelDim.copyWith(fontSize: 7),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -459,20 +495,23 @@ class _Composer extends StatelessWidget {
               color: AppColors.surfaceCard,
               onSelected: onPace,
               itemBuilder: (BuildContext context) => <PopupMenuEntry<double>>[
-                const PopupMenuItem<double>(value: 1, child: Text('1x (authored pacing)')),
-                const PopupMenuItem<double>(value: 2, child: Text('2x faster')),
-                const PopupMenuItem<double>(value: 6, child: Text('6x faster')),
+                const PopupMenuItem<double>(value: 1, child: Text('1x — authored pacing')),
+                const PopupMenuItem<double>(value: 2, child: Text('2x — faster')),
+                const PopupMenuItem<double>(value: 6, child: Text('6x — fastest')),
               ],
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceCard,
-                  borderRadius: BorderRadius.circular(19),
-                  border: Border.all(color: AppColors.divider, width: 0.7),
+                  color: AppColors.surfaceCard.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(2),
+                  border: Border.all(
+                    color: AppColors.divider.withValues(alpha: 0.8),
+                    width: 0.7,
+                  ),
                 ),
                 child: Text(
                   '${pace.toStringAsFixed(0)}x',
-                  style: AppTypography.monoCaption.copyWith(fontSize: 10),
+                  style: AppTypography.label.copyWith(fontSize: 8.5),
                 ),
               ),
             ),
@@ -482,7 +521,6 @@ class _Composer extends StatelessWidget {
     );
   }
 }
-
 
 /// Footer shown in read-only archive mode instead of the composer.
 class _ReadOnlyFooter extends StatelessWidget {

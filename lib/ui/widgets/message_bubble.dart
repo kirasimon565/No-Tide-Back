@@ -114,11 +114,11 @@ class _Incoming extends StatelessWidget {
         children: <Widget>[
           if (isGroup)
             Padding(
-              padding: const EdgeInsets.only(left: 4, bottom: 4),
+              padding: const EdgeInsets.only(left: 2, bottom: 5),
               child: Text(
-                name,
-                style: AppTypography.label.copyWith(
-                  fontSize: 11.5,
+                name.toUpperCase(),
+                style: AppTypography.labelDim.copyWith(
+                  fontSize: 7.5,
                   color: accent,
                 ),
               ),
@@ -128,13 +128,11 @@ class _Incoming extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
             decoration: BoxDecoration(
               color: AppColors.bubbleIncoming,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(14),
-                topRight: Radius.circular(14),
-                bottomRight: Radius.circular(14),
-                bottomLeft: Radius.circular(4),
+              borderRadius: BorderRadius.circular(3),
+              border: Border.all(
+                color: AppColors.divider.withValues(alpha: 0.85),
+                width: 0.7,
               ),
-              border: Border.all(color: AppColors.divider, width: 0.6),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -190,13 +188,12 @@ class _Outgoing extends StatelessWidget {
         child: Container(
           constraints: const BoxConstraints(maxWidth: 320),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.bubbleOutgoing,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(14),
-              topRight: Radius.circular(14),
-              bottomLeft: Radius.circular(14),
-              bottomRight: Radius.circular(4),
+            borderRadius: BorderRadius.circular(3),
+            border: Border.all(
+              color: AppColors.accentTide.withValues(alpha: 0.22),
+              width: 0.7,
             ),
           ),
           child: Column(
@@ -245,8 +242,8 @@ class _SystemBanner extends StatelessWidget {
           decoration: BoxDecoration(
             color: danger
                 ? AppColors.accentCrimson.withValues(alpha: 0.10)
-                : AppColors.surfaceCard,
-            borderRadius: BorderRadius.circular(8),
+                : AppColors.surfaceCard.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(2),
             border: Border.all(
               color: danger
                   ? AppColors.accentCrimson.withValues(alpha: 0.45)
@@ -279,11 +276,14 @@ class _ThoughtCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: AppColors.accentTide.withValues(alpha: 0.045),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: AppColors.accentTide.withValues(alpha: 0.16),
-            width: 0.8,
+          color: AppColors.accentTide.withValues(alpha: 0.04),
+          // No borderRadius here: BoxDecoration forbids a non-uniform Border
+          // together with rounded corners.
+          border: Border(
+            left: BorderSide(
+              color: AppColors.accentTide.withValues(alpha: 0.45),
+              width: 2,
+            ),
           ),
         ),
         child: Row(
@@ -331,7 +331,7 @@ class _ImageAttachment extends StatelessWidget {
                     tag: 'FILE',
                   ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(9),
+            borderRadius: BorderRadius.circular(2),
             child: Stack(
               alignment: Alignment.center,
               children: <Widget>[

@@ -10,9 +10,11 @@ import 'package:no_tide_back/services/game_store.dart';
 import 'package:no_tide_back/core/constants/app_config.dart';
 import 'package:no_tide_back/core/theme/app_colors.dart';
 import 'package:no_tide_back/core/theme/app_typography.dart';
+import 'package:no_tide_back/engine/ntb_parser.dart';
 import 'package:no_tide_back/models/chat_message.dart';
 import 'package:no_tide_back/services/isar_service.dart';
 import 'package:no_tide_back/services/local_store.dart';
+import 'package:no_tide_back/app.dart';
 
 import 'stub_firebase.dart';
 import 'package:no_tide_back/ui/screens/chat_room_screen.dart';
@@ -85,7 +87,67 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
       expect(find.byType(PlayerSetupScreen), findsOneWidget);
       expect(find.byType(TextField), findsWidgets);
+      // The redesign's console labels must be visible, not clipped away.
+      expect(find.text('WHO ARE YOU'), findsOneWidget);
+      expect(find.text('BEGIN DEVICE'), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('boot device leaves the spinner and reaches the phone',
+        (WidgetTester tester) async {
+      // Regression guard for the freeze the player reported: `startNewGame`
+      // used to await the interpreter, which never returns while parked on the
+      // first @choice, so BOOTING DEVICE... spun forever.
+      await tester.binding.setSurfaceSize(const Size(400, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      // Skip the four-part asset parse: this test is about the boot *path*, not
+      // the parser (the playthrough test owns that). A one-scene program that
+      // parks on a @choice reproduces the exact shape that used to deadlock.
+      final NtbParser parser = NtbParser(assetLoader: (String _) async => '');
+      final NtbProgram mini = parser.parseSource(
+        ':: ep1_start\n'
+        '@message id="m1" chat="group_island" sender="abigail" text="you awake?"\n'
+        '@choice id="c1"\n'
+        '  @reply text="yeah"\n'
+        '    @goto ep1_start\n',
+      );
+      final NtbParserResult parsed = NtbParserResult(
+        program: mini,
+        warnings: const <String>[],
+        metadata: const <String, String>{},
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            gameStoreProvider.overrideWithValue(offlineStore),
+            ntbProgramProvider.overrideWith((Ref ref) async => parsed),
+          ],
+          child: MaterialApp(
+            theme: buildNoTideBackTheme(),
+            home: const PlayerSetupScreen(),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 200));
+
+      await tester.enterText(find.byType(TextField).first, 'Stella');
+      await tester.pump();
+      await tester.tap(find.text('BEGIN DEVICE'));
+      await tester.pump();
+
+      // Registration + parse + first scene. Anything longer than this means the
+      // boot path is blocked again.
+      for (int i = 0; i < 40; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+        if (find.byType(PhoneInboxScreen).evaluate().isNotEmpty) break;
+      }
+      expect(find.byType(PhoneInboxScreen), findsOneWidget);
+      expect(find.text('BEGIN DEVICE'), findsNothing);
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 2));
+      tester.takeException();
     });
 
     testWidgets('phone inbox renders the thread list', (WidgetTester tester) async {

@@ -144,16 +144,19 @@ class _HomeHubScreenState extends ConsumerState<HomeHubScreen> {
     final PlayerEconomyState economy = ref.watch(economyProvider);
     final AuthUserInfo? auth = ref.watch(authUserProvider).value;
     final GameScreenState game = ref.watch(gameStateProvider);
+    final bool hasSave = game.save != null;
+    final bool complete = ref.watch(episodeCompletedProvider);
 
     return Scaffold(
+      backgroundColor: AppColors.bgVoid,
       body: OceanBackdrop(
-        intensity: 0.6,
+        intensity: 0.55,
         child: SafeArea(
           child: CustomScrollView(
             slivers: <Widget>[
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                  padding: const EdgeInsets.fromLTRB(18, 10, 18, 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
@@ -165,20 +168,37 @@ class _HomeHubScreenState extends ConsumerState<HomeHubScreen> {
                         onSignOut: () async {
                           await ref.read(economyProvider.notifier).signOut();
                           if (!mounted) return;
-                          Navigator.of(context).popUntil((Route<dynamic> route) => route.isFirst);
+                          Navigator.of(context)
+                              .popUntil((Route<dynamic> route) => route.isFirst);
                         },
                         onSync: () => ref.read(economyProvider.notifier).refresh(),
                       ),
-                      const SizedBox(height: 22),
-                      SectionHeading(
-                        kicker: 'EPISODE SELECT',
-                        title: 'The Contract',
-                        trailing: Text(
-                          '1 / ${AppConfig.totalEpisodes}',
-                          style: AppTypography.monoCaption,
-                        ),
+                      const SizedBox(height: 26),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: <Widget>[
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text('EPISODE SELECT', style: AppTypography.kicker),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'The Contract',
+                                  style: AppTypography.displayTitle.copyWith(fontSize: 26),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Text(
+                            '01 / ${AppConfig.totalEpisodes.toString().padLeft(2, '0')}',
+                            style: AppTypography.labelDim.copyWith(fontSize: 9),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 6),
+                      Container(height: 1, color: AppColors.divider.withValues(alpha: 0.8)),
+                      const SizedBox(height: 16),
                     ],
                   ),
                 ),
@@ -186,69 +206,81 @@ class _HomeHubScreenState extends ConsumerState<HomeHubScreen> {
               SliverToBoxAdapter(child: _EpisodeCarousel(game: game)),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 26, 20, 40),
+                  padding: const EdgeInsets.fromLTRB(18, 24, 18, 36),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      if (game.save != null)
+                      if (hasSave)
                         _ResumeCard(
                           save: game.save!,
                           busy: _starting,
-                          episodeComplete: ref.watch(episodeCompletedProvider),
+                          episodeComplete: complete,
                           onResume: _resume,
-                        ),
-                      if (game.save != null) const SizedBox(height: 12),
-                      OutlinedButton.icon(
-                        onPressed: _newStory,
-                        icon: const Icon(Icons.restart_alt_rounded, size: 18),
-                        label: const Text('NEW STORY'),
-                      ),
-                      const SizedBox(height: 12),
-                      OutlinedButton.icon(
-                        onPressed: _openSaves,
-                        icon: const Icon(Icons.cloud_queue_rounded, size: 18),
-                        label: const Text('SAVES & CHAPTERS'),
-                      ),
-                      const SizedBox(height: 18),
-                      if (game.save == null)
-                        FilledButton.icon(
-                          onPressed: _newStory,
-                          icon: const Icon(Icons.play_arrow_rounded, size: 20),
-                          label: const Text('BEGIN EPISODE 1'),
-                        ),
-                      const SizedBox(height: 22),
+                        )
+                      else
+                        _StartCard(onStart: _newStory, busy: _starting),
+                      const SizedBox(height: 10),
                       Row(
                         children: <Widget>[
                           Expanded(
-                            child: _MiniStat(
-                              icon: Icons.folder_copy_outlined,
-                              label: 'EVIDENCE',
-                              value: '${game.evidence.length}',
+                            child: ConsoleButton(
+                              label: 'NEW STORY',
+                              icon: Icons.restart_alt_rounded,
+                              height: 46,
+                              onPressed: _newStory,
                             ),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
-                            child: _MiniStat(
-                              icon: Icons.emoji_events_outlined,
-                              label: 'ACHIEVEMENTS',
-                              value: '${game.achievements.length}',
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: _MiniStat(
-                              icon: economy.multimediaUnlocked
-                                  ? Icons.workspace_premium_rounded
-                                  : Icons.lock_outline_rounded,
-                              label: 'PACK',
-                              value: economy.multimediaUnlocked ? 'OWNED' : '—',
+                            child: ConsoleButton(
+                              label: 'SAVES',
+                              icon: Icons.inventory_2_outlined,
+                              height: 46,
+                              onPressed: _openSaves,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 26),
-                      Text(
-                        '${AppConfig.studioName.toUpperCase()}  •  v1.0.0',
-                        style: AppTypography.monoCaption.copyWith(letterSpacing: 3),
+                      const SizedBox(height: 24),
+                      RuleLabel('RELAY STATUS'),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: _MiniStat(
+                              label: 'EVIDENCE',
+                              value: '${game.evidence.length}',
+                              accent: AppColors.accentTide,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _MiniStat(
+                              label: 'ACHIEVEMENTS',
+                              value: '${game.achievements.length}',
+                              accent: AppColors.accentTide,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _MiniStat(
+                              label: 'PACK',
+                              value: economy.multimediaUnlocked ? 'OWNED' : 'LOCKED',
+                              accent: economy.multimediaUnlocked
+                                  ? AppColors.accentSuccess
+                                  : AppColors.accentPremium,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      Center(
+                        child: Text(
+                          '${AppConfig.studioName.toUpperCase()}  •  v1.0.0',
+                          style: AppTypography.labelDim.copyWith(
+                            fontSize: 7.5,
+                            letterSpacing: 2.4,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -284,146 +316,145 @@ class _TopBar extends StatelessWidget {
     final bool signedIn = economy.isSignedIn;
     return Row(
       children: <Widget>[
-        Tooltip(
-          message: signedIn ? 'Tap to sync or sign out' : 'Play offline',
-          child: InkWell(
-            onTap: signedIn ? onSignOut : null,
-            borderRadius: BorderRadius.circular(24),
-            child: Row(
-              children: <Widget>[
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.accentTide.withValues(alpha: 0.5)),
-                    gradient: const LinearGradient(
-                      colors: <Color>[AppColors.bubbleOutgoing, AppColors.surfaceCard],
+        // Identity disc. Signed in → Google avatar; offline → hollow ring.
+        GestureDetector(
+          onTap: signedIn ? onSignOut : null,
+          child: Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.surfaceCard,
+              border: Border.all(
+                color: signedIn ? AppColors.accentTide.withValues(alpha: 0.55) : AppColors.divider,
+                width: 0.9,
+              ),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: (signedIn && (auth?.photoUrl ?? '').isNotEmpty)
+                ? Image.network(
+                    auth!.photoUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (BuildContext c, Object e, StackTrace? st) => Center(
+                      child: Text(
+                        auth!.initial,
+                        style: AppTypography.label.copyWith(fontSize: 12),
+                      ),
+                    ),
+                  )
+                : Center(
+                    child: Text(
+                      signedIn ? auth!.initial : '·',
+                      style: AppTypography.label.copyWith(
+                        fontSize: 12,
+                        color: AppColors.textMuted,
+                      ),
                     ),
                   ),
-                  clipBehavior: Clip.antiAlias,
-                  child: (auth?.photoUrl != null && auth!.photoUrl!.isNotEmpty)
-                      ? Image.network(
-                          auth!.photoUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (BuildContext c, Object e, StackTrace? s) => Center(
-                            child: Text(
-                              auth!.initial,
-                              style: AppTypography.label.copyWith(color: AppColors.accentTide),
-                            ),
-                          ),
-                        )
-                      : Center(
-                          child: Text(
-                            signedIn ? auth!.initial : 'O',
-                            style: AppTypography.label.copyWith(color: AppColors.accentTide),
-                          ),
-                        ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              signedIn ? 'CLOUD LINKED' : 'CLOUD OFFLINE',
+              style: AppTypography.label.copyWith(
+                fontSize: 9,
+                color: signedIn ? AppColors.accentTide : AppColors.accentPremium,
+                letterSpacing: 2.2,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              signedIn ? 'local + cloud session' : 'local session',
+              style: AppTypography.bodySmall.copyWith(
+                fontSize: 10.5,
+                color: AppColors.textMuted,
+              ),
+            ),
+          ],
+        ),
+        const Spacer(),
+        // Coin plate.
+        GestureDetector(
+          onTap: onStore,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceCard.withValues(alpha: 0.7),
+              border: Border.all(
+                color: AppColors.accentPremium.withValues(alpha: 0.35),
+                width: 0.7,
+              ),
+              borderRadius: BorderRadius.circular(2),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Icon(
+                  Icons.monetization_on_outlined,
+                  size: 13,
+                  color: AppColors.accentPremium.withValues(alpha: 0.9),
                 ),
-                const SizedBox(width: 9),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      signedIn ? 'CONNECTED' : 'CLOUD OFFLINE',
-                      style: AppTypography.monoCaption.copyWith(
-                        letterSpacing: 1.6,
-                        color: signedIn ? AppColors.accentSuccess : AppColors.accentPremium,
-                      ),
-                    ),
-                    SizedBox(
-                      width: 130,
-                      child: Text(
-                        signedIn ? (auth?.email ?? '') : 'local session',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.monoCaption.copyWith(fontSize: 9.5),
-                      ),
-                    ),
-                  ],
+                const SizedBox(width: 6),
+                Text(
+                  '${economy.coins}',
+                  style: AppTypography.label.copyWith(
+                    fontSize: 10,
+                    color: AppColors.accentPremium,
+                    letterSpacing: 1.2,
+                  ),
                 ),
               ],
             ),
           ),
         ),
-        const Spacer(),
-        if (signedIn)
-          IconButton(
-            onPressed: onSync,
-            icon: economy.isSyncing
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.sync_rounded, size: 18, color: AppColors.textSecondary),
-            tooltip: 'Force cloud sync',
-          ),
-        _PillButton(
-          onTap: onStore,
-          icon: Icons.monetization_on_outlined,
-          label: '${economy.coins}',
-          color: AppColors.accentPremium,
-        ),
         const SizedBox(width: 8),
-        _PillButton(
+        GestureDetector(
           onTap: onMultimedia,
-          icon: economy.multimediaUnlocked
-              ? Icons.star_rounded
-              : Icons.lock_open_rounded,
-          label: economy.multimediaUnlocked ? 'FULL ACCESS' : 'UNLOCK PACK',
-          color: economy.multimediaUnlocked ? AppColors.accentPremium : AppColors.accentTide,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            decoration: BoxDecoration(
+              color: economy.multimediaUnlocked
+                  ? AppColors.accentSuccess.withValues(alpha: 0.12)
+                  : Colors.transparent,
+              border: Border.all(
+                color: (economy.multimediaUnlocked
+                        ? AppColors.accentSuccess
+                        : AppColors.accentTide)
+                    .withValues(alpha: 0.45),
+                width: 0.7,
+              ),
+              borderRadius: BorderRadius.circular(2),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Icon(
+                  economy.multimediaUnlocked
+                      ? Icons.lock_open_rounded
+                      : Icons.lock_outline_rounded,
+                  size: 12,
+                  color: economy.multimediaUnlocked
+                      ? AppColors.accentSuccess
+                      : AppColors.accentTide,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  economy.multimediaUnlocked ? 'PACK OWNED' : 'UNLOCK PACK',
+                  style: AppTypography.labelDim.copyWith(
+                    fontSize: 8,
+                    color: economy.multimediaUnlocked
+                        ? AppColors.accentSuccess
+                        : AppColors.accentTide,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ],
-    );
-  }
-}
-
-class _PillButton extends StatelessWidget {
-  const _PillButton({
-    required this.onTap,
-    required this.icon,
-    required this.label,
-    required this.color,
-  });
-
-  final VoidCallback onTap;
-  final IconData icon;
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: color.withValues(alpha: 0.10),
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: color.withValues(alpha: 0.38)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Icon(icon, size: 13, color: color),
-              const SizedBox(width: 5),
-              Text(
-                label,
-                style: AppTypography.monoCaption.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 9.5,
-                  letterSpacing: 1,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
@@ -436,27 +467,27 @@ class _EpisodeCarousel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 246,
+      height: 214,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 18),
         itemCount: AppConfig.totalEpisodes,
-        separatorBuilder: (BuildContext context, int index) => const SizedBox(width: 14),
+        separatorBuilder: (BuildContext context, int index) => const SizedBox(width: 12),
         itemBuilder: (BuildContext context, int index) {
           final bool isEpisode1 = index == 0;
           return SizedBox(
-            width: 268,
+            width: 250,
             child: _EpisodeCard(
               index: index + 1,
               title: isEpisode1
-                  ? 'EPISODE 1: THE CONTRACT'
-                  : 'EPISODE ${index + 1}: ${_titles[index]}',
+                  ? 'THE CONTRACT'
+                  : _titles[index],
               locked: !isEpisode1,
               progress: isEpisode1
                   ? (game.save == null
-                      ? 'READY'
-                      : 'PART ${game.save!.partNumber} • ${game.save!.currentSceneLabel.toUpperCase()}')
-                  : 'COMING SOON',
+                      ? 'READY TO BEGIN'
+                      : 'PART ${game.save!.partNumber}  •  ${game.save!.currentSceneLabel.toUpperCase()}')
+                  : 'IN DEVELOPMENT',
             ),
           );
         },
@@ -488,15 +519,25 @@ class _EpisodeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(18),
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: locked
+              ? AppColors.divider.withValues(alpha: 0.7)
+              : AppColors.accentTide.withValues(alpha: 0.45),
+          width: 0.8,
+        ),
+        borderRadius: BorderRadius.circular(2),
+        color: AppColors.surfaceCard,
+      ),
+      clipBehavior: Clip.antiAlias,
       child: Stack(
         fit: StackFit.expand,
         children: <Widget>[
           Image.asset(
             index == 1 ? AssetCatalog.titleBackground : AssetCatalog.chatBackground,
             fit: BoxFit.cover,
-            color: locked ? Colors.black.withValues(alpha: 0.72) : Colors.black.withValues(alpha: 0.28),
+            color: Colors.black.withValues(alpha: locked ? 0.82 : 0.55),
             colorBlendMode: BlendMode.darken,
             errorBuilder: (BuildContext c, Object e, StackTrace? s) =>
                 const ColoredBox(color: AppColors.surfaceCard),
@@ -507,44 +548,58 @@ class _EpisodeCard extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: <Color>[
-                  Colors.transparent,
-                  AppColors.bgVoid.withValues(alpha: 0.86),
+                  AppColors.slateHeader.withValues(alpha: 0.35),
+                  AppColors.slateHeader.withValues(alpha: 0.9),
                 ],
               ),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Row(
                   children: <Widget>[
-                    NtbTag(
+                    StatusPill(
                       'EP ${index.toString().padLeft(2, '0')}',
                       color: locked ? AppColors.textMuted : AppColors.accentTide,
-                      filled: true,
+                      filled: !locked,
                     ),
                     const Spacer(),
                     if (locked)
-                      const Icon(Icons.lock_rounded, size: 14, color: AppColors.textMuted),
+                      Icon(
+                        Icons.lock_outline_rounded,
+                        size: 13,
+                        color: AppColors.textMuted.withValues(alpha: 0.8),
+                      ),
                   ],
                 ),
                 const Spacer(),
+                Container(width: 22, height: 1, color: AppColors.divider),
+                const SizedBox(height: 12),
+                Text(
+                  'EPISODE ${index.toString().padLeft(2, '0')}',
+                  style: AppTypography.labelDim.copyWith(fontSize: 7.5),
+                ),
+                const SizedBox(height: 6),
                 Text(
                   title,
-                  style: AppTypography.monoBase.copyWith(
-                    fontSize: 15,
-                    height: 1.35,
-                    letterSpacing: 1.7,
-                    fontWeight: FontWeight.w700,
-                    color: locked ? AppColors.textSecondary : AppColors.textPrimary,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.title.copyWith(
+                    fontSize: 17,
+                    height: 1.3,
+                    color: locked ? AppColors.textMuted : AppColors.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 Text(
                   progress,
-                  style: AppTypography.monoCaption.copyWith(
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.labelDim.copyWith(
+                    fontSize: 7.5,
                     color: locked ? AppColors.textMuted : AppColors.accentTide,
                   ),
                 ),
@@ -569,101 +624,112 @@ class _ResumeCard extends StatelessWidget {
   final VoidCallback onResume;
   final bool busy;
 
-  /// When true the card becomes the "Episode 2 in development" entry point.
+  /// When true the plate becomes the "Episode 2 in development" entry point.
   final bool episodeComplete;
 
   @override
   Widget build(BuildContext context) {
     final Color accent =
         episodeComplete ? AppColors.accentPremium : AppColors.accentTide;
-    return NtbCard(
-      borderColor: accent.withValues(alpha: 0.45),
-      color: AppColors.surfaceCard,
-      onTap: busy ? null : onResume,
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceCard,
+        border: Border.all(color: accent.withValues(alpha: 0.4), width: 0.8),
+        borderRadius: BorderRadius.circular(2),
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Row(
-            children: <Widget>[
-              Icon(
-                episodeComplete
-                    ? Icons.sensors_off_rounded
-                    : Icons.play_circle_fill_rounded,
-                color: episodeComplete
-                    ? AppColors.accentPremium
-                    : AppColors.accentTide,
-                size: 22,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                episodeComplete ? 'WAITING FOR SIGNAL' : 'RESUME RELAY',
-                style: AppTypography.monoLabel.copyWith(fontSize: 11.5),
-              ),
-              const Spacer(),
-              Text(
-                save.label,
-                style: AppTypography.monoCaption.copyWith(color: AppColors.textSecondary),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (episodeComplete) ...<Widget>[
-            Text(
-              'EPISODE 1 COMPLETE • ${AppConfig.nextEpisodeTitle.toUpperCase()} '
-              'IN DEVELOPMENT',
-              style: AppTypography.monoCaption.copyWith(
-                fontSize: 8.5,
-                letterSpacing: 1.1,
-                color: AppColors.accentPremium,
-              ),
-            ),
-            const SizedBox(height: 8),
-          ] else
-            Row(
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 13, 14, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                _kv('SCENE', save.currentSceneLabel),
-                const SizedBox(width: 16),
-                _kv('EVIDENCE', '${save.evidenceCount}'),
-                const SizedBox(width: 16),
-                _kv('TIME', save.environmentTime),
+                Row(
+                  children: <Widget>[
+                    Icon(
+                      episodeComplete
+                          ? Icons.sensors_off_rounded
+                          : Icons.play_arrow_rounded,
+                      color: accent,
+                      size: 17,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      episodeComplete ? 'WAITING FOR SIGNAL' : 'RESUME RELAY',
+                      style: AppTypography.label.copyWith(
+                        fontSize: 10,
+                        color: accent,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      save.label.toUpperCase(),
+                      style: AppTypography.labelDim.copyWith(fontSize: 7.5),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                if (episodeComplete)
+                  Text(
+                    'EPISODE 1 COMPLETE\n'
+                    '${AppConfig.nextEpisodeTitle.toUpperCase()} IN DEVELOPMENT',
+                    style: AppTypography.labelDim.copyWith(
+                      fontSize: 8,
+                      height: 2,
+                      color: AppColors.accentPremium,
+                    ),
+                  )
+                else
+                  Row(
+                    children: <Widget>[
+                      _kv('SCENE', save.currentSceneLabel),
+                      _sep(),
+                      _kv('EVIDENCE', '${save.evidenceCount}'),
+                      _sep(),
+                      _kv('TIME', save.environmentTime),
+                    ],
+                  ),
               ],
             ),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: busy ? null : onResume,
-              child: busy
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.bgVoid),
-                    )
-                  : Text(
-                      episodeComplete
-                          ? 'ENTER WAITING HUB'
-                          : 'CONTINUE FROM CHECKPOINT',
-                    ),
-            ),
+          ),
+          Container(height: 0.8, color: accent.withValues(alpha: 0.28)),
+          ConsoleButton(
+            label: busy
+                ? 'SYNCING...'
+                : (episodeComplete ? 'ENTER WAITING HUB' : 'CONTINUE FROM CHECKPOINT'),
+            busy: busy,
+            icon: busy ? null : Icons.login_rounded,
+            height: 46,
+            onPressed: busy ? null : onResume,
           ),
         ],
       ),
     );
   }
 
+  Widget _sep() => Container(
+        width: 0.8,
+        height: 22,
+        margin: const EdgeInsets.symmetric(horizontal: 12),
+        color: AppColors.divider.withValues(alpha: 0.7),
+      );
+
   Widget _kv(String key, String value) => Expanded(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(key, style: AppTypography.monoCaption.copyWith(fontSize: 9, letterSpacing: 1.4)),
-            const SizedBox(height: 3),
+            Text(key, style: AppTypography.labelDim.copyWith(fontSize: 7.5)),
+            const SizedBox(height: 5),
             Text(
               value,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: AppTypography.monoBase.copyWith(
-                fontSize: 11.5,
+              style: AppTypography.body.copyWith(
+                fontSize: 13,
                 color: AppColors.textPrimary,
+                letterSpacing: 0.2,
               ),
             ),
           ],
@@ -671,25 +737,99 @@ class _ResumeCard extends StatelessWidget {
       );
 }
 
-class _MiniStat extends StatelessWidget {
-  const _MiniStat({required this.icon, required this.label, required this.value});
+/// First-launch counterpart of [_ResumeCard]: no checkpoint yet.
+class _StartCard extends StatelessWidget {
+  const _StartCard({required this.onStart, this.busy = false});
 
-  final IconData icon;
-  final String label;
-  final String value;
+  final VoidCallback onStart;
+  final bool busy;
 
   @override
   Widget build(BuildContext context) {
-    return NtbCard(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceCard,
+        border: Border.all(
+          color: AppColors.accentTide.withValues(alpha: 0.35),
+          width: 0.8,
+        ),
+        borderRadius: BorderRadius.circular(2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 13),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  'NO RELAY ON THIS DEVICE',
+                  style: AppTypography.label.copyWith(
+                    fontSize: 10,
+                    color: AppColors.accentTide,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Register a name, pick your pronouns, and the first scene '
+                  'opens on its own. About 45 minutes to the contract.',
+                  style: AppTypography.bodySmall.copyWith(height: 1.55),
+                ),
+              ],
+            ),
+          ),
+          Container(height: 0.8, color: AppColors.accentTide.withValues(alpha: 0.25)),
+          ConsoleButton(
+            label: busy ? 'OPENING...' : 'BEGIN EPISODE 1',
+            busy: busy,
+            icon: busy ? null : Icons.play_arrow_rounded,
+            height: 46,
+            onPressed: busy ? null : onStart,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MiniStat extends StatelessWidget {
+  const _MiniStat({
+    required this.label,
+    required this.value,
+    required this.accent,
+  });
+
+  final String label;
+  final String value;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(11, 11, 11, 12),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceCard.withValues(alpha: 0.55),
+        border: Border.all(color: AppColors.divider.withValues(alpha: 0.8), width: 0.7),
+        borderRadius: BorderRadius.circular(2),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Icon(icon, size: 16, color: AppColors.textSecondary),
+          Container(width: 12, height: 1, color: accent),
           const SizedBox(height: 10),
-          Text(value, style: AppTypography.monoBase.copyWith(fontSize: 14, color: AppColors.textPrimary)),
-          const SizedBox(height: 3),
-          Text(label, style: AppTypography.monoCaption.copyWith(fontSize: 8.5, letterSpacing: 1.2)),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypography.label.copyWith(
+              fontSize: 12,
+              color: accent,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(label, style: AppTypography.labelDim.copyWith(fontSize: 7)),
         ],
       ),
     );
@@ -716,17 +856,18 @@ class _SavesSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Container(
-              width: 44,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
+            Center(
+              child: Container(
+                width: 36,
+                height: 2,
+                margin: const EdgeInsets.only(bottom: 18),
                 color: AppColors.divider,
-                borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const SectionHeading(kicker: 'CLOUD SAVES', title: 'Saves & Chapters'),
-            const SizedBox(height: 14),
+            Text('CLOUD SAVES', style: AppTypography.kicker),
+            const SizedBox(height: 8),
+            Text('Saves & Chapters', style: AppTypography.displayTitle.copyWith(fontSize: 22)),
+            const SizedBox(height: 16),
             ...slots.map(
               (SaveSlotInfo slot) => Padding(
                 padding: const EdgeInsets.only(bottom: 10),

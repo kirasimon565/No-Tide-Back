@@ -80,88 +80,108 @@ ThemeData buildNoTideBackTheme() {
   final ColorScheme scheme = ColorScheme.fromSeed(
     seedColor: AppColors.accentTide,
     brightness: Brightness.dark,
-    surface: AppColors.surfacePhone,
+  ).copyWith(
     primary: AppColors.accentTide,
+    onPrimary: AppColors.slateHeader,
+    secondary: AppColors.accentTide,
+    surface: AppColors.surfaceCard,
+    onSurface: AppColors.textPrimary,
     error: AppColors.accentCrimson,
   );
 
+  // Flat, square, hairline. One accent. No ripples, no elevation, no rounded
+  // "app card" language — the UI is a terminal, not a dashboard.
   return ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
     colorScheme: scheme,
     scaffoldBackgroundColor: AppColors.bgVoid,
     canvasColor: AppColors.bgVoid,
-    splashFactory: InkSparkle.splashFactory,
     fontFamily: AppTypography.inter,
     textTheme: AppTypography.textTheme(),
     dividerColor: AppColors.divider,
+    splashFactory: NoSplash.splashFactory,
+    highlightColor: Colors.transparent,
+    pageTransitionsTheme: const PageTransitionsTheme(
+      builders: <TargetPlatform, PageTransitionsBuilder>{
+        TargetPlatform.android: _FadeThroughBuilder(),
+        TargetPlatform.iOS: _FadeThroughBuilder(),
+      },
+    ),
     appBarTheme: const AppBarTheme(
       backgroundColor: AppColors.bgVoid,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       centerTitle: false,
-      titleTextStyle: AppTypography.sectionTitle,
-      iconTheme: IconThemeData(color: AppColors.textPrimary),
+      titleTextStyle: AppTypography.label,
+      iconTheme: IconThemeData(color: AppColors.textSecondary),
     ),
+    iconTheme: const IconThemeData(color: AppColors.textSecondary),
     bottomSheetTheme: const BottomSheetThemeData(
       backgroundColor: AppColors.surfacePhone,
       surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
     ),
     dialogTheme: const DialogThemeData(
       backgroundColor: AppColors.surfaceCard,
       surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.zero,
+        side: BorderSide(color: AppColors.divider, width: 0.8),
+      ),
+      titleTextStyle: AppTypography.label,
+      contentTextStyle: AppTypography.bodySmall,
     ),
     snackBarTheme: const SnackBarThemeData(
       backgroundColor: AppColors.surfaceCard,
-      contentTextStyle: TextStyle(
-        fontFamily: AppTypography.mono,
-        fontSize: 12,
-        color: AppColors.textPrimary,
-      ),
+      contentTextStyle: AppTypography.systemBanner,
       behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.zero,
+        side: BorderSide(color: AppColors.divider, width: 0.8),
+      ),
     ),
     textSelectionTheme: const TextSelectionThemeData(
       cursorColor: AppColors.accentTide,
-      selectionColor: Color(0x3322D3EE),
+      selectionColor: Color(0x3300ACC1),
       selectionHandleColor: AppColors.accentTide,
     ),
     progressIndicatorTheme: const ProgressIndicatorThemeData(
       color: AppColors.accentTide,
-      linearTrackColor: AppColors.surfaceElevated,
+      linearTrackColor: AppColors.divider,
     ),
-    filledButtonTheme: FilledButtonThemeData(
-      style: FilledButton.styleFrom(
-        backgroundColor: AppColors.accentTide,
-        foregroundColor: AppColors.bgVoid,
-        textStyle: const TextStyle(
-          fontFamily: AppTypography.mono,
-          fontSize: 12.5,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.6,
-        ),
-        minimumSize: const Size.fromHeight(52),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: AppColors.surfaceCard.withValues(alpha: 0.6),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+      hintStyle: AppTypography.body.copyWith(color: AppColors.textMuted),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(3),
+        borderSide: const BorderSide(color: AppColors.divider, width: 0.8),
       ),
-    ),
-    outlinedButtonTheme: OutlinedButtonThemeData(
-      style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.textPrimary,
-        side: const BorderSide(color: AppColors.divider),
-        textStyle: const TextStyle(
-          fontFamily: AppTypography.mono,
-          fontSize: 12.5,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.6,
-        ),
-        minimumSize: const Size.fromHeight(52),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(3),
+        borderSide: const BorderSide(color: AppColors.divider, width: 0.8),
       ),
-    ),
-    textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(foregroundColor: AppColors.accentTide),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(3),
+        borderSide: const BorderSide(color: AppColors.accentTide, width: 1),
+      ),
     ),
   );
+}
+
+/// Hard cut between screens — an OS, not a slideshow.
+class _FadeThroughBuilder extends PageTransitionsBuilder {
+  const _FadeThroughBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) =>
+      child;
 }

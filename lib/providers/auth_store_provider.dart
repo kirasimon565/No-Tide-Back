@@ -89,31 +89,66 @@ class EconomyNotifier extends Notifier<PlayerEconomyState> {
         );
       },
       onError: (Object error) {
-        state = state.copyWith(lastError: error.toString(), isSyncing: false);
+        state = state.copyWith(lastError: _readable(error), isSyncing: false);
       },
     );
   }
 
   /// Google sign-in. Returns true on success.
+  ///
+  /// Authentication and cloud sync are two different things. The Firebase
+  /// session is what lets purchases and saves follow the player; the
+  /// Firestore document is only the sync target. A `permission-denied` here
+  /// used to be reported as a failed *login* and bounced the player back to
+  /// the splash with an opaque error, when in fact they were signed in and
+  /// simply had no cloud mirror yet.
   Future<bool> signIn() async {
     state = state.copyWith(isLoading: true, lastError: null);
+    User? user;
     try {
-      final User? user = await _store.signInWithGoogle();
-      if (user == null) {
-        state = state.copyWith(isLoading: false, lastError: 'Sign-in cancelled');
-        return false;
-      }
-      state = state.copyWith(user: user, isLoading: false);
-      _listenToPlayerDoc(user.uid);
-
-      // Restore cloud save into the local mirror immediately.
-      final cloud = await ref.read(cloudSaveServiceProvider.future);
-      await cloud.restoreInto(user.uid);
-      return true;
+      user = await _store.signInWithGoogle();
     } catch (error) {
-      state = state.copyWith(isLoading: false, lastError: error.toString());
+      state = state.copyWith(
+        isLoading: false,
+        lastError: _store.lastAuthError ?? _readable(error),
+      );
       return false;
     }
+    if (user == null) {
+      state = state.copyWith(
+        isLoading: false,
+        lastError: _store.lastAuthError ?? 'Sign-in cancelled',
+      );
+      return false;
+    }
+
+    // Signed in. From here on nothing may turn this into a failure.
+    state = state.copyWith(user: user, isLoading: false, lastError: null);
+    _listenToPlayerDoc(user.uid);
+
+    try {
+      final cloud = await ref.read(cloudSaveServiceProvider.future);
+      await cloud.restoreInto(user.uid);
+    } catch (error) {
+      // Cloud mirror unavailable (rules not deployed / offline). The local
+      // relay keeps working; the hub shows CLOUD OFFLINE.
+      state = state.copyWith(lastError: _readable(error), isSyncing: false);
+    }
+    return true;
+  }
+
+  /// `[cloud_firestore/permission-denied] The caller does not have permission…`
+  /// → "Cloud save is locked…". Keeps the raw code for the log.
+  String _readable(Object error) {
+    final String raw = error.toString();
+    if (raw.contains('permission-denied')) {
+      return 'Cloud save is locked — Firestore rules are not deployed. '
+          'Local play is unaffected.';
+    }
+    if (raw.contains('unavailable') || raw.contains('network')) {
+      return 'Cloud save unreachable — playing on the local relay.';
+    }
+    return raw.replaceFirst(RegExp(r'^\[[^\]]+\]\s*'), '');
   }
 
   Future<void> signOut() async {

@@ -108,33 +108,96 @@ class GameStore {
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
   /// Google Sign-In → Firebase credential exchange.
+  ///
+  /// Failure modes are surfaced as text the player can act on instead of a
+  /// silent `false`:
+  ///   • `GoogleSignIn.signIn()` throwing `PlatformException(sign_in_failed,
+  ///     …, 10)` — the SHA-1 of the signing certificate is not registered for
+  ///     this package in the Firebase console / Google Cloud OAuth client.
+  ///   • `[cloud_firestore/permission-denied]` — Firestore rules are not
+  ///     deployed, so `players/{uid}` cannot be created. Sign-in itself
+  ///     succeeded; we keep the session and let the economy fall back to the
+  ///     local mirror rather than bouncing the player back to the splash.
+  String? lastAuthError;
+
   Future<User?> signInWithGoogle() async {
+    lastAuthError = null;
+    final GoogleSignIn googleSignIn = GoogleSignIn(
+      scopes: const <String>['email', 'profile'],
+    );
+
+    final GoogleSignInAccount? account;
     try {
-      final GoogleSignIn googleSignIn = GoogleSignIn(
-        scopes: const <String>['email'],
-      );
-      // Force the account picker so switching accounts always works.
       await googleSignIn.signOut();
-      final GoogleSignInAccount? account = await googleSignIn.signIn();
-      if (account == null) return null;
-
-      final GoogleSignInAuthentication tokens = await account.authentication;
-      final OAuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: tokens.accessToken,
-        idToken: tokens.idToken,
-      );
-
-      final UserCredential result = await _auth.signInWithCredential(credential);
-      final User? user = result.user;
-      if (user != null) {
-        await ensurePlayerDocument(user);
-        await _configurePurchases(user.uid);
-      }
-      return user;
+      account = await googleSignIn.signIn();
     } on PlatformException catch (error) {
-      debugPrint('GameStore.signInWithGoogle platform error: ${error.message}');
+      lastAuthError = _authErrorFor(error);
+      debugPrint('GameStore.signInWithGoogle: ${error.code} ${error.message}');
       rethrow;
     }
+
+    if (account == null) {
+      lastAuthError = 'Sign-in cancelled';
+      return null;
+    }
+
+    final GoogleSignInAuthentication tokens = await account.authentication;
+    final OAuthCredential credential = GoogleAuthProvider.credential(
+      accessToken: tokens.accessToken,
+      idToken: tokens.idToken,
+    );
+
+    final UserCredential result = await _auth.signInWithCredential(credential);
+    final User? user = result.user;
+    if (user == null) {
+      lastAuthError = 'Firebase rejected the Google credential';
+      return null;
+    }
+
+    // Firebase-first bootstrap. Both of these are best-effort: a rules or
+    // network problem must not undo a successful authentication.
+    try {
+      await ensurePlayerDocument(user);
+    } on FirebaseException catch (error) {
+      lastAuthError = _firestoreErrorFor(error);
+      debugPrint('GameStore.ensurePlayerDocument: ${error.code}');
+    }
+    try {
+      await _configurePurchases(user.uid);
+    } catch (error) {
+      debugPrint('GameStore._configurePurchases: $error');
+    }
+    return user;
+  }
+
+  /// Turns the opaque platform codes into something the splash screen can show.
+  static String _authErrorFor(PlatformException error) {
+    final String detail = '${error.message ?? ''} ${error.details ?? ''}';
+    if (error.code == 'sign_in_failed' && detail.contains('10')) {
+      return 'Google rejected this install: the app signing SHA-1 is not '
+          'registered for this package. Add it in Firebase → Project settings '
+          '→ Your apps → SHA certificate fingerprints.';
+    }
+    if (error.code == 'network_error') {
+      return 'No network. Play offline — your relay stays on this device.';
+    }
+    if (error.code == 'sign_in_canceled') {
+      return 'Sign-in cancelled';
+    }
+    return 'Google sign-in failed (${error.code}). '
+        'Check that the SHA-1 of this build is registered in Firebase.';
+  }
+
+  static String _firestoreErrorFor(FirebaseException error) {
+    if (error.code == 'permission-denied') {
+      return 'Cloud save is locked: the Firestore rules are not deployed for '
+          'this project (\'permission-denied\'). Run '
+          '`firebase deploy --only firestore:rules`.';
+    }
+    if (error.code == 'unavailable') {
+      return 'Cloud save unreachable — playing on the local relay.';
+    }
+    return 'Cloud save error (${error.code}).';
   }
 
   Future<void> signOut() async {

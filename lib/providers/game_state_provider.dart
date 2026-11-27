@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../engine/ntb_interpreter.dart';
@@ -44,6 +45,8 @@ class GameScreenState {
     this.isRunning = false,
     this.lastSyncedAt,
     this.save,
+    this.bootStatus,
+    this.bootError,
   });
 
   final List<ChatThread> threads;
@@ -82,6 +85,15 @@ class GameScreenState {
   final bool isRunning;
   final DateTime? lastSyncedAt;
   final GameSaveState? save;
+
+  /// Live stage text while a game is being (re)started: "SYNCING SAVE...",
+  /// "LOADING EPISODE...". Null once the first frame of the relay is ready —
+  /// the UI shows a determinate boot plate instead of an endless spinner.
+  final String? bootStatus;
+
+  /// Set when booting failed. The setup screen surfaces this instead of
+  /// spinning forever with no explanation.
+  final String? bootError;
 
   int get unreadTotal =>
       unreadByThread.values.fold<int>(0, (int sum, int v) => sum + v);
@@ -138,6 +150,9 @@ class GameScreenState {
     bool? isRunning,
     DateTime? lastSyncedAt,
     GameSaveState? save,
+    String? bootStatus,
+    String? bootError,
+    bool clearBoot = false,
   }) =>
       GameScreenState(
         threads: threads ?? this.threads,
@@ -169,6 +184,8 @@ class GameScreenState {
         isRunning: isRunning ?? this.isRunning,
         lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
         save: save ?? this.save,
+        bootStatus: clearBoot ? null : (bootStatus ?? this.bootStatus),
+        bootError: clearBoot ? null : (bootError ?? this.bootError),
       );
 }
 
@@ -297,11 +314,26 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
 
   // ------------------------------------------------------------- interpreter
   /// Starts a brand new playthrough at `:: ep1_start`.
+  ///
+  /// **This must never block.** `NtbInterpreter.run()` does not return when it
+  /// needs the player: it parks inside `@choice` / `@wait_input` until the UI
+  /// answers. `ep1_start` reaches its first `@choice` after ~20 messages, so
+  /// awaiting `run()` here made the caller's `await` hang forever — that is
+  /// exactly what "BOOTING DEVICE..." spinning with no end was.
+  ///
+  /// Also: the interpreter is a *pull* state machine that only publishes via
+  /// `state = ...` when something is emitted. Awaiting it on the UI isolate
+  /// gave the frame loop nothing to paint between directives, so the phone sat
+  /// on the first two messages. Awaiting just the first scene (which lands in
+  /// `awaitingChoice`) and letting the reader continue by choice fixes both.
   Future<void> startNewGame({NtbProgram? program}) async {
+    state = state.copyWith(bootStatus: 'LOADING EPISODE...');
+
     final NtbProgram resolved =
         program ?? (await ref.read(ntbProgramProvider.future)).program;
     _program = resolved;
 
+    state = state.copyWith(bootStatus: 'CLEARING OLD RELAY...');
     await db.clearMessages();
     for (final ChatThread thread in ChatThreads.seed) {
       _messages[thread.threadId] = <ChatMessage>[];
@@ -311,10 +343,11 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
     await db.saveEvidence(<EvidenceItem>[]);
     await db.saveThreads(ChatThreads.seed);
 
+    state = state.copyWith(bootStatus: 'SEEDING DEVICE...');
     final GameSaveState fresh = GameSaveState.fresh.copyWith(
       slotId: 'active',
       variables: <String, dynamic>{
-        ...GameSaveState.fresh.variables,
+        ...GameSaveStateDefaults.variables,
         'multimedia_package_owned':
             ref.read(economyProvider).multimediaUnlocked,
         'player_name': _profile.playerName,
@@ -339,6 +372,7 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
       clearOpenThread: true,
       isRunning: false,
       interpreterStatus: InterpreterStatus.idle,
+      bootStatus: 'OPENING RELAY...',
     );
 
     _interpreter = NtbInterpreter(
@@ -347,9 +381,36 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
       initialVariables: fresh.variables,
       paceMultiplier: state.paceMultiplier,
     );
-    await _interpreter!.run();
+
+    unawaited(_drive());
+  }
+
+  /// Runs the interpreter until it needs the player, without ever blocking the
+  /// caller. Safe to call after every choice / tap: `run()` is re-entrant and
+  /// returns immediately while a previous pass is still parked.
+  Future<void> _drive() async {
+    final NtbInterpreter? interpreter = _interpreter;
+    if (interpreter == null) return;
+    try {
+      await interpreter.run();
+    } catch (error, stack) {
+      state = state.copyWith(
+        bootError: 'RELAY FAULT: $error',
+        bootStatus: null,
+        interpreterStatus: InterpreterStatus.paused,
+        isRunning: false,
+      );
+      debugPrint('GameStateNotifier: interpreter fault: $error\n$stack');
+      return;
+    }
+    if (state.bootStatus != null) {
+      state = state.copyWith(clearBoot: true);
+    }
     _publishStatus();
   }
+
+  /// Clears a boot failure so the player can retry from the setup screen.
+  void clearBootError() => state = state.copyWith(clearBoot: true);
 
   /// Resumes the stored pointer (Home Hub → RESUME RELAY).
   Future<void> resume({NtbProgram? program}) async {
@@ -375,9 +436,9 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
       environmentLocation: save.environmentLocation,
       environmentWeather: save.environmentWeather,
       isRunning: true,
+      bootStatus: 'RESUMING RELAY...',
     );
-    await _interpreter!.run();
-    _publishStatus();
+    await _drive();
   }
 
   void _publishStatus() {
@@ -394,8 +455,7 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
     _choiceCompleter = null;
     state = state.copyWith(clearChoice: true, pendingChoiceCost: -1, pendingChoiceId: '');
     completer?.complete(option);
-    await _interpreter?.run();
-    _publishStatus();
+    await _drive();
   }
 
   void dismissChoice() {
@@ -408,15 +468,14 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
 
   /// Called by the store sheet: retry the blocked premium option.
   Future<void> retryPendingChoice() async {
-    await _interpreter?.run();
-    _publishStatus();
+    await _drive();
   }
 
   void tapToContinue() {
     final Completer<void>? completer = _inputCompleter;
     _inputCompleter = null;
-    _publishStatus();
     completer?.complete();
+    unawaited(_drive());
   }
 
   Future<void> setPace(double multiplier) async {
@@ -886,8 +945,7 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
 
   Future<void> _runAfterPuzzle() async {
     await Future<void>.delayed(const Duration(milliseconds: 50));
-    await _interpreter?.run();
-    _publishStatus();
+    await _drive();
   }
 
   @override

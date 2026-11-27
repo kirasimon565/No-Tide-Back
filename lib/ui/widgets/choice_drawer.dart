@@ -28,12 +28,11 @@ class ChoiceDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.surfacePhone,
-        border: Border(top: BorderSide(color: AppColors.divider, width: 0.8)),
-        boxShadow: <BoxShadow>[
-          BoxShadow(color: Color(0x66000000), blurRadius: 24, offset: Offset(0, -8)),
-        ],
+        border: Border(
+          top: BorderSide(color: AppColors.divider.withValues(alpha: 0.9), width: 0.7),
+        ),
       ),
       child: SafeArea(
         top: false,
@@ -45,39 +44,39 @@ class ChoiceDrawer extends StatelessWidget {
             children: <Widget>[
               Row(
                 children: <Widget>[
-                  Container(
-                    width: 4,
-                    height: 14,
-                    decoration: BoxDecoration(
-                      color: AppColors.accentTide,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
+                  Container(width: 12, height: 1, color: AppColors.accentTide),
                   const SizedBox(width: 8),
-                  Text(
-                    'CHOOSE YOUR REPLY',
-                    style: AppTypography.monoLabel.copyWith(fontSize: 10.5),
-                  ),
+                  Text('CHOOSE YOUR REPLY', style: AppTypography.kicker.copyWith(fontSize: 9)),
                   const Spacer(),
                   if (economy.multimediaUnlocked)
                     Text(
-                      '★ PACK ACTIVE',
-                      style: AppTypography.monoCaption.copyWith(
+                      'PACK ACTIVE',
+                      style: AppTypography.labelDim.copyWith(
+                        fontSize: 7,
                         color: AppColors.accentPremium,
-                        fontSize: 9,
                       ),
                     )
                   else
-                    Text(
-                      '🪙 ${economy.coins}',
-                      style: AppTypography.monoCaption.copyWith(
-                        color: AppColors.accentPremium,
-                        fontSize: 9.5,
-                      ),
+                    Row(
+                      children: <Widget>[
+                        Icon(
+                          Icons.monetization_on_outlined,
+                          size: 11,
+                          color: AppColors.accentPremium,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${economy.coins}',
+                          style: AppTypography.label.copyWith(
+                            fontSize: 8.5,
+                            color: AppColors.accentPremium,
+                          ),
+                        ),
+                      ],
                     ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               ...options.map(
                 (NtbNode option) => Padding(
                   padding: const EdgeInsets.only(bottom: 8),
@@ -130,21 +129,21 @@ class _ChoiceButton extends StatelessWidget {
 
     return Material(
       color: locked
-          ? AppColors.accentPremium.withValues(alpha: 0.07)
-          : AppColors.surfaceCard,
-      borderRadius: BorderRadius.circular(12),
+          ? AppColors.accentPremium.withValues(alpha: 0.06)
+          : AppColors.surfaceCard.withValues(alpha: 0.7),
+      borderRadius: BorderRadius.circular(3),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(3),
         onTap: busy ? null : onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(3),
             border: Border.all(
               color: locked
-                  ? AppColors.accentPremium.withValues(alpha: 0.45)
-                  : AppColors.divider,
-              width: locked ? 1.1 : 0.8,
+                  ? AppColors.accentPremium.withValues(alpha: 0.4)
+                  : AppColors.divider.withValues(alpha: 0.9),
+              width: 0.8,
             ),
           ),
           child: Row(
@@ -152,9 +151,9 @@ class _ChoiceButton extends StatelessWidget {
             children: <Widget>[
               Icon(
                 locked
-                    ? (freeWithPack ? Icons.star_rounded : Icons.lock_rounded)
-                    : Icons.subdirectory_arrow_right_rounded,
-                size: 16,
+                    ? (freeWithPack ? Icons.workspace_premium_rounded : Icons.lock_outline_rounded)
+                    : Icons.chevron_right_rounded,
+                size: 15,
                 color: accent,
               ),
               const SizedBox(width: 10),
@@ -168,19 +167,20 @@ class _ChoiceButton extends StatelessWidget {
                         child: Row(
                           children: <Widget>[
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                               decoration: BoxDecoration(
-                                color: AppColors.accentPremium.withValues(alpha: 0.16),
-                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(
+                                  color: AppColors.accentPremium.withValues(alpha: 0.5),
+                                  width: 0.7,
+                                ),
+                                borderRadius: BorderRadius.circular(2),
                               ),
                               child: Text(
                                 freeWithPack
-                                    ? '★ MULTIMEDIA PACK — FREE'
-                                    : '🪙 $cost COINS',
-                                style: AppTypography.monoCaption.copyWith(
-                                  fontSize: 8.5,
-                                  letterSpacing: 1.2,
-                                  fontWeight: FontWeight.w700,
+                                    ? 'MULTIMEDIA PACK — FREE'
+                                    : '$cost COINS',
+                                style: AppTypography.labelDim.copyWith(
+                                  fontSize: 7,
                                   color: AppColors.accentPremium,
                                 ),
                               ),
@@ -189,8 +189,8 @@ class _ChoiceButton extends StatelessWidget {
                               const SizedBox(width: 6),
                               Text(
                                 'SHORT ON COINS',
-                                style: AppTypography.monoCaption.copyWith(
-                                  fontSize: 7.5,
+                                style: AppTypography.labelDim.copyWith(
+                                  fontSize: 7,
                                   color: AppColors.accentCrimson,
                                 ),
                               ),

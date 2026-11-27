@@ -148,25 +148,35 @@ class _StudioIntroScreenState extends ConsumerState<StudioIntroScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(boot.status, style: AppTypography.monoCaption),
-                    const SizedBox(height: 8),
+                    Row(
+                      children: <Widget>[
+                        Container(width: 10, height: 1, color: AppColors.accentTide),
+                        const SizedBox(width: 8),
+                        Text(
+                          boot.status.replaceFirst('> ', '').toUpperCase(),
+                          style: AppTypography.labelDim.copyWith(fontSize: 8),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 9),
                     Text(
                       widget.firebaseReady
-                          ? '> CLOUD RELAY LINKED'
-                          : '> OFFLINE MODE / LOCAL RELAY ONLY',
-                      style: AppTypography.monoCaption.copyWith(
+                          ? 'CLOUD RELAY LINKED'
+                          : 'OFFLINE MODE / LOCAL RELAY ONLY',
+                      style: AppTypography.labelDim.copyWith(
+                        fontSize: 7,
                         color: widget.firebaseReady
-                            ? AppColors.accentTide.withValues(alpha: 0.7)
-                            : AppColors.accentPremium.withValues(alpha: 0.7),
+                            ? AppColors.accentTide.withValues(alpha: 0.75)
+                            : AppColors.accentPremium.withValues(alpha: 0.75),
                       ),
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 20),
                     if (_allowSkip)
                       Text(
                         'TAP TO SKIP',
-                        style: AppTypography.monoCaption.copyWith(
+                        style: AppTypography.labelDim.copyWith(
+                          fontSize: 7,
                           letterSpacing: 3,
-                          color: AppColors.textMuted,
                         ),
                       ),
                   ],
