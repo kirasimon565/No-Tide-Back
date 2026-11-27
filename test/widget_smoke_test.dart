@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:no_tide_back/providers/app_providers.dart';
+import 'package:no_tide_back/services/game_store.dart';
 import 'package:no_tide_back/core/theme/app_colors.dart';
 import 'package:no_tide_back/core/theme/app_typography.dart';
 import 'package:no_tide_back/models/chat_message.dart';
@@ -26,7 +28,8 @@ import 'package:no_tide_back/ui/widgets/message_bubble.dart';
 /// empty in a test — exactly the first-launch path.
 Widget _host(Widget child, {_OfflineGameStore? store}) {
   return ProviderScope(
-    overrides: <Override>[
+    // No explicit type annotation: Riverpod 3 renamed the override type.
+    overrides: [
       if (store != null) gameStoreProvider.overrideWithValue(store),
     ],
     child: MaterialApp(
