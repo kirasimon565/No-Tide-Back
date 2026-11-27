@@ -67,6 +67,35 @@ reflective on purpose, so default builds never need the AAR on the classpath.
 the optional rail cannot rot silently again. `build-apk.yml` derives the Gradle flag from the
 selected `store_rail`, so the two can no longer disagree.
 
+### RevenueCat: products, not currency
+
+RevenueCat's dashboard offers **in-app currency** alongside products. Do not use it for this
+game — it is the wrong feature and its form will not accept the SKUs:
+
+| | in-app currency | what the app needs |
+| --- | --- | --- |
+| code limit | 10 characters | `coins_100`, `coins_500`, `coins_1500`, `multimedia_pack` |
+| what it is | a spendable balance RevenueCat tracks and debits for you | a real store product (`StoreProduct` / one-time `INAPP`) |
+| what the SDK calls | currency APIs the app does not call | `Purchases.getProducts` + `purchaseStoreProduct` |
+
+`GameStore._buyWithRevenueCat` looks the SKU up as a product; a currency code is invisible to it,
+so it reports `no product` and hands over to the next rail. The coin balance in this game lives in
+Firestore (`players/{uid}.coins`), granted by `grantCoins` — never in RevenueCat.
+
+Create these as **products** (one-time / non-consumable), with the identifier matching exactly:
+
+| identifier | type | Play Console product id |
+| --- | --- | --- |
+| `coins_100` | non-consumable | `coins_100` |
+| `coins_500` | non-consumable | `coins_500` |
+| `coins_1500` | non-consumable | `coins_1500` |
+| `multimedia_pack` | non-consumable | `multimedia_pack` |
+
+Coin packs are consumables in spirit, but the grant is idempotent on the order id in Firestore, so
+a non-consumable keeps the SKU simple and prevents a re-purchase of the same pack from being
+blocked. Grant them once per order and never let the store's own consumption logic decide the
+balance.
+
 ### Where a purchase is stored
 
 One document is the source of truth for every rail: `players/{uid}`.
