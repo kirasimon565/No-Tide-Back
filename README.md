@@ -87,6 +87,40 @@ red adaptive-icon background.
 
 ---
 
+## 2b. Design system — "slate terminal"
+
+The UI follows the production language of Dreadmoor (the studio's other
+release), not a Material dashboard:
+
+| Token | Value | Used for |
+| --- | --- | --- |
+| canvas | `#1E252B` slate | every screen background (never pure black) |
+| panel | `#2A3239` | cards, rows, plates |
+| chrome | `#161C21` | status bar, headers, docks |
+| accent | `#00ACC1` cyan | **the only** interactive colour |
+| danger | `#B71C1C` crimson | relay lost, redacted, horror beats |
+| premium | `#FBC02D` | coins, locked pack |
+
+Rules the code follows:
+
+- **Flat, not floating.** Panels are a fill plus a 0.7px steel border. No drop
+  shadows, no elevation, corner radii stay at 0–3px (the old build used 12–18px
+  everywhere, which is what made it read as a generic app).
+- **Two type voices.** `Michroma` (bundled at `assets/fonts/`) is the console
+  voice: labels, headers, buttons, titles, always upper-case and letter-spaced.
+  `Inter` is the human voice: chat bodies, prose, form input. No runtime font
+  download, so the UI renders on a plane.
+- **One accent.** Cyan means "you can touch this". Crimson means danger. Coins
+  are the only yellow. Character name tags in group chats carry their own muted
+  colour so a 795-message log stays readable.
+
+Shared widgets in `lib/ui/widgets/common_widgets.dart`: `ConsoleHeader`,
+`SlatePanel`, `ConsoleButton`, `GhostButton`, `StatusPill`, `RuleLabel`,
+`GlassChrome`, `SlateNoise`. `NtbCard` / `NtbTag` / `NtbDivider` are thin
+aliases onto these so nothing can drift back to the old look.
+
+---
+
 ## 3. Screens
 
 | # | Screen | File |
@@ -260,14 +294,14 @@ the billing rail, and whether to bundle the Xsolla SDK.
 ## 9. Tests
 
 ```bash
-flutter test          # 23 tests, ~2 s
+flutter test          # 25 tests, ~7 s
 ```
 
 | File | What it covers |
 | --- | --- |
 | `test/ntb_engine_test.dart` | pronoun interpolation, the expression evaluator, scene indexing, `@choice` nesting, `@if` block skipping, the nine-thread seed |
 | `test/episode_playthrough_test.dart` | drives the **real** four-part script from `:: ep1_start` to `END OF EPISODE 1: THE CONTRACT` with a scripted player: verifies all 68 `@goto` targets resolve, every scene is reachable, no `{token}` leaks into a message, and that the Multimedia-Package path takes the premium branches |
-| `test/widget_smoke_test.dart` | mounts every screen plus `MessageBubble`, checks the asset tree, the declared fonts, and the four script files |
+| `test/widget_smoke_test.dart` | mounts every screen plus `MessageBubble`, **drives `BEGIN DEVICE` to the phone** (the boot-freeze regression), checks the asset tree, the declared fonts, and the four script files |
 
 The playthrough is the interesting one — CI publishes its summary as a check notice:
 
@@ -287,7 +321,7 @@ dismisses the drawer once a scene repeats.
 | Check | Result |
 | --- | --- |
 | `flutter analyze` | clean (no errors or warnings in `lib/` or `test/`) |
-| `flutter test` | 23 passed |
+| `flutter test` | 25 passed |
 | `.ntb` validation | 47 media references resolve, all `@goto` labels exist |
 | Release APK (universal) | built, ~62 MB |
 | Release APK (arm64-v8a) | built, ~56 MB |
