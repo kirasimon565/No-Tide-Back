@@ -149,6 +149,8 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
         if (find.byType(PhoneInboxScreen).evaluate().isNotEmpty) break;
       }
+      // Let the fade-out of the setup route finish before asserting it left.
+      await tester.pump(const Duration(milliseconds: 800));
       expect(find.byType(PhoneInboxScreen), findsOneWidget);
       // The boot plate must be off the screen entirely: no lingering spinner.
       expect(find.byType(PlayerSetupScreen), findsNothing);

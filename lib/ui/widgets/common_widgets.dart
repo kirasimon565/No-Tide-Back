@@ -75,7 +75,11 @@ class SlatePanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final BorderRadius shape = BorderRadius.circular(radius);
+    // The accent edge is a Positioned bar, not a stretched Row: panels are used
+    // inside lists, where the incoming height constraint is unbounded and a
+    // `CrossAxisAlignment.stretch` Row would blow up at layout time.
     final Widget body = Container(
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: color,
         borderRadius: shape,
@@ -84,11 +88,17 @@ class SlatePanel extends StatelessWidget {
           width: 0.7,
         ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: Stack(
         children: <Widget>[
-          if (accentEdge) Container(width: 2, color: AppColors.accentTide),
-          Expanded(child: Padding(padding: padding, child: child)),
+          Padding(padding: padding, child: child),
+          if (accentEdge)
+            const Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: 2,
+              child: ColoredBox(color: AppColors.accentTide),
+            ),
         ],
       ),
     );
