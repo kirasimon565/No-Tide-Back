@@ -1,11 +1,11 @@
-name: Probe AAB
+name: Probe signing and bundle size
 on:
   push:
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  bundle:
+  verify:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -19,17 +19,48 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - name: Build appbundle
+
+      # Reproduce the workflow's signing steps with a throwaway keystore, so the
+      # storeFile/keyAlias wiring in android/app/build.gradle is actually tested.
+      - name: Fake keystore (same steps as build-apk.yml)
+        run: |
+          keytool -genkeypair -v -keystore /tmp/test.jks -storetype JKS \
+            -keyalg RSA -keysize 2048 -validity 3650 \
+            -alias upload -storepass testpass -keypass testpass \
+            -dname "CN=No Tide Back Test, O=EyesWatching Games, C=EG" 2>/dev/null
+          base64 -w0 /tmp/test.jks > /tmp/ks.b64
+          printf '%s' "$(cat /tmp/ks.b64)" | base64 -d > android/app/upload-keystore.jks
+          cat > android/key.properties <<PROPS
+          storeFile=upload-keystore.jks
+          storePassword=testpass
+          keyAlias=upload
+          keyPassword=testpass
+          PROPS
+
+      - name: Build signed APK
+        run: |
+          set +e
+          flutter build apk --release --target-platform android-arm64 > /tmp/b.log 2>&1
+          echo "apk exit=$?"
+          if [ -f build/app/outputs/flutter-apk/app-release.apk ]; then
+            size=$(stat -c %s build/app/outputs/flutter-apk/app-release.apk)
+            echo "::warning title=APK size::arm64 APK = $((size/1048576)) MB"
+            $ANDROID_HOME/build-tools/*/apksigner verify --print-certs build/app/outputs/flutter-apk/app-release.apk > /tmp/sig.txt 2>&1
+            echo "sigexit=$?"
+            head -6 /tmp/sig.txt | while IFS= read -r l; do echo "::warning title=signature::${l}"; done
+          else
+            awk '/What went wrong/,/Try:/' /tmp/b.log | head -20 | while IFS= read -r l; do echo "::error title=apk::${l}"; done
+          fi
+
+      - name: Build AAB
         run: |
           set +e
           flutter build appbundle --release > /tmp/aab.log 2>&1
-          status=$?
-          echo "aab exit=$status"
-          if [ "$status" -ne 0 ]; then
-            msg=$(awk '/What went wrong/,/Try:/' /tmp/aab.log | head -n 40 | tr -d '\r' | sed -e 's/%/%25/g' | awk '{ printf "%s%%0A", $0 }')
-            echo "::error title=aab (tail)::${msg}"
-            exit 0
+          echo "aab exit=$?"
+          if [ -f build/app/outputs/bundle/release/app-release.aab ]; then
+            size=$(stat -c %s build/app/outputs/bundle/release/app-release.aab)
+            echo "::warning title=AAB size::$((size/1048576)) MB"
+          else
+            awk '/What went wrong/,/Try:/' /tmp/aab.log | head -20 | while IFS= read -r l; do echo "::error title=aab::${l}"; done
           fi
-          ls -lh build/app/outputs/bundle/release/ | head -5
-          info=$(ls -l build/app/outputs/bundle/release/*.aab | awk '{printf "%s bytes (%.1f MB)", $5, $5/1048576}')
-          echo "::notice title=aab size::${info}"
+          rm -f android/key.properties android/app/upload-keystore.jks
