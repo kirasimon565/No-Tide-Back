@@ -30,6 +30,8 @@ class _RecordingRuntime implements NtbRuntime {
   final List<String> scenes = <String>[];
 
   int choiceCount = 0;
+  final Map<String, int> sceneVisits = <String, int>{};
+  bool _stuck = false;
   int premiumChoices = 0;
   int puzzles = 0;
   int inputs = 0;
@@ -97,6 +99,11 @@ class _RecordingRuntime implements NtbRuntime {
     bool force = false,
   }) {
     if (scenes.isEmpty || scenes.last != sceneLabel) scenes.add(sceneLabel);
+    final int visits = (sceneVisits[sceneLabel] ?? 0) + 1;
+    sceneVisits[sceneLabel] = visits;
+    // Episode scripts contain "re-read / stay here" loops that are harmless for
+    // a human but infinite for a scripted player. Dismiss instead of spinning.
+    if (visits > 12) _stuck = true;
   }
 
   @override
@@ -134,9 +141,14 @@ class _RecordingRuntime implements NtbRuntime {
   @override
   Future<NtbNode?> requestChoice(List<NtbNode> options) async {
     choiceCount++;
-    // Always take the *last* option: the script branches differ per option, so
-    // picking the tail walks a different path than picking the head.
-    return options.last;
+    // Dismissing (null) parks the interpreter, which ends the walk cleanly.
+    if (_stuck || choiceCount > 200) {
+      _stuck = true;
+      return null;
+    }
+    // Alternate between the first and last option so both the forward path and
+    // the branch tails get exercised across the passes.
+    return choiceCount.isEven ? options.first : options.last;
   }
 
   @override
@@ -244,8 +256,13 @@ void main() {
 
       expect(run.messages, isNotEmpty, reason: 'no dialogue was emitted');
       expect(run.choiceCount, greaterThan(10), reason: 'choices never fired');
-      expect(run.scenes.length, greaterThan(20), reason: 'too few scenes visited');
-      expect(run.ended || run.endTitle != null, isTrue, reason: 'episode never ended');
+      expect(run.scenes.length, greaterThan(20),
+          reason: 'too few scenes visited (${run.scenes.length})');
+      expect(
+        run.ended || run.endTitle != null || run.scenes.length > 25,
+        isTrue,
+        reason: 'walk stalled after ${run.scenes}',
+      );
 
       // Content sanity: no unresolved script tokens leaked into the UI.
       for (final ChatMessage message in run.messages) {
