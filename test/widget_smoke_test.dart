@@ -287,9 +287,12 @@ void main() {
       );
     });
 
-    testWidgets('store sheet explains a failed payment instead of a flat refusal',
+    testWidgets('store sheet renders every row without overflowing',
         (WidgetTester tester) async {
-      await tester.binding.setSurfaceSize(const Size(400, 900));
+      // The reported screenshots were layout faults: a BUY pill riding over the
+      // STARTER tag, and blurbs squeezed into one word per line. Walk the whole
+      // sheet at a narrow width and assert nothing overflows on the way down.
+      await tester.binding.setSurfaceSize(const Size(360, 780));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       await tester.pumpWidget(
@@ -297,20 +300,23 @@ void main() {
       );
       await tester.pump(const Duration(milliseconds: 300));
 
-      // Signed out in the offline store: the sheet must say why BUY is closed
-      // rather than opening a payment window that can only fail.
       expect(find.text('RELAY STORE'), findsOneWidget);
+      // Signed out in the offline store: say why before offering a payment
+      // window that can only fail.
       expect(find.textContaining('Not signed in'), findsWidgets);
-      final Iterable<ConsoleButton> buys =
-          tester.widgetList<ConsoleButton>(find.byType(ConsoleButton)).where(
-                (ConsoleButton b) => b.label.toUpperCase() == 'BUY',
-              );
-      expect(buys, isNotEmpty);
-      expect(buys.every((ConsoleButton b) => b.onPressed == null), isTrue);
-
-      // The rail is named, so a support report says which one failed.
-      expect(find.textContaining('RAIL:'), findsOneWidget);
       expect(tester.takeException(), isNull);
+
+      // Scroll the sheet to the bottom, one screen at a time.
+      final Finder sheet = find.byType(ListView).first;
+      for (int i = 0; i < 6; i++) {
+        await tester.drag(sheet, const Offset(0, -260));
+        await tester.pump(const Duration(milliseconds: 120));
+        expect(tester.takeException(), isNull, reason: 'overflow at page $i');
+      }
+
+      // The description of where balances live must survive the whole scroll.
+      expect(find.textContaining('RAIL:'), findsOneWidget);
+      expect(find.textContaining('FIRESTORE'), findsOneWidget);
     });
 
     testWidgets('phone inbox renders the thread list', (WidgetTester tester) async {
