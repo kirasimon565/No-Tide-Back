@@ -1,0 +1,37 @@
+name: Probe AAB
+on:
+  push:
+    paths:
+      - 'android/**'
+      - 'lib/**'
+      - 'pubspec.yaml'
+permissions:
+  contents: read
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Build appbundle
+        run: |
+          set +e
+          flutter build appbundle --release > /tmp/aab.log 2>&1
+          status=$?
+          echo "aab exit=$status"
+          if [ "$status" -ne 0 ]; then
+            msg=$(awk '/What went wrong/,/Try:/' /tmp/aab.log | head -n 40 | tr -d '\r' | sed -e 's/%/%25/g' | awk '{ printf "%s%%0A", $0 }')
+            echo "::error title=aab (tail)::${msg}"
+            exit 0
+          fi
+          ls -lh build/app/outputs/bundle/release/
+          du -h build/app/outputs/bundle/release/*.aab
