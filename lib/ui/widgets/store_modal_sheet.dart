@@ -528,8 +528,11 @@ class _Perk extends StatelessWidget {
   }
 }
 
-/// One coin pack row. Fixed-width action column so the price never collides
-/// with the tag (the old layout let the BUY pill ride over "STARTER").
+/// One coin pack row.
+///
+/// The tag sits with the headline instead of taking its own column: three
+/// columns in a 390 dp sheet squeezed the blurb into "Unlock / every /
+/// premium / choice / across / a full / episode." over six lines.
 class _CoinPackCard extends StatelessWidget {
   const _CoinPackCard({
     required this.pack,
@@ -564,24 +567,25 @@ class _CoinPackCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Row(
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: <Widget>[
-                      Icon(
-                        Icons.monetization_on_outlined,
-                        size: 14,
-                        color: AppColors.accentPremium,
-                      ),
-                      const SizedBox(width: 7),
                       Text(
-                        '${pack.coins}',
+                        '${pack.coins} COINS',
                         style: AppTypography.label.copyWith(
-                          fontSize: 14,
+                          fontSize: 12.5,
                           color: AppColors.accentPremium,
-                          letterSpacing: 1.2,
+                          letterSpacing: 1.1,
                         ),
                       ),
-                      const SizedBox(width: 5),
-                      Text('COINS', style: AppTypography.labelDim.copyWith(fontSize: 7)),
+                      if (pack.tag.isNotEmpty)
+                        StatusPill(
+                          pack.tag,
+                          color: featured ? AppColors.accentTide : AppColors.textMuted,
+                          filled: featured,
+                        ),
                     ],
                   ),
                   const SizedBox(height: 6),
@@ -597,27 +601,14 @@ class _CoinPackCard extends StatelessWidget {
               ),
             ),
           ),
-          if (pack.tag.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: RotatedBox(
-                quarterTurns: 0,
-                child: StatusPill(
-                  pack.tag,
-                  color: featured ? AppColors.accentTide : AppColors.textMuted,
-                  filled: featured,
-                ),
-              ),
-            ),
           SizedBox(
-            width: 86,
-            child: Container(
-              margin: const EdgeInsets.all(8),
+            width: 84,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 8),
               child: ConsoleButton(
                 label: 'BUY',
                 busy: busy,
                 height: 40,
-                expand: true,
                 onPressed: disabled ? null : onBuy,
               ),
             ),

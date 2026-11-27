@@ -450,11 +450,14 @@ class GameStore {
     }
 
     // 2) Xsolla Pay Station through the Kotlin bridge.
-    if (storeType == StoreType.xsolla || storeType == StoreType.googlePlay) {
-      final PurchaseResult xsolla = await _buyWithXsolla(sku);
-      if (xsolla.success || xsolla.cancelled) return xsolla;
-      if (xsolla.message != null) attempts.add(xsolla.message!);
-    }
+    //
+    // This runs on *every* build that has the bridge, not just the Play and
+    // Xsolla rails. It used to be gated to those two, so an Amazon or Samsung
+    // install fell straight through to "no billing rail" and the player never
+    // saw the Pay Station — even though the Pay Station can settle any order.
+    final PurchaseResult xsolla = await _buyWithXsolla(sku);
+    if (xsolla.success || xsolla.cancelled) return xsolla;
+    if (xsolla.message != null) attempts.add(xsolla.message!);
 
     // 3) Nothing opened a payment window. Only debug builds may simulate, and
     //    the result is flagged so the UI can label it honestly.
@@ -489,6 +492,9 @@ class GameStore {
         productCategory: ProductCategory.nonSubscription,
       );
       if (products.isEmpty) {
+        // Not an error: this build's RevenueCat project simply does not carry
+        // the SKU. Returning null lets the next rail try; it used to end the
+        // purchase as a failure named after the wrong provider.
         debugPrint('GameStore: RevenueCat has no product for $sku');
         return null;
       }
@@ -504,8 +510,10 @@ class GameStore {
       if (code == PurchasesErrorCode.purchaseCancelledError) {
         return PurchaseResult.cancelledByUser();
       }
-      debugPrint('GameStore: RevenueCat purchase failed: ${error.message}');
-      return PurchaseResult.failure(error.message ?? 'Purchase failed');
+      // Configuration / store-missing / network errors are not a verdict on
+      // the sku: hand over to the Pay Station instead of failing the purchase.
+      debugPrint('GameStore: RevenueCat unavailable: ${error.message}');
+      return null;
     } catch (error) {
       debugPrint('GameStore: RevenueCat purchase failed: $error');
       return null;

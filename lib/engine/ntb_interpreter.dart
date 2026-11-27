@@ -604,10 +604,11 @@ class NtbInterpreter {
       sequenceOrder: _index,
       inGameTimestamp: runtime.currentTime,
     );
+    await _awaitDelivery(node, threadId);
     runtime.onMessage(message);
     runtime.onThreadUpdate(threadId, message: message);
 
-    await _wait(node.doubleParam('wait', 0));
+    await _wait(node.doubleParam('wait', 0.15));
   }
 
   Future<void> _executeThought(NtbNode node) async {
@@ -623,6 +624,7 @@ class NtbInterpreter {
       sequenceOrder: _index,
       inGameTimestamp: runtime.currentTime,
     );
+    // Thoughts are the player's own; they land immediately.
     runtime.onMessage(message);
     await _wait(node.doubleParam('wait', 0));
   }
@@ -670,6 +672,7 @@ class NtbInterpreter {
       inGameTimestamp: runtime.currentTime,
     );
 
+    await _awaitDelivery(node, threadId);
     runtime.onMessage(message);
     runtime.onThreadUpdate(threadId, message: message);
 
@@ -914,6 +917,35 @@ class NtbInterpreter {
   // ---------------------------------------------------------------------------
   // Timing
   // ---------------------------------------------------------------------------
+
+  /// Pause *before* a bubble lands, so a thread reads like a conversation.
+  ///
+  /// The scripts carry no `delay=` attributes: 285 of the first 285 `@message`
+  /// nodes in part 1 have `wait="0"`, so every thread arrived instantly and in
+  /// one frame. This derives the pause from the message itself — a long
+  /// paragraph takes longer to "type" than a two-word reply — and scales with
+  /// the player's pace setting.
+  Future<void> _awaitDelivery(NtbNode node, String threadId) async {
+    final double target = () {
+      if (node.has('delay')) return node.doubleParam('delay', 0);
+      final int length = runtime.interpolate(node.param('text')).length;
+      // 0.35 s floor for a reaction, +~28 ms per character, capped at 2.2 s so a
+      // wall of text never feels like a hang.
+      return (0.35 + (length * 0.028)).clamp(0.35, 2.2).toDouble();
+    }();
+    if (target <= 0) return;
+
+    // Show the "typing" state for the first part of the gap, then land the
+    // bubble. `_executeTyping` exists in the scripts but is rare, so without
+    // this the indicator almost never appeared.
+    final double typingFor = math.min(target * 0.7, 1.4);
+    if (typingFor > 0.15) {
+      runtime.onThreadUpdate(threadId, status: ThreadStatus.typing);
+      await _wait(typingFor);
+      runtime.onThreadUpdate(threadId, status: ThreadStatus.online);
+    }
+    await _wait(target - typingFor);
+  }
 
   Future<void> _wait(double seconds) async {
     if (seconds <= 0) return;

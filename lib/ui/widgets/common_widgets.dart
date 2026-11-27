@@ -318,12 +318,18 @@ class _ConsoleButtonState extends State<ConsoleButton> {
           else if (widget.icon != null)
             Icon(widget.icon, size: 16, color: accent.withValues(alpha: alpha)),
           if (widget.busy || widget.icon != null) const SizedBox(width: 12),
+          // Scale the label down rather than truncating it: a narrow half-width
+          // button used to render "NEW STOR…" and "UNLOCK PAC…", which reads
+          // like a layout bug rather than a label.
           Flexible(
-            child: Text(
-              widget.label.toUpperCase(),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTypography.button.copyWith(color: accent.withValues(alpha: alpha)),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.center,
+              child: Text(
+                widget.label.toUpperCase(),
+                maxLines: 1,
+                style: AppTypography.button.copyWith(color: accent.withValues(alpha: alpha)),
+              ),
             ),
           ),
         ],

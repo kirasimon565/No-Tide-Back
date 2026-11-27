@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../engine/ntb_interpreter.dart';
+import '../core/util/story_clock.dart';
 import '../models/chat_message.dart';
 import '../models/chat_thread.dart';
 import '../models/evidence_item.dart';
@@ -484,7 +485,11 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
       isRunning: true,
       bootStatus: 'RESUMING RELAY...',
     );
-    await _drive();
+
+    // Deliberately not awaited: `run()` parks on the first @choice, and awaiting
+    // it there froze the hub on "SYNCING..." until the player made a choice
+    // they could not see. Drive in the background and let the UI proceed.
+    unawaited(_drive());
   }
 
   void _publishStatus() {
@@ -718,9 +723,18 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
   void onMessage(ChatMessage message) {
     final List<ChatMessage> bucket =
         _messages.putIfAbsent(message.threadId, () => <ChatMessage>[]);
-    final ChatMessage stamped = message.inGameTimestamp.isEmpty
-        ? message.copyWith(inGameTimestamp: state.environmentTime)
-        : message;
+    // Every bubble gets its own minute: the environment anchors are minutes —
+    // sometimes hours — apart, so reusing `environmentTime` froze the clock
+    // across a whole conversation. A new conversation also opens with a gap.
+    final bool newConversation = _lastStampedThread != message.threadId;
+    final String stamp = message.inGameTimestamp.isNotEmpty
+        ? message.inGameTimestamp
+        : StoryClock.advance(
+            state.environmentTime,
+            sceneChanged: newConversation,
+          );
+    _lastStampedThread = message.threadId;
+    final ChatMessage stamped = message.copyWith(inGameTimestamp: stamp);
     bucket.add(stamped);
     // A DM appears in the inbox the moment the character writes to it.
     _markThreadStarted(message.threadId);
@@ -791,6 +805,9 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
     String? weather,
     String? network,
   }) {
+    // The anchor is authoritative: it jumps the clock to the authored time and
+    // ends the current conversation, so the next bubble opens past it.
+    if (time != null && time.isNotEmpty) _lastStampedThread = null;
     state = state.copyWith(
       environmentTime: time,
       environmentLocation: location,
@@ -818,6 +835,10 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
     _reactions[targetMessageId] = emoji;
     _reactionSenders[targetMessageId] = senderId;
   }
+
+  /// Thread that received the most recent bubble, used to detect the start of a
+  /// new conversation (which opens with a longer in-world gap).
+  String? _lastStampedThread;
 
   final Map<String, String> _reactions = <String, String>{};
   final Map<String, String> _reactionSenders = <String, String>{};

@@ -44,14 +44,31 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
   String? _pushedPuzzleId;
   bool _pushingPuzzle = false;
 
+  /// Set while the newest bubbles are below the fold, i.e. the player scrolled
+  /// up to read. Drives the "jump to latest" pill.
+  bool _newMessageUnread = false;
+
+  bool _lastTyping = false;
+
   @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
   }
 
+  /// True while the player is parked near the bottom of the thread.
+  ///
+  /// Auto-scroll must not fight the player: reading back through the history
+  /// used to snap back to the newest bubble the moment the script spoke again.
+  bool get _pinnedToBottom {
+    if (!_scrollController.hasClients) return true;
+    final ScrollPosition position = _scrollController.position;
+    return (position.maxScrollExtent - position.pixels) < 80;
+  }
+
   void _scrollToBottom({bool animate = true}) {
     if (!_scrollController.hasClients) return;
+    _newMessageUnread = false;
     final double target = _scrollController.position.maxScrollExtent;
     if (animate) {
       _scrollController.animateTo(
@@ -129,8 +146,20 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
     final PlayerEconomyState economy = ref.watch(economyProvider);
 
     if (messages.length != _lastMessageCount) {
+      final bool grew = messages.length > _lastMessageCount;
+      // Decide from the position *before* the new bubble is laid out.
+      final bool wasPinned = _pinnedToBottom;
       _lastMessageCount = messages.length;
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+      if (grew) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          if (wasPinned) {
+            _scrollToBottom();
+          } else if (!_newMessageUnread) {
+            setState(() => _newMessageUnread = true);
+          }
+        });
+      }
     }
 
     // Budget gate → open the store sheet over the chat without losing the
@@ -163,6 +192,12 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
 
     final bool typing = thread.onlineStatus == ThreadStatus.typing;
 
+    // A typing indicator is a content change too: follow it when pinned.
+    if (typing != _lastTyping && _pinnedToBottom) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+    }
+    _lastTyping = typing;
+
     return Scaffold(
       backgroundColor: AppColors.bgVoid,
       body: Container(
@@ -189,7 +224,14 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
               Expanded(
                 child: Stack(
                   children: <Widget>[
-                    ListView.builder(
+                    NotificationListener<ScrollNotification>(
+                      onNotification: (ScrollNotification notification) {
+                        if (notification is ScrollEnd && _newMessageUnread && _pinnedToBottom) {
+                          setState(() => _newMessageUnread = false);
+                        }
+                        return false;
+                      },
+                      child: ListView.builder(
                       controller: _scrollController,
                       padding: const EdgeInsets.fromLTRB(14, 16, 14, 8),
                       itemCount: messages.length + (typing ? 1 : 0),
@@ -211,7 +253,16 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                               : null,
                         );
                       },
+                      ),
                     ),
+                    // Shown only when the player has scrolled up and the
+                    // script kept talking underneath.
+                    if (_newMessageUnread)
+                      Positioned(
+                        right: 14,
+                        bottom: 10,
+                        child: _JumpToLatest(onTap: () => _scrollToBottom()),
+                      ),
                     if (messages.isEmpty)
                       Center(
                         child: Text(
@@ -255,6 +306,42 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
     if (thread.isGroup) return 'Someone';
     final String id = ChatThreads.characterForThread(threadId);
     return id.isEmpty ? thread.displayName : id[0].toUpperCase() + id.substring(1);
+  }
+}
+
+/// "New messages" pill: the thread is still running while the player reads back.
+class _JumpToLatest extends StatelessWidget {
+  const _JumpToLatest({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceElevated,
+          border: Border.all(color: AppColors.accentTide.withValues(alpha: 0.6), width: 0.8),
+          borderRadius: BorderRadius.circular(2),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            const Icon(Icons.arrow_downward_rounded, size: 12, color: AppColors.accentTide),
+            const SizedBox(width: 7),
+            Text(
+              'NEW MESSAGES',
+              style: AppTypography.labelDim.copyWith(
+                fontSize: 7.5,
+                color: AppColors.accentTide,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

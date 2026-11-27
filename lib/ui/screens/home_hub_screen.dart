@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -47,10 +49,32 @@ class _HomeHubScreenState extends ConsumerState<HomeHubScreen> {
 
     setState(() => _starting = true);
     final GameStateNotifier notifier = ref.read(gameStateProvider.notifier);
-    final program = (await ref.read(ntbProgramProvider.future)).program;
-    await notifier.resume(program: program);
+    String? failure;
+    try {
+      // The program load is a real async boundary (asset parse, first run).
+      // Whatever happens, the button must not stay on "SYNCING...": the flag is
+      // cleared in `finally` and a failure is reported instead of swallowed.
+      final program = (await ref.read(ntbProgramProvider.future)
+              .timeout(const Duration(seconds: 20)))
+          .program;
+      await notifier.resume(program: program);
+    } catch (error) {
+      failure = '$error';
+      debugPrint('HomeHubScreen._resume failed: $error');
+    }
     if (!mounted) return;
     setState(() => _starting = false);
+
+    if (failure != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('RELAY SYNC FAILED — $failure'),
+          backgroundColor: AppColors.surfaceCard,
+        ),
+      );
+      return;
+    }
+
     await Navigator.of(context).push(
       MaterialPageRoute<void>(builder: (BuildContext _) => const PhoneInboxScreen()),
     );
@@ -354,28 +378,41 @@ class _TopBar extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 10),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              signedIn ? 'CLOUD LINKED' : 'CLOUD OFFLINE',
-              style: AppTypography.label.copyWith(
-                fontSize: 9,
-                color: signedIn ? AppColors.accentTide : AppColors.accentPremium,
-                letterSpacing: 2.2,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  signedIn ? 'CLOUD LINKED' : 'CLOUD OFFLINE',
+                  maxLines: 1,
+                  style: AppTypography.label.copyWith(
+                    fontSize: 8.5,
+                    color: signedIn ? AppColors.accentTide : AppColors.accentPremium,
+                    letterSpacing: 1.6,
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              signedIn ? 'local + cloud session' : 'local session',
-              style: AppTypography.bodySmall.copyWith(
-                fontSize: 10.5,
-                color: AppColors.textMuted,
+              const SizedBox(height: 3),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  signedIn ? 'local + cloud' : 'local session',
+                  maxLines: 1,
+                  style: AppTypography.bodySmall.copyWith(
+                    fontSize: 10,
+                    color: AppColors.textMuted,
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-        const Spacer(),
+        const SizedBox(width: 8),
         // Coin plate.
         GestureDetector(
           onTap: onStore,
@@ -413,7 +450,14 @@ class _TopBar extends StatelessWidget {
         const SizedBox(width: 8),
         GestureDetector(
           onTap: onMultimedia,
-          child: Container(
+          // The plate is icon + short label, but screen readers still get the
+          // full meaning.
+          child: Semantics(
+            label: economy.multimediaUnlocked
+                ? 'Multimedia package owned'
+                : 'Unlock the Multimedia Package',
+            button: true,
+            child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             decoration: BoxDecoration(
               color: economy.multimediaUnlocked
@@ -442,7 +486,7 @@ class _TopBar extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  economy.multimediaUnlocked ? 'PACK OWNED' : 'UNLOCK PACK',
+                  economy.multimediaUnlocked ? 'OWNED' : 'PACK',
                   style: AppTypography.labelDim.copyWith(
                     fontSize: 8,
                     color: economy.multimediaUnlocked
@@ -452,6 +496,7 @@ class _TopBar extends StatelessWidget {
                 ),
               ],
             ),
+          ),
           ),
         ),
       ],
@@ -534,10 +579,16 @@ class _EpisodeCard extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: <Widget>[
+          // The art is already a night scene; the old 55 % black blend plus a
+          // 35–90 % slate wash crushed it to flat black. Show the frame, and
+          // only darken the lower third where the title sits.
           Image.asset(
             index == 1 ? AssetCatalog.titleBackground : AssetCatalog.chatBackground,
             fit: BoxFit.cover,
-            color: Colors.black.withValues(alpha: locked ? 0.82 : 0.55),
+            // The interesting part of the plate is the rig above the water, not
+            // the sea band the 250×214 crop used to land on.
+            alignment: index == 1 ? const Alignment(0.0, -0.35) : Alignment.center,
+            color: Colors.black.withValues(alpha: locked ? 0.58 : 0.18),
             colorBlendMode: BlendMode.darken,
             errorBuilder: (BuildContext c, Object e, StackTrace? s) =>
                 const ColoredBox(color: AppColors.surfaceCard),
@@ -547,9 +598,11 @@ class _EpisodeCard extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
+                stops: const <double>[0.0, 0.52, 1.0],
                 colors: <Color>[
-                  AppColors.slateHeader.withValues(alpha: 0.35),
-                  AppColors.slateHeader.withValues(alpha: 0.9),
+                  AppColors.slateHeader.withValues(alpha: 0.05),
+                  AppColors.slateHeader.withValues(alpha: 0.55),
+                  AppColors.slateHeader.withValues(alpha: 0.96),
                 ],
               ),
             ),
@@ -663,10 +716,15 @@ class _ResumeCard extends StatelessWidget {
                         color: accent,
                       ),
                     ),
-                    const Spacer(),
-                    Text(
-                      save.label.toUpperCase(),
-                      style: AppTypography.labelDim.copyWith(fontSize: 7.5),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: Text(
+                        save.label.toUpperCase(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.right,
+                        style: AppTypography.labelDim.copyWith(fontSize: 7),
+                      ),
                     ),
                   ],
                 ),

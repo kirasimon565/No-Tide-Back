@@ -11,9 +11,11 @@ import 'package:no_tide_back/core/constants/app_config.dart';
 import 'package:no_tide_back/core/theme/app_colors.dart';
 import 'package:no_tide_back/core/theme/app_typography.dart';
 import 'package:no_tide_back/engine/ntb_parser.dart';
+import 'package:no_tide_back/providers/chat_threads_provider.dart';
 import 'package:no_tide_back/providers/game_state_provider.dart';
 import 'package:no_tide_back/models/ntb_ast_node.dart';
 import 'package:no_tide_back/models/chat_message.dart';
+import 'package:no_tide_back/core/util/story_clock.dart';
 import 'package:no_tide_back/models/chat_thread.dart';
 import 'package:no_tide_back/services/isar_service.dart';
 import 'package:no_tide_back/services/local_store.dart';
@@ -160,6 +162,77 @@ void main() {
       await tester.pumpWidget(const SizedBox());
       await tester.pump(const Duration(seconds: 2));
       tester.takeException();
+    });
+
+    test('story clock advances between bubbles and honours script anchors', () {
+      expect(StoryClock.format(StoryClock.parse('07:42 AM')!), '07:42 AM');
+      expect(StoryClock.format(StoryClock.parse('12:05 PM')!), '12:05 PM');
+      expect(StoryClock.parse('not a time'), isNull);
+
+      // Each message adds its own minutes, so consecutive bubbles differ.
+      String t = '03:15 PM';
+      final List<String> stamps = <String>[];
+      for (int i = 0; i < 4; i++) {
+        t = StoryClock.advance(t);
+        stamps.add(t);
+      }
+      expect(stamps, <String>['03:17 PM', '03:19 PM', '03:21 PM', '03:23 PM']);
+      expect(stamps.toSet().length, 4);
+
+      // A new conversation opens with a longer gap.
+      expect(StoryClock.advance('03:15 PM', sceneChanged: true), '03:22 PM');
+
+      // Midnight and noon roll over without inventing a date.
+      expect(StoryClock.advance('11:59 PM'), '12:01 AM');
+      expect(StoryClock.advance('11:58 AM'), '12:00 PM');
+    });
+
+    testWidgets('resume from the hub does not park on a choice',
+        (WidgetTester tester) async {
+      // Regression guard for the reported "SYNCING..." freeze: `resume()`
+      // awaited the interpreter, which stops on the first @choice. Returning
+      // from that await required a choice the player could not see.
+      await tester.binding.setSurfaceSize(const Size(400, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final NtbParser parser = NtbParser(assetLoader: (String _) async => '');
+      final NtbProgram mini = parser.parseSource(
+        ':: ep1_start\n'
+        '@message id="m1" chat="group_island" sender="abigail" text="you awake?"\n'
+        '@choice id="c1"\n'
+        '  @reply text="yeah"\n'
+        '    @goto ep1_start\n',
+      );
+      final NtbParserResult parsed = NtbParserResult(
+        program: mini,
+        warnings: const <String>[],
+        metadata: const <String, String>{},
+      );
+
+      final ProviderContainer container = ProviderContainer(
+        overrides: [
+          gameStoreProvider.overrideWithValue(offlineStore),
+          ntbProgramProvider.overrideWith((Ref ref) async => parsed),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final GameStateNotifier notifier = container.read(gameStateProvider.notifier);
+      // A save exists, so this is a resume rather than a fresh boot.
+      await notifier.startNewGame(program: mini);
+      await tester.pump(const Duration(milliseconds: 50));
+
+      final Stopwatch watch = Stopwatch()..start();
+      await notifier.resume(program: mini).timeout(const Duration(seconds: 5));
+      watch.stop();
+
+      // The interpreter is parked on the choice; the caller must still return.
+      expect(watch.elapsed, lessThan(const Duration(seconds: 5)));
+      // And resume must actually have run: the thread has its message.
+      expect(
+        container.read(threadMessagesProvider('group_island')),
+        isNotEmpty,
+      );
     });
 
     testWidgets('inbox starts with only the group chat; DMs appear when written',
