@@ -20,9 +20,18 @@ import 'hacking_tool_screen.dart';
 
 /// Screen 5 — Chat room where the `.ntb` script plays out.
 class ChatRoomScreen extends ConsumerStatefulWidget {
-  const ChatRoomScreen({required this.threadId, super.key});
+  const ChatRoomScreen({
+    required this.threadId,
+    this.readOnly = false,
+    super.key,
+  });
 
   final String threadId;
+
+  /// Archive mode: the thread scrolls like history, and the choice drawer /
+  /// composer / puzzle push are suppressed. Used by the waiting hub's
+  /// "Review Chat Logs" so re-reading cannot advance or spend anything.
+  final bool readOnly;
 
   @override
   ConsumerState<ChatRoomScreen> createState() => _ChatRoomScreenState();
@@ -56,6 +65,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
   }
 
   Future<void> _handlePremiumBudget(GameScreenState game) async {
+    if (widget.readOnly) return;
     if (_budgetSheetOpen) return;
     final int? cost = game.pendingChoiceCost;
     if (cost == null || cost <= 0) return;
@@ -208,7 +218,9 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                   ],
                 ),
               ),
-              if (game.activeChoice != null && game.activeChoice!.isNotEmpty)
+              if (widget.readOnly)
+                _ReadOnlyFooter(thread: thread)
+              else if (game.activeChoice != null && game.activeChoice!.isNotEmpty)
                 ChoiceDrawer(
                   options: game.activeChoice!,
                   economy: economy,
@@ -466,6 +478,44 @@ class _Composer extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+
+/// Footer shown in read-only archive mode instead of the composer.
+class _ReadOnlyFooter extends StatelessWidget {
+  const _ReadOnlyFooter({required this.thread});
+
+  final ChatThread thread;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 11, 16, 14),
+      decoration: const BoxDecoration(
+        color: AppColors.surfacePhone,
+        border: Border(top: BorderSide(color: AppColors.divider)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          const Icon(Icons.lock_clock_rounded, size: 13, color: AppColors.textMuted),
+          const SizedBox(width: 7),
+          Flexible(
+            child: Text(
+              'READ-ONLY ARCHIVE • NO SIGNAL TO ${thread.displayName.toUpperCase()}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.monoCaption.copyWith(
+                fontSize: 8.5,
+                letterSpacing: 1.2,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

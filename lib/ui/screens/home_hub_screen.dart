@@ -8,9 +8,11 @@ import '../../core/theme/app_typography.dart';
 import '../../models/game_save_state.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/auth_store_provider.dart';
+import '../../providers/episode_wait_provider.dart';
 import '../../providers/game_state_provider.dart';
 import '../widgets/common_widgets.dart';
 import '../widgets/store_modal_sheet.dart';
+import 'episode_waiting_screen.dart';
 import 'phone_inbox_screen.dart';
 import 'player_setup_screen.dart';
 
@@ -35,6 +37,14 @@ class _HomeHubScreenState extends ConsumerState<HomeHubScreen> {
 
   Future<void> _resume() async {
     if (_starting) return;
+
+    // A finished Episode 1 has nowhere left to play: send the player to the
+    // waiting hub instead of dropping them back onto the last scene.
+    if (ref.read(episodeCompletedProvider)) {
+      await _openWaitingHub();
+      return;
+    }
+
     setState(() => _starting = true);
     final GameStateNotifier notifier = ref.read(gameStateProvider.notifier);
     final program = (await ref.read(ntbProgramProvider.future)).program;
@@ -44,6 +54,29 @@ class _HomeHubScreenState extends ConsumerState<HomeHubScreen> {
     await Navigator.of(context).push(
       MaterialPageRoute<void>(builder: (BuildContext _) => const PhoneInboxScreen()),
     );
+  }
+
+  Future<void> _openWaitingHub() async {
+    if (_starting) return;
+    setState(() => _starting = true);
+    await Navigator.of(context).push(
+      PageRouteBuilder<void>(
+        transitionDuration: const Duration(milliseconds: 620),
+        pageBuilder: (BuildContext context, Animation<double> a, Animation<double> b) =>
+            const EpisodeWaitingScreen(),
+        transitionsBuilder: (
+          BuildContext context,
+          Animation<double> animation,
+          Animation<double> secondary,
+          Widget child,
+        ) =>
+            FadeTransition(
+          opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+          child: child,
+        ),
+      ),
+    );
+    if (mounted) setState(() => _starting = false);
   }
 
   Future<void> _newStory() async {
@@ -160,6 +193,7 @@ class _HomeHubScreenState extends ConsumerState<HomeHubScreen> {
                         _ResumeCard(
                           save: game.save!,
                           busy: _starting,
+                          episodeComplete: ref.watch(episodeCompletedProvider),
                           onResume: _resume,
                         ),
                       if (game.save != null) const SizedBox(height: 12),
@@ -524,16 +558,26 @@ class _EpisodeCard extends StatelessWidget {
 }
 
 class _ResumeCard extends StatelessWidget {
-  const _ResumeCard({required this.save, required this.onResume, this.busy = false});
+  const _ResumeCard({
+    required this.save,
+    required this.onResume,
+    this.busy = false,
+    this.episodeComplete = false,
+  });
 
   final GameSaveState save;
   final VoidCallback onResume;
   final bool busy;
 
+  /// When true the card becomes the "Episode 2 in development" entry point.
+  final bool episodeComplete;
+
   @override
   Widget build(BuildContext context) {
+    final Color accent =
+        episodeComplete ? AppColors.accentPremium : AppColors.accentTide;
     return NtbCard(
-      borderColor: AppColors.accentTide.withValues(alpha: 0.45),
+      borderColor: accent.withValues(alpha: 0.45),
       color: AppColors.surfaceCard,
       onTap: busy ? null : onResume,
       child: Column(
@@ -541,10 +585,18 @@ class _ResumeCard extends StatelessWidget {
         children: <Widget>[
           Row(
             children: <Widget>[
-              const Icon(Icons.play_circle_fill_rounded, color: AppColors.accentTide, size: 22),
+              Icon(
+                episodeComplete
+                    ? Icons.sensors_off_rounded
+                    : Icons.play_circle_fill_rounded,
+                color: episodeComplete
+                    ? AppColors.accentPremium
+                    : AppColors.accentTide,
+                size: 22,
+              ),
               const SizedBox(width: 8),
               Text(
-                'RESUME RELAY',
+                episodeComplete ? 'WAITING FOR SIGNAL' : 'RESUME RELAY',
                 style: AppTypography.monoLabel.copyWith(fontSize: 11.5),
               ),
               const Spacer(),
@@ -555,15 +607,27 @@ class _ResumeCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Row(
-            children: <Widget>[
-              _kv('SCENE', save.currentSceneLabel),
-              const SizedBox(width: 16),
-              _kv('EVIDENCE', '${save.evidenceCount}'),
-              const SizedBox(width: 16),
-              _kv('TIME', save.environmentTime),
-            ],
-          ),
+          if (episodeComplete) ...<Widget>[
+            Text(
+              'EPISODE 1 COMPLETE • ${AppConfig.nextEpisodeTitle.toUpperCase()} '
+              'IN DEVELOPMENT',
+              style: AppTypography.monoCaption.copyWith(
+                fontSize: 8.5,
+                letterSpacing: 1.1,
+                color: AppColors.accentPremium,
+              ),
+            ),
+            const SizedBox(height: 8),
+          ] else
+            Row(
+              children: <Widget>[
+                _kv('SCENE', save.currentSceneLabel),
+                const SizedBox(width: 16),
+                _kv('EVIDENCE', '${save.evidenceCount}'),
+                const SizedBox(width: 16),
+                _kv('TIME', save.environmentTime),
+              ],
+            ),
           const SizedBox(height: 14),
           SizedBox(
             width: double.infinity,
@@ -575,7 +639,11 @@ class _ResumeCard extends StatelessWidget {
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.bgVoid),
                     )
-                  : const Text('CONTINUE FROM CHECKPOINT'),
+                  : Text(
+                      episodeComplete
+                          ? 'ENTER WAITING HUB'
+                          : 'CONTINUE FROM CHECKPOINT',
+                    ),
             ),
           ),
         ],

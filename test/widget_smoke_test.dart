@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:no_tide_back/providers/app_providers.dart';
 import 'package:no_tide_back/services/game_store.dart';
+import 'package:no_tide_back/core/constants/app_config.dart';
 import 'package:no_tide_back/core/theme/app_colors.dart';
 import 'package:no_tide_back/core/theme/app_typography.dart';
 import 'package:no_tide_back/models/chat_message.dart';
@@ -15,6 +16,7 @@ import 'package:no_tide_back/services/local_store.dart';
 
 import 'stub_firebase.dart';
 import 'package:no_tide_back/ui/screens/chat_room_screen.dart';
+import 'package:no_tide_back/ui/screens/episode_waiting_screen.dart';
 import 'package:no_tide_back/ui/screens/evidence_vault_screen.dart';
 import 'package:no_tide_back/ui/screens/hacking_tool_screen.dart';
 import 'package:no_tide_back/ui/screens/phone_inbox_screen.dart';
@@ -129,6 +131,26 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.byType(EvidenceVaultScreen), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('waiting hub renders relay banner and status cards',
+        (WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(_host(const EpisodeWaitingScreen(), store: offlineStore));
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byType(EpisodeWaitingScreen), findsOneWidget);
+      // The crimson relay pill and the four action tiles are the point of the
+      // screen; both must survive layout at phone width.
+      expect(find.text(EpisodeWaitConfig.relayBanner), findsOneWidget);
+      expect(find.text('WHILE YOU WAIT'), findsOneWidget);
+      expect(find.text('REVIEW CHAT LOGS'), findsOneWidget);
+      expect(find.text('REPLAY EPISODE 1'), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 6));
+      tester.takeException();
     });
 
     testWidgets('message bubble lays out each message type', (WidgetTester tester) async {

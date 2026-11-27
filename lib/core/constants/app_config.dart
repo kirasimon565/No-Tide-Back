@@ -46,3 +46,100 @@ abstract final class FirestoreFields {
   static const String createdAt = 'createdAt';
   static const String hasSeenIntro = 'hasSeenIntro';
 }
+
+/// Screen 9 (waiting hub) content: where each character was left at the end of
+/// Episode 1, and which thread their last conversation lives in.
+///
+/// Kept in one place so Episode 2 can replace it without touching the UI.
+class CharacterStatus {
+  const CharacterStatus({
+    required this.characterId,
+    required this.names,
+    required this.location,
+    required this.condition,
+    required this.signal,
+    this.threadId,
+    this.isLocked = true,
+  });
+
+  /// Matches the `character=` ids in the scripts (`kai`, `mom`, ...).
+  final String characterId;
+
+  /// Grouped cast that shares a location (e.g. the three locked in Suite A-2).
+  final String names;
+
+  /// Where they were left.
+  final String location;
+
+  /// One short line of state, e.g. `SIGNAL LOST`.
+  final String condition;
+
+  /// Signal glyph shown on the card: `lost`, `severed`, `unreachable`,
+  /// `standing_by`, `safe`.
+  final String signal;
+
+  /// Thread that still holds their Episode 1 conversation, if any.
+  final String? threadId;
+
+  /// True when the player cannot reach them (drives the crimson treatment).
+  final bool isLocked;
+
+  String get initial => names.substring(0, 1).toUpperCase();
+}
+
+abstract final class EpisodeWaitConfig {
+  /// In-story time the episode ended on.
+  static const String lastKnownTime = '01:03 AM';
+  static const String lastKnownCoordinates = '50 MILES OFFSHORE';
+
+  static const String relayBanner = 'SECTOR FOUR RELAY: OFFLINE';
+  static const String relayBannerDetail = 'AWAITING SIGNAL RESTORATION';
+
+  /// Studio follow link used by the waiting hub.
+  static const String studioFollowUrl = 'https://linktr.ee/eyeswatchinggames';
+
+  static const List<CharacterStatus> lastKnownStatus = <CharacterStatus>[
+    CharacterStatus(
+      characterId: 'beatrice',
+      names: 'Beatrice · Abigail · Maya',
+      location: 'LOCKED IN SUITE A-2',
+      condition: 'SIGNAL LOST',
+      signal: 'lost',
+      threadId: 'group_island',
+    ),
+    CharacterStatus(
+      characterId: 'jessica',
+      names: 'Jessica',
+      location: 'SUB-LEVEL B',
+      condition: 'CONNECTION SEVERED',
+      signal: 'severed',
+      threadId: 'dm_jessica',
+    ),
+    CharacterStatus(
+      characterId: 'kathy',
+      names: 'Kathy',
+      location: 'SUB-LEVEL B ELEVATOR',
+      condition: 'UNREACHABLE',
+      signal: 'unreachable',
+      threadId: 'dm_kathy',
+    ),
+    CharacterStatus(
+      characterId: 'kai',
+      names: 'Captain Kai',
+      location: 'ANCHORED OFF SOUTH COVE',
+      condition: 'STANDING BY',
+      signal: 'standing_by',
+      threadId: 'dm_kai',
+      isLocked: false,
+    ),
+    CharacterStatus(
+      characterId: 'mom',
+      names: 'Mom & Chloe',
+      location: 'SAFE AT HOME',
+      condition: 'UNAWARE',
+      signal: 'safe',
+      threadId: 'dm_mom',
+      isLocked: false,
+    ),
+  ];
+}

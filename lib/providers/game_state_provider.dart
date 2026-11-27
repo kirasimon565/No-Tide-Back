@@ -35,6 +35,7 @@ class GameScreenState {
     this.puzzleRequest,
     this.fadeToBlack = false,
     this.showTextBanner,
+    this.showTextCards = const <ShowTextLine>[],
     this.cameraEffect,
     this.ending,
     this.achievements = const <String>[],
@@ -68,6 +69,11 @@ class GameScreenState {
 
   final bool fadeToBlack;
   final String? showTextBanner;
+
+  /// Every `@show_text` seen since the episode started, in order. Screen 9
+  /// replays these as the title cards of the stinger.
+  final List<ShowTextLine> showTextCards;
+
   final String? cameraEffect;
   final EpisodeEnding? ending;
   final List<String> achievements;
@@ -121,6 +127,7 @@ class GameScreenState {
     bool? fadeToBlack,
     String? showTextBanner,
     bool clearTextBanner = false,
+    List<ShowTextLine>? showTextCards,
     String? cameraEffect,
     bool clearCameraEffect = false,
     EpisodeEnding? ending,
@@ -153,6 +160,7 @@ class GameScreenState {
         fadeToBlack: fadeToBlack ?? this.fadeToBlack,
         showTextBanner:
             clearTextBanner ? null : (showTextBanner ?? this.showTextBanner),
+        showTextCards: showTextCards ?? this.showTextCards,
         cameraEffect: clearCameraEffect ? null : (cameraEffect ?? this.cameraEffect),
         ending: clearEnding ? null : (ending ?? this.ending),
         achievements: achievements ?? this.achievements,
@@ -192,6 +200,16 @@ class HackingRequest {
 
   /// Resolves the suspended `@custom action="launch_hacking_tool"`.
   final Completer<String> completer;
+}
+
+/// One `@show_text` card captured from the script, in authored order.
+class ShowTextLine {
+  const ShowTextLine({required this.text, required this.duration});
+
+  final String text;
+
+  /// `duration=` in seconds.
+  final double duration;
 }
 
 class EpisodeEnding {
@@ -314,7 +332,9 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
       environmentLocation: 'Home - Bedroom',
       environmentWeather: 'Clear',
       achievements: const <String>[],
+      showTextCards: const <ShowTextLine>[],
       clearChoice: true,
+      clearTextBanner: true,
       clearEnding: true,
       clearOpenThread: true,
       isRunning: false,
@@ -731,7 +751,15 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
 
   @override
   void onShowText(String text, double duration) {
-    state = state.copyWith(showTextBanner: interpolate(text));
+    final String resolved = interpolate(text);
+    state = state.copyWith(
+      showTextBanner: resolved,
+      // Cards accumulate in authored order; `startNewGame` clears the list.
+      showTextCards: <ShowTextLine>[
+        ...state.showTextCards,
+        ShowTextLine(text: resolved, duration: duration),
+      ],
+    );
     Future<void>.delayed(
       Duration(milliseconds: (duration * 1000).round()),
       () {
