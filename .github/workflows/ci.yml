@@ -66,6 +66,10 @@ jobs:
           set +e
           flutter test --reporter expanded 2>&1 | tee /tmp/test.log
           status=${PIPESTATUS[0]}
+          # Always publish the tail of the test log (pass or fail) as a notice so
+          # the suite's own summary line is visible without downloading logs.
+          tailmsg=$(tail -n 3 /tmp/test.log | tr -d '\r' | sed -e 's/%/%25/g' | awk '{ printf "%s%%0A", $0 }')
+          echo "::notice title=flutter test::${tailmsg}"
           if [ "$status" -ne 0 ]; then
             while IFS= read -r line; do
               [ -n "$line" ] && echo "::error title=test::${line}"
