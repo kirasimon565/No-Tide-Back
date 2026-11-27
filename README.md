@@ -201,8 +201,40 @@ the billing rail, and whether to bundle the Xsolla SDK.
 ## 9. Tests
 
 ```bash
-flutter test
+flutter test          # 23 tests, ~2 s
 ```
 
-Covers pronoun interpolation, the expression evaluator, parser scene indexing, `@choice` nesting,
-`@if` block skipping, and the nine-thread seed.
+| File | What it covers |
+| --- | --- |
+| `test/ntb_engine_test.dart` | pronoun interpolation, the expression evaluator, scene indexing, `@choice` nesting, `@if` block skipping, the nine-thread seed |
+| `test/episode_playthrough_test.dart` | drives the **real** four-part script from `:: ep1_start` to `END OF EPISODE 1: THE CONTRACT` with a scripted player: verifies all 68 `@goto` targets resolve, every scene is reachable, no `{token}` leaks into a message, and that the Multimedia-Package path takes the premium branches |
+| `test/widget_smoke_test.dart` | mounts every screen plus `MessageBubble`, checks the asset tree, the declared fonts, and the four script files |
+
+The playthrough is the interesting one — CI publishes its summary as a check notice:
+
+```
+PLAYTHROUGH messages=795 choices=29 scenes=34 evidence=17 pings=14 sounds=23
+            ended=true endTitle=END OF EPISODE 1: THE CONTRACT
+```
+
+That run also caught real control-flow issues during development (choice loops that a
+"always pick the last option" player never escapes), which is why the scripted player
+dismisses the drawer once a scene repeats.
+
+---
+
+## 10. Verified build status
+
+| Check | Result |
+| --- | --- |
+| `flutter analyze` | clean (no errors or warnings in `lib/` or `test/`) |
+| `flutter test` | 23 passed |
+| `.ntb` validation | 47 media references resolve, all `@goto` labels exist |
+| Release APK (universal) | built, ~133 MB |
+| Release APK (arm64-v8a) | built, ~56 MB |
+| Release AAB | built, ~65 MB |
+| Keystore signing | verified with a throwaway keystore (`apksigner verify` passes) |
+
+Bundle size is dominated by art, music and the one MP4 — that is expected for a
+fully-offline narrative game. The AAB is what Play ingests; Play then ships per-ABI
+splits, so installs are much smaller.
