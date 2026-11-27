@@ -83,8 +83,13 @@ jobs:
 
       - name: Build split-per-ABI APKs
         run: |
+          # Billing rail: the Play-installed app purchases through Xsolla's Pay
+          # Station, which is why the SDK is bundled here. A build without the
+          # AAR has no payment window to open.
+
           flutter build apk --release --split-per-abi \
-            --dart-define=NTB_STORE=googleplay \
+            -PwithXsolla \
+            --dart-define=NTB_STORE=xsolla \
             --dart-define=REVENUECAT_ANDROID_KEY=${{ secrets.REVENUECAT_ANDROID_KEY }} \
             --build-name "${{ steps.version.outputs.name }}" \
             --build-number ${{ github.run_number }}
@@ -94,7 +99,8 @@ jobs:
       - name: Build universal APK
         run: |
           flutter build apk --release \
-            --dart-define=NTB_STORE=googleplay \
+            -PwithXsolla \
+            --dart-define=NTB_STORE=xsolla \
             --dart-define=REVENUECAT_ANDROID_KEY=${{ secrets.REVENUECAT_ANDROID_KEY }} \
             --build-name "${{ steps.version.outputs.name }}" \
             --build-number ${{ github.run_number }}
