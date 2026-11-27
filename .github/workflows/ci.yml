@@ -70,7 +70,7 @@ jobs:
           # the suite's own summary line is visible without downloading logs.
           tailmsg=$(tail -n 3 /tmp/test.log | tr -d '\r' | sed -e 's/%/%25/g' | awk '{ printf "%s%%0A", $0 }')
           echo "::notice title=flutter test::${tailmsg}"
-          grep -a 'PLAYTHROUGH ' /tmp/test.log | sed -e 's/.*PLAYTHROUGH /PLAYTHROUGH /' | while IFS= read -r line; do
+          grep -aE 'LAYOUT ERROR|PLAYTHROUGH ' /tmp/test.log | sed -e 's/.*PLAYTHROUGH /PLAYTHROUGH /' | while IFS= read -r line; do
             echo "::notice title=episode walkthrough::${line}"
           done
           if [ "$status" -ne 0 ]; then

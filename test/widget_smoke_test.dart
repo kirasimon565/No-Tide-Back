@@ -64,6 +64,8 @@ void main() {
 
   group('screen smoke tests', () {
     testWidgets('studio intro renders the logo and boot readout', (WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
       await tester.pumpWidget(_host(StudioIntroScreen(onFinished: () {}, firebaseReady: false), store: offlineStore));
       await tester.pump(const Duration(milliseconds: 400));
       expect(find.byType(StudioIntroScreen), findsOneWidget);
@@ -74,6 +76,7 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(400, 900));
       await tester.pumpWidget(_host(const PlayerSetupScreen(), store: offlineStore));
       await tester.pump(const Duration(milliseconds: 300));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
       expect(find.byType(PlayerSetupScreen), findsOneWidget);
       expect(find.byType(TextField), findsWidgets);
       expect(tester.takeException(), isNull);
@@ -108,7 +111,10 @@ void main() {
       ));
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.byType(HackingToolScreen), findsOneWidget);
-      expect(tester.takeException(), isNull);
+      final Object? error = tester.takeException();
+      // ignore: avoid_print
+      if (error != null) print('HACKING LAYOUT ERROR: $error');
+      expect(error, isNull);
     });
 
     testWidgets('evidence vault renders the case board', (WidgetTester tester) async {
@@ -167,11 +173,14 @@ void main() {
       for (final RegExpMatch match
           in RegExp(r'^\s*-\s+(assets/[^\s#]+)', multiLine: true).allMatches(pubspec)) {
         final String entry = match.group(1)!;
+        checked++;
         if (entry.endsWith('/')) {
-          expect(Directory(entry).existsSync(), isTrue, reason: '$entry is missing');
+          final Directory dir = Directory(entry);
+          expect(dir.existsSync(), isTrue, reason: '$entry is missing');
+          expect(dir.listSync(recursive: true).whereType<File>().toList(), isNotEmpty,
+              reason: '$entry is empty');
           continue;
         }
-        checked++;
         if (!File(entry).existsSync()) missing.add(entry);
       }
 
