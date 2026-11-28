@@ -88,6 +88,29 @@ game — it is the wrong feature and its form will not accept the SKUs:
 so it reports `no product` and hands over to the next rail. The coin balance in this game lives in
 Firestore (`players/{uid}.coins`), granted by `grantCoins` — never in RevenueCat.
 
+### Xsolla catalogue: item *types* matter
+
+The store sells in four shapes, and the SDK filters by type. The coin packs are **virtual currency
+packages** (a *bundle* in SDK terms) and the Multimedia Package is a **virtual item**; asking for
+them as a plain one-time product returns an empty list, which looks exactly like a missing SKU.
+
+The bridge now enables both type bridges on `Config.Common` and retries the query per type:
+
+```kotlin
+Config.Common.getDefault()
+    .withAllowVirtualCurrencyAsInApp(true)   // coin packs: virtual currency packages
+    .withAllowBundlesAsInApp(true)
+```
+
+so an "Available" item in the dashboard resolves regardless of how the catalogue classifies it. If a
+purchase still cannot be found, the sheet now names the item and tells you which type it expects.
+
+### Purchases are consumed
+
+Coin packs are consumable: the bridge calls `consumeAsync` before reporting success, so the same pack
+can be bought again. The Multimedia Package is not consumed. The Firestore grant is keyed on the
+purchase token, so consuming can never double-credit.
+
 **Entitlements are optional.** `Attach` is offered next to every product, but this game reads
 purchases (`CustomerInfo.allPurchasedProductIdentifiers`), not entitlements, because it sells
 fixed packs rather than subscriptions. Leave them unattached, or create one `multimedia` entitlement

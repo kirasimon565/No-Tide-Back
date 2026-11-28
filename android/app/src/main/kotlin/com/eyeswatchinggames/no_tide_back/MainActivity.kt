@@ -153,7 +153,33 @@ class MainActivity : FlutterActivity() {
             val stateListenerClass = sdkClass("BillingClientStateListener")
             val updatedListenerClass = sdkClass("PurchasesUpdatedListener")
 
+            // The store front sells coin packs as *virtual currency packages*
+            // (a bundle) and the pack as a *virtual item*. Requested as plain
+            // "inapp", the SDK rejects that type mismatch and
+            // queryProductDetailsAsync answers OK with an EMPTY list — which
+            // looks exactly like a missing catalogue entry. These two flags
+            // (both default false) make those SKUs resolve as inapp.
             val common = commonClass.getMethod("getDefault").invoke(null)
+                .let { base ->
+                    try {
+                        commonClass.getMethod(
+                            "withAllowVirtualCurrencyAsInApp",
+                            Boolean::class.javaPrimitiveType,
+                        ).invoke(base, true)
+                    } catch (_: NoSuchMethodException) {
+                        base // older SDK
+                    }
+                }
+                .let { base ->
+                    try {
+                        commonClass.getMethod(
+                            "withAllowBundlesAsInApp",
+                            Boolean::class.javaPrimitiveType,
+                        ).invoke(base, true)
+                    } catch (_: NoSuchMethodException) {
+                        base
+                    }
+                }
             val payments = paymentsClass.getMethod("getDefault").invoke(null)
             val analytics = analyticsClass.getMethod("getDefault").invoke(null)
 
@@ -285,60 +311,7 @@ class MainActivity : FlutterActivity() {
         pendingSku = sku
         pendingResult = result
         try {
-            val productClass = sdkClass("QueryProductDetailsParams\$Product")
-            val paramsClass = sdkClass("QueryProductDetailsParams")
-            val listenerClass = sdkClass("ProductDetailsResponseListener")
             val billingClientClass = sdkClass("BillingClient")
-
-            // `BillingClient.ProductType` is a @StringDef annotation interface,
-            // not a constant holder: the SDK's own constant for a one-time
-            // product is the literal "inapp". Reflecting into ProductType.INAPP
-            // threw, and the thrown message was just "ProductType" — which the
-            // store sheet then showed to the player. `setProductType` takes a
-            // String, matching Google Play Billing.
-            val inApp = "inapp"
-
-            // Builders are separate classes from the types that create them, so
-            // every setter must be looked up on the builder instance's own
-            // class. Looking them up on the outer class throws
-            // NoSuchMethodException naming the outer type — which the sheet
-            // then showed to the player as a payment error.
-            val productBuilder = productClass.getMethod("newBuilder").invoke(null)
-            productBuilder.javaClass.getMethod("setProductId", String::class.java)
-                .invoke(productBuilder, sku)
-            productBuilder.javaClass.getMethod("setProductType", String::class.java)
-                .invoke(productBuilder, inApp)
-            val product = productBuilder.javaClass.getMethod("build").invoke(productBuilder)
-
-            val paramsBuilder = paramsClass.getMethod("newBuilder").invoke(null)
-            paramsBuilder.javaClass.getMethod("setProductList", List::class.java)
-                .invoke(paramsBuilder, listOf(product))
-            val params = paramsBuilder.javaClass.getMethod("build").invoke(paramsBuilder)
-
-            val listener = java.lang.reflect.Proxy.newProxyInstance(
-                classLoader,
-                arrayOf(listenerClass),
-            ) { _, method, args ->
-                if (method.name == "onProductDetailsResponse" && args != null && args.size == 2) {
-                    @Suppress("UNCHECKED_CAST")
-                    val products = args[1] as? List<Any?>
-                    val first = products?.firstOrNull()
-                    if (first == null) {
-                        // Pay Station answers OK with an empty list when the SKU
-                        // is not in the project's catalog. Say exactly that,
-                        // because it is a dashboard fix, not an app bug.
-                        failPending(
-                            "SKU_UNAVAILABLE",
-                            "No product \"$sku\" in the Xsolla catalog for project " +
-                                "$XSOLLA_PROJECT_ID. Add the SKU (coin packs and the " +
-                                "multimedia pack) in Xsolla Publisher Account → Store.",
-                        )
-                    } else {
-                        launchFlow(first)
-                    }
-                }
-                null
-            }
 
             // Watchdog: a dead network used to leave the Dart side awaiting a
             // result forever, which disabled every BUY button in the sheet.
@@ -354,9 +327,21 @@ class MainActivity : FlutterActivity() {
                 25_000,
             )
 
-            billingClientClass
-                .getMethod("queryProductDetailsAsync", paramsClass, listenerClass)
-                .invoke(client, params, listener)
+            // Ask for the SKU as an ordinary one-time product first, then fall
+            // back to the other catalogue types. A coin pack is sold as a
+            // *virtual currency package* (a bundle) and the pack as a *virtual
+            // item*; requested as "inapp" without the matching Common flag the
+            // SDK rejects the type mismatch with an EMPTY list, which is
+            // indistinguishable from "no such product".
+            queryByType(client, sku, "inapp") { product ->
+                if (product != null) {
+                    launchFlow(product)
+                } else {
+                    queryByType(client, sku, "virtual_currency") { vc ->
+                        if (vc != null) launchFlow(vc) else failSkuUnavailable(sku)
+                    }
+                }
+            }
         } catch (e: Throwable) {
             android.util.Log.e("XsollaBridge", "queryProductDetails failed", e)
             // A NoSuchMethodException's message is just the class name, which is
@@ -374,6 +359,63 @@ class MainActivity : FlutterActivity() {
                 },
             )
         }
+    }
+
+    /// One `queryProductDetailsAsync` call for [sku] as [productType].
+    private fun queryByType(
+        client: Any,
+        sku: String,
+        productType: String,
+        onResult: (Any?) -> Unit,
+    ) {
+        val productClass = sdkClass("QueryProductDetailsParams\$Product")
+        val paramsClass = sdkClass("QueryProductDetailsParams")
+        val listenerClass = sdkClass("ProductDetailsResponseListener")
+        val billingClientClass = sdkClass("BillingClient")
+
+        // Builders are separate classes from the types that create them, so
+        // every setter must be looked up on the builder instance's own class.
+        // Looking them up on the outer class throws NoSuchMethodException
+        // naming the outer type — which the sheet then showed as a payment
+        // error.
+        val productBuilder = productClass.getMethod("newBuilder").invoke(null)
+        productBuilder.javaClass.getMethod("setProductId", String::class.java)
+            .invoke(productBuilder, sku)
+        productBuilder.javaClass.getMethod("setProductType", String::class.java)
+            .invoke(productBuilder, productType)
+        val product = productBuilder.javaClass.getMethod("build").invoke(productBuilder)
+
+        val paramsBuilder = paramsClass.getMethod("newBuilder").invoke(null)
+        paramsBuilder.javaClass.getMethod("setProductList", List::class.java)
+            .invoke(paramsBuilder, listOf(product))
+        val params = paramsBuilder.javaClass.getMethod("build").invoke(paramsBuilder)
+
+        val listener = java.lang.reflect.Proxy.newProxyInstance(
+            classLoader,
+            arrayOf(listenerClass),
+        ) { _, method, args ->
+            if (method.name == "onProductDetailsResponse" && args != null && args.size == 2) {
+                @Suppress("UNCHECKED_CAST")
+                val products = args[1] as? List<Any?>
+                onResult(products?.firstOrNull())
+            }
+            null
+        }
+
+        billingClientClass
+            .getMethod("queryProductDetailsAsync", paramsClass, listenerClass)
+            .invoke(client, params, listener)
+    }
+
+    /// Pay Station answered with nothing for every product type we tried.
+    private fun failSkuUnavailable(sku: String) {
+        failPending(
+            "SKU_UNAVAILABLE",
+            "Xsolla has no purchasable item for \"$sku\" in project $XSOLLA_PROJECT_ID. " +
+                "Check that the item is Available, that its SKU matches exactly, and " +
+                "that it is a virtual currency PACKAGE (coin packs) or a virtual item " +
+                "(the multimedia pack) in Publisher Account → Store.",
+        )
     }
 
     private fun launchFlow(productDetails: Any) {
@@ -439,6 +481,49 @@ class MainActivity : FlutterActivity() {
         failOrSucceed(token)
     }
 
+    /// Coin packs are consumable: without consuming, the store considers the
+    /// product owned and the next purchase of the same pack is refused. The
+    /// grant itself is idempotent in Firestore on the purchase token, so
+    /// consuming cannot double-credit.
+    private fun consume(purchaseToken: String, onDone: () -> Unit) {
+        val client = billingClient
+        if (client == null) {
+            onDone()
+            return
+        }
+        try {
+            val paramsClass = sdkClass("ConsumeParams")
+            val listenerClass = sdkClass("ConsumeResponseListener")
+            val builder = paramsClass.getMethod("newBuilder").invoke(null)
+            builder.javaClass.getMethod("setPurchaseToken", String::class.java)
+                .invoke(builder, purchaseToken)
+            val params = builder.javaClass.getMethod("build").invoke(builder)
+
+            val listener = java.lang.reflect.Proxy.newProxyInstance(
+                classLoader,
+                arrayOf(listenerClass),
+            ) { _, method, args ->
+                if (method.name == "onConsumeResponse") {
+                    val code = args?.getOrNull(0)?.javaClass
+                        ?.getMethod("getResponseCode")?.invoke(args[0]) as? Int
+                    if (code != 0) {
+                        android.util.Log.w("XsollaBridge", "consume returned code $code")
+                    }
+                    onDone()
+                }
+                null
+            }
+            sdkClass("BillingClient")
+                .getMethod("consumeAsync", paramsClass, listenerClass)
+                .invoke(client, params, listener)
+        } catch (e: Throwable) {
+            // A failed consume must not fail the purchase: the grant is already
+            // earned. It only means the pack may need support to re-buy.
+            android.util.Log.w("XsollaBridge", "consume failed", e)
+            onDone()
+        }
+    }
+
     private fun failOrSucceed(purchaseToken: String?) {
         val result = pendingResult
         val sku = pendingSku
@@ -447,14 +532,21 @@ class MainActivity : FlutterActivity() {
         if (result == null) return
         if (purchaseToken.isNullOrBlank()) {
             result.error("XSOLLA_PURCHASE", "Purchase returned without a token", null)
+            return
+        }
+        // Firestore (lib/services/game_store.dart) records the entitlement; this
+        // layer never grants coins itself. Consume first for the coin packs so
+        // the same pack can be bought again.
+        val consumeFirst = sku == null || !sku.startsWith("multimedia")
+        if (consumeFirst) {
+            consume(purchaseToken) {
+                result.success(
+                    mapOf("sku" to sku, "purchaseToken" to purchaseToken),
+                )
+            }
         } else {
-            // Firestore (lib/services/game_store.dart) verifies and records the
-            // entitlement; this layer never grants coins itself.
             result.success(
-                mapOf(
-                    "sku" to sku,
-                    "purchaseToken" to purchaseToken,
-                ),
+                mapOf("sku" to sku, "purchaseToken" to purchaseToken),
             )
         }
     }
