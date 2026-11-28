@@ -381,6 +381,26 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    /// Turns a Xsolla Login rejection into the setting that causes it.
+    ///
+    /// Auto-JWT signs in by device ID, which the server only accepts when
+    /// "Login with device ID" is enabled for the Login project. With it off the
+    /// server never creates the account, and every later call reports
+    /// `003-002 User not found` — which reads like a catalogue problem and is
+    /// not one.
+    private fun explainAuthFailure(note: String): String? {
+        if (!note.contains("JWT", ignoreCase = true) &&
+            !note.contains("003-002") &&
+            !note.contains("not found", ignoreCase = true)
+        ) {
+            return null
+        }
+        return "Xsolla Login rejected the device sign-in. Enable 'Login with " +
+            "device ID' in Publisher Account → Players → Login → Configure → " +
+            "Login API integration, and check the Login ID below is that Login " +
+            "project's ID. Nothing in the catalog is wrong."
+    }
+
     /// Runs the catalogue query for [sku] as each type and reports the outcome.
     private fun probe(sku: String, result: MethodChannel.Result) {
         val client = billingClient
@@ -398,10 +418,13 @@ class MainActivity : FlutterActivity() {
         val types = listOf("inapp", "bundle", "virtual_currency")
         fun step(index: Int) {
             if (index >= types.size) {
+                val hint = report.values.firstNotNullOfOrNull { explainAuthFailure(it) }
                 result.success(
                     mapOf(
                         "skus" to report,
                         "projectId" to XSOLLA_PROJECT_ID.toString(),
+                        "loginId" to XSOLLA_LOGIN_ID,
+                        "hint" to hint,
                         "sdkBundled" to isSdkBundled(),
                         "connected" to (billingClient != null),
                     ),
@@ -496,6 +519,11 @@ class MainActivity : FlutterActivity() {
     /// catalogue", which all look identical in an empty product list.
     private fun failSkuUnavailable(sku: String, attempts: List<String>) {
         val detail = if (attempts.isEmpty()) "" else " Server said: " + attempts.joinToString("; ")
+        val authFailure = attempts.firstNotNullOfOrNull { explainAuthFailure(it) }
+        if (authFailure != null) {
+            failPending("SKU_UNAVAILABLE", authFailure)
+            return
+        }
         failPending(
             "SKU_UNAVAILABLE",
             "Xsolla returned no product for \"$sku\" in project $XSOLLA_PROJECT_ID.$detail",

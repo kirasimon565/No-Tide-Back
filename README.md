@@ -88,6 +88,18 @@ game — it is the wrong feature and its form will not accept the SKUs:
 so it reports `no product` and hands over to the next rail. The coin balance in this game lives in
 Firestore (`players/{uid}.coins`), granted by `grantCoins` — never in RevenueCat.
 
+### Xsolla Login must accept device sign-in
+
+`forAutoJWT` signs in by **device ID**, so the server has to be willing to create an account for
+it. That is a dashboard switch, off by default:
+
+**Publisher Account → Players → Login → Configure → Login API integration → Login with device ID → ON**
+
+With it off, no account is created, and the next call reports `003-002 User not found` on a *JWT*
+request — which looks like a catalogue fault and is not one. `Check Xsolla catalogue` in the store
+sheet now recognises this shape and names the toggle, and prints the Login ID in use so it can be
+compared with the dashboard.
+
 ### Xsolla catalogue: item *types* matter
 
 The store sells in four shapes, and the SDK filters by type. The coin packs are **virtual currency

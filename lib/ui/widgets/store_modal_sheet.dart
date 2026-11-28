@@ -262,10 +262,13 @@ class _StoreModalSheetState extends ConsumerState<StoreModalSheet> {
                   final Map<String, dynamic> skus =
                       (report['skus'] as Map?)?.cast<String, dynamic>() ??
                           <String, dynamic>{};
+                  final String? hint = report['hint'] as String?;
                   setState(() {
                     _diagnostics = <String>[
+                      if (hint != null) '>>> $hint',
                       'PROJECT ${report['projectId']} • SDK ${report['sdkBundled']} '
                           '• CONNECTED ${report['connected']}',
+                      'LOGIN ${report['loginId']}',
                       for (final MapEntry<String, dynamic> e in skus.entries)
                         '${e.key}: ${e.value}',
                     ].join('\n');
