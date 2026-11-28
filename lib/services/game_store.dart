@@ -601,6 +601,25 @@ class GameStore {
     }
   }
 
+  /// Asks the native bridge what the Xsolla catalogue actually holds for [sku].
+  ///
+  /// Returns a map of requested type -> outcome ("FOUND ..." or the server's
+  /// code/message). Used by the store sheet's diagnostics so a support report
+  /// carries the server's own answer instead of a guess about the SKU.
+  Future<Map<String, dynamic>?> probeXsollaCatalogue(String sku) async {
+    try {
+      return await _xsollaChannel.invokeMapMethod<String, dynamic>(
+        'probeSku',
+        <String, dynamic>{'sku': sku},
+      );
+    } on MissingPluginException {
+      return null;
+    } on PlatformException catch (error) {
+      debugPrint('GameStore.probeXsollaCatalogue: ${error.code} ${error.message}');
+      return null;
+    }
+  }
+
   /// Applies a verified purchase to the Firestore economy ledger.
   /// Writes a paid purchase to `players/{uid}`.
   ///

@@ -56,6 +56,7 @@ class _StoreModalSheetState extends ConsumerState<StoreModalSheet> {
   String? _busySku;
   _Phase _phase = _Phase.idle;
   String _status = '';
+  String? _diagnostics;
   String? _message;
   bool _messageIsError = false;
 
@@ -241,7 +242,38 @@ class _StoreModalSheetState extends ConsumerState<StoreModalSheet> {
                 ),
               ],
 
-              const SizedBox(height: 18),
+              const SizedBox(height: 10),
+              // Diagnostic: asks the native bridge what Xsolla actually returns
+              // for each catalogue type. The answer is what a bug report needs.
+              ConsoleButton(
+                label: 'Check Xsolla catalogue',
+                icon: Icons.bug_report_outlined,
+                height: 42,
+                onPressed: () async {
+                  setState(() => _diagnostics = 'QUERYING...');
+                  final Map<String, dynamic>? report =
+                      await store.probeXsollaCatalogue(StoreSkus.coins100);
+                  if (!mounted) return;
+                  if (report == null) {
+                    setState(() => _diagnostics =
+                        'No Xsolla bridge in this build (or it refused to answer).');
+                    return;
+                  }
+                  final Map<String, dynamic> skus =
+                      (report['skus'] as Map?)?.cast<String, dynamic>() ??
+                          <String, dynamic>{};
+                  setState(() {
+                    _diagnostics = <String>[
+                      'PROJECT ${report['projectId']} • SDK ${report['sdkBundled']} '
+                          '• CONNECTED ${report['connected']}',
+                      for (final MapEntry<String, dynamic> e in skus.entries)
+                        '${e.key}: ${e.value}',
+                    ].join('\n');
+                  });
+                },
+              ),
+
+              const SizedBox(height: 10),
               ConsoleButton(
                 label: 'Restore purchases',
                 icon: Icons.restore_rounded,
@@ -258,6 +290,27 @@ class _StoreModalSheetState extends ConsumerState<StoreModalSheet> {
                   });
                 },
               ),
+
+              if (_diagnostics != null) ...<Widget>[
+                const SizedBox(height: 10),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceCard,
+                    border: Border.all(color: AppColors.divider, width: 0.7),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                  child: SelectableText(
+                    _diagnostics!,
+                    style: AppTypography.monoCaption.copyWith(
+                      fontSize: 8.5,
+                      height: 1.7,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ],
 
               if (kDebugMode) ...<Widget>[
                 const SizedBox(height: 12),

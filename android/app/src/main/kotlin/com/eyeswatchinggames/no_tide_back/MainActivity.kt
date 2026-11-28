@@ -69,6 +69,17 @@ class MainActivity : FlutterActivity() {
                     "initXsolla" -> connect { ok, error ->
                         if (ok) result.success(true) else result.error("XSOLLA_INIT", error, null)
                     }
+                    // Diagnostic: asks the SDK for the SKU as each catalogue type
+                    // and returns what it said. Lets the store sheet show the
+                    // server's own answer instead of a guess.
+                    "probeSku" -> {
+                        val sku = call.argument<String>("sku")
+                        if (sku.isNullOrBlank()) {
+                            result.error("BAD_ARGS", "probeSku requires a sku", null)
+                        } else {
+                            probe(sku, result)
+                        }
+                    }
                     "buySku" -> {
                         val sku = call.argument<String>("sku")
                         if (sku.isNullOrBlank()) {
@@ -333,15 +344,24 @@ class MainActivity : FlutterActivity() {
             // item*; requested as "inapp" without the matching Common flag the
             // SDK rejects the type mismatch with an EMPTY list, which is
             // indistinguishable from "no such product".
-            queryByType(client, sku, "inapp") { product ->
-                if (product != null) {
-                    launchFlow(product)
-                } else {
-                    queryByType(client, sku, "virtual_currency") { vc ->
-                        if (vc != null) launchFlow(vc) else failSkuUnavailable(sku)
-                    }
+            // The SDK maps catalogue types as VIRTUAL_GOOD -> "inapp",
+            // BUNDLE -> "bundle", VIRTUAL_CURRENCY -> "virtual_currency", and
+            // rejects a mismatch with `Requested product is not available as the
+            // requested type`. Try each one and keep what the server said, so a
+            // failure can name the real reason instead of guessing.
+            val attempts = mutableListOf<String>()
+            fun tryType(index: Int) {
+                val types = listOf("inapp", "bundle", "virtual_currency")
+                if (index >= types.size) {
+                    failSkuUnavailable(sku, attempts)
+                    return
+                }
+                queryByType(client, sku, types[index]) { product, note ->
+                    if (note != null) attempts.add("${types[index]}: $note")
+                    if (product != null) launchFlow(product) else tryType(index + 1)
                 }
             }
+            tryType(0)
         } catch (e: Throwable) {
             android.util.Log.e("XsollaBridge", "queryProductDetails failed", e)
             // A NoSuchMethodException's message is just the class name, which is
@@ -361,12 +381,57 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    /// Runs the catalogue query for [sku] as each type and reports the outcome.
+    private fun probe(sku: String, result: MethodChannel.Result) {
+        val client = billingClient
+        if (client == null) {
+            connect { ok, error ->
+                if (!ok) {
+                    result.error("XSOLLA_INIT", error, null)
+                } else {
+                    probe(sku, result)
+                }
+            }
+            return
+        }
+        val report = mutableMapOf<String, String>()
+        val types = listOf("inapp", "bundle", "virtual_currency")
+        fun step(index: Int) {
+            if (index >= types.size) {
+                result.success(
+                    mapOf(
+                        "skus" to report,
+                        "projectId" to XSOLLA_PROJECT_ID.toString(),
+                        "sdkBundled" to isSdkBundled(),
+                        "connected" to (billingClient != null),
+                    ),
+                )
+                return
+            }
+            queryByType(client, sku, types[index]) { product, note ->
+                report[types[index]] = if (product != null) {
+                    val id = runCatching {
+                        product.javaClass.getMethod("getProductId").invoke(product) as? String
+                    }.getOrNull()
+                    val type = runCatching {
+                        product.javaClass.getMethod("getProductType").invoke(product) as? String
+                    }.getOrNull()
+                    "FOUND id=$id type=$type"
+                } else {
+                    note ?: "empty"
+                }
+                step(index + 1)
+            }
+        }
+        step(0)
+    }
+
     /// One `queryProductDetailsAsync` call for [sku] as [productType].
     private fun queryByType(
         client: Any,
         sku: String,
         productType: String,
-        onResult: (Any?) -> Unit,
+        onResult: (product: Any?, note: String?) -> Unit,
     ) {
         val productClass = sdkClass("QueryProductDetailsParams\$Product")
         val paramsClass = sdkClass("QueryProductDetailsParams")
@@ -397,7 +462,24 @@ class MainActivity : FlutterActivity() {
             if (method.name == "onProductDetailsResponse" && args != null && args.size == 2) {
                 @Suppress("UNCHECKED_CAST")
                 val products = args[1] as? List<Any?>
-                onResult(products?.firstOrNull())
+                val product = products?.firstOrNull()
+                // An empty list is not the same as "no such item": a type
+                // mismatch, an auth failure and an empty catalogue all arrive
+                // this way. The response code and debug message are the only
+                // place the difference is stated.
+                var note: String? = null
+                if (product == null) {
+                    val result = args[0]
+                    val code = try {
+                        result?.javaClass?.getMethod("getResponseCode")?.invoke(result) as? Int
+                    } catch (_: Throwable) { null }
+                    val detail = try {
+                        result?.javaClass?.getMethod("getDebugMessage")?.invoke(result) as? String
+                    } catch (_: Throwable) { null }
+                    note = "code=$code ${detail ?: "(no message)"}"
+                    android.util.Log.w("XsollaBridge", "no product for $sku as $productType: $note")
+                }
+                onResult(product, note)
             }
             null
         }
@@ -407,14 +489,16 @@ class MainActivity : FlutterActivity() {
             .invoke(client, params, listener)
     }
 
-    /// Pay Station answered with nothing for every product type we tried.
-    private fun failSkuUnavailable(sku: String) {
+    /// Pay Station answered with nothing for every catalogue type we tried.
+    ///
+    /// The note list carries the server's own code and message per type; it is
+    /// the difference between "wrong item type", "not signed in" and "empty
+    /// catalogue", which all look identical in an empty product list.
+    private fun failSkuUnavailable(sku: String, attempts: List<String>) {
+        val detail = if (attempts.isEmpty()) "" else " Server said: " + attempts.joinToString("; ")
         failPending(
             "SKU_UNAVAILABLE",
-            "Xsolla has no purchasable item for \"$sku\" in project $XSOLLA_PROJECT_ID. " +
-                "Check that the item is Available, that its SKU matches exactly, and " +
-                "that it is a virtual currency PACKAGE (coin packs) or a virtual item " +
-                "(the multimedia pack) in Publisher Account → Store.",
+            "Xsolla returned no product for \"$sku\" in project $XSOLLA_PROJECT_ID.$detail",
         )
     }
 
