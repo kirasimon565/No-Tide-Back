@@ -606,11 +606,17 @@ class GameStore {
   /// Returns a map of requested type -> outcome ("FOUND ..." or the server's
   /// code/message). Used by the store sheet's diagnostics so a support report
   /// carries the server's own answer instead of a guess about the SKU.
-  Future<Map<String, dynamic>?> probeXsollaCatalogue(String sku) async {
+  Future<Map<String, dynamic>?> probeXsollaCatalogue(
+    String sku, {
+    String? loginId,
+  }) async {
     try {
       return await _xsollaChannel.invokeMapMethod<String, dynamic>(
         'probeSku',
-        <String, dynamic>{'sku': sku},
+        <String, dynamic>{
+          'sku': sku,
+          if (loginId != null && loginId.isNotEmpty) 'loginId': loginId,
+        },
       );
     } on MissingPluginException {
       return null;

@@ -57,6 +57,13 @@ class _StoreModalSheetState extends ConsumerState<StoreModalSheet> {
   _Phase _phase = _Phase.idle;
   String _status = '';
   String? _diagnostics;
+  final TextEditingController _loginIdController = TextEditingController();
+
+  @override
+  void dispose() {
+    _loginIdController.dispose();
+    super.dispose();
+  }
   String? _message;
   bool _messageIsError = false;
 
@@ -243,6 +250,37 @@ class _StoreModalSheetState extends ConsumerState<StoreModalSheet> {
               ],
 
               const SizedBox(height: 10),
+              // Leave blank to test the Login ID the app ships with; paste a
+              // candidate here to test another Login project without a rebuild.
+              TextField(
+                controller: _loginIdController,
+                style: AppTypography.monoCaption.copyWith(
+                  fontSize: 9,
+                  color: AppColors.textPrimary,
+                ),
+                decoration: InputDecoration(
+                  isDense: true,
+                  hintText: 'LOGIN ID TO TEST (optional)',
+                  hintStyle: AppTypography.monoCaption.copyWith(
+                    fontSize: 8.5,
+                    color: AppColors.textMuted,
+                  ),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(2),
+                    borderSide:
+                        const BorderSide(color: AppColors.divider, width: 0.7),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(2),
+                    borderSide:
+                        const BorderSide(color: AppColors.divider, width: 0.7),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 10),
               // Diagnostic: asks the native bridge what Xsolla actually returns
               // for each catalogue type. The answer is what a bug report needs.
               ConsoleButton(
@@ -252,7 +290,10 @@ class _StoreModalSheetState extends ConsumerState<StoreModalSheet> {
                 onPressed: () async {
                   setState(() => _diagnostics = 'QUERYING...');
                   final Map<String, dynamic>? report =
-                      await store.probeXsollaCatalogue(StoreSkus.coins100);
+                      await store.probeXsollaCatalogue(
+                    StoreSkus.coins100,
+                    loginId: _loginIdController.text.trim(),
+                  );
                   if (!mounted) return;
                   if (report == null) {
                     setState(() => _diagnostics =

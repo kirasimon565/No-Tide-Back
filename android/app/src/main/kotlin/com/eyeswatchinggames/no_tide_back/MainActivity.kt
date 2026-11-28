@@ -80,7 +80,14 @@ class MainActivity : FlutterActivity() {
                         if (sku.isNullOrBlank()) {
                             result.error("BAD_ARGS", "probeSku requires a sku", null)
                         } else {
-                            probe(sku, result)
+                            // A Login ID may be supplied to test a candidate
+                            // project without rebuilding the app.
+                            val loginId = call.argument<String>("loginId")?.trim()
+                            probe(
+                                sku,
+                                result,
+                                if (loginId.isNullOrBlank()) XSOLLA_LOGIN_ID else loginId,
+                            )
                         }
                     }
                     // Diagnostic: performs the device-ID sign-in the SDK performs,
@@ -401,14 +408,15 @@ class MainActivity : FlutterActivity() {
         result: MethodChannel.Result,
         report: Map<String, String>,
         hint: String?,
+        loginId: String = XSOLLA_LOGIN_ID,
     ) {
-        rawLogin(XSOLLA_LOGIN_ID) { status, body, deviceId, device ->
+        rawLogin(loginId) { status, body, deviceId, device ->
             rawLogin(XSOLLA_TEST_LOGIN_ID) { testStatus, testBody, _, _ ->
                 result.success(
                     mapOf(
                         "skus" to report,
                         "projectId" to XSOLLA_PROJECT_ID.toString(),
-                        "loginId" to XSOLLA_LOGIN_ID,
+                        "loginId" to loginId,
                         "hint" to hint,
                         "loginStatus" to status,
                         "loginBody" to body,
@@ -490,21 +498,27 @@ class MainActivity : FlutterActivity() {
         ) {
             return null
         }
-        return "Xsolla Login rejected the device sign-in. Enable 'Login with " +
-            "device ID' in Publisher Account → Players → Login → Configure → " +
-            "Login API integration, and check the Login ID below is that Login " +
-            "project's ID. Nothing in the catalog is wrong."
+        return "Xsolla Login refused the device sign-in, so no catalogue call " +
+            "was made. The same request against Xsolla's test Login project " +
+            "succeeds (see TEST below), so the request and the device ID are " +
+            "fine: this Login project does not create users for device sign-in. " +
+            "Try a different Login ID below, or raise it with Xsolla support. " +
+            "Nothing in the catalog is wrong."
     }
 
     /// Runs the catalogue query for [sku] as each type and reports the outcome.
-    private fun probe(sku: String, result: MethodChannel.Result) {
+    private fun probe(
+        sku: String,
+        result: MethodChannel.Result,
+        loginId: String = XSOLLA_LOGIN_ID,
+    ) {
         val client = billingClient
         if (client == null) {
             connect { ok, error ->
                 if (!ok) {
                     result.error("XSOLLA_INIT", error, null)
                 } else {
-                    probe(sku, result)
+                    probe(sku, result, loginId)
                 }
             }
             return
@@ -518,7 +532,7 @@ class MainActivity : FlutterActivity() {
                 // failed; otherwise the catalogue answer is the useful part.
                 val authFailed = report.values.any { explainAuthFailure(it) != null }
                 if (authFailed) {
-                    probeLoginInto(result, report, hint)
+                    probeLoginInto(result, report, hint, loginId)
                 } else {
                     result.success(
                         mapOf(
