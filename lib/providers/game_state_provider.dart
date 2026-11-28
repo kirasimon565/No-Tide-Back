@@ -31,6 +31,7 @@ class GameScreenState {
     this.unreadByThread = const <String, int>{},
     this.pendingNotification,
     this.activeChoice,
+    this.choiceThreadId,
     this.pendingChoiceCost,
     this.pendingChoiceId,
     this.interpreterStatus = InterpreterStatus.idle,
@@ -66,6 +67,11 @@ class GameScreenState {
 
   /// Options of the choice drawer currently on screen.
   final List<NtbNode>? activeChoice;
+
+  /// Thread the pending choice belongs to. The drawer must only appear in that
+  /// conversation — it used to render in whichever chat was open, so a choice
+  /// asked in the group chat could be answered from a private DM.
+  final String? choiceThreadId;
   final int? pendingChoiceCost;
   final String? pendingChoiceId;
   final InterpreterStatus interpreterStatus;
@@ -143,6 +149,7 @@ class GameScreenState {
     InAppNotification? pendingNotification,
     bool clearNotification = false,
     List<NtbNode>? activeChoice,
+    String? choiceThreadId,
     bool clearChoice = false,
     int? pendingChoiceCost,
     String? pendingChoiceId,
@@ -181,6 +188,7 @@ class GameScreenState {
         pendingNotification:
             clearNotification ? null : (pendingNotification ?? this.pendingNotification),
         activeChoice: clearChoice ? null : (activeChoice ?? this.activeChoice),
+        choiceThreadId: clearChoice ? null : (choiceThreadId ?? this.choiceThreadId),
         pendingChoiceCost: pendingChoiceCost ?? this.pendingChoiceCost,
         pendingChoiceId: pendingChoiceId ?? this.pendingChoiceId,
         interpreterStatus: interpreterStatus ?? this.interpreterStatus,
@@ -1070,13 +1078,14 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
   }
 
   @override
-  Future<NtbNode?> requestChoice(List<NtbNode> options) async {
+  Future<NtbNode?> requestChoice(List<NtbNode> options, String threadId) async {
     final Completer<NtbNode?> completer = Completer<NtbNode?>();
     _choiceCompleter = completer;
     // The script has something on screen: the "loading / syncing" banner is
     // finished even though `run()` will not return until the player picks.
     state = state.copyWith(
       activeChoice: options,
+      choiceThreadId: threadId,
       interpreterStatus: InterpreterStatus.awaitingChoice,
       clearBoot: true,
     );

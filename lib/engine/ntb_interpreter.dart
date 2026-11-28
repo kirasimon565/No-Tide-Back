@@ -94,7 +94,9 @@ abstract class NtbRuntime {
 
   /// Choice drawer. Returns the chosen node, or null when the script must
   /// simply halt (end of content).
-  Future<NtbNode?> requestChoice(List<NtbNode> options);
+  /// [threadId] is the conversation the choice belongs to: the drawer must not
+  /// appear over a different DM.
+  Future<NtbNode?> requestChoice(List<NtbNode> options, String threadId);
 
   /// Pause until the player taps a chosen reply.
   Future<void> waitForPlayerInput(String prompt);
@@ -771,7 +773,13 @@ class NtbInterpreter {
     _pendingChoiceId = choiceId;
     _status = InterpreterStatus.awaitingChoice;
 
-    final NtbNode? chosen = await runtime.requestChoice(visible);
+    // Which conversation is the player standing in? `current_chat` is set by
+    // `@ui open`, so this is the thread the upcoming reply belongs to.
+    final String choiceThread =
+        _threadFor(_variables['current_chat']?.toString());
+
+    final NtbNode? chosen =
+        await runtime.requestChoice(visible, choiceThread);
     _pendingChoiceId = null;
     _status = InterpreterStatus.running;
 
@@ -799,12 +807,15 @@ class NtbInterpreter {
       _variables['coins_spent_${chosen.param('id')}'] = cost;
     }
 
-    // Render the player's pick into the thread.
+    // Render the player's pick into the thread the choice was asked in.
     final String threadId = _threadFor(
-      chosen.param('chat', _variables['current_chat']?.toString() ?? 'group_island'),
+      chosen.param('chat', choiceThread),
     );
-    // Prefer the thread currently on screen.
-    final String outThread = _activeThreadOverride ?? threadId;
+    // Deliver into the thread that owns this choice. `_activeThreadOverride`
+    // follows the player's open thread, which is *not* the same thing: reading
+    // another DM while the drawer is up used to put the reply — and the script
+    // log that follows — into that other conversation.
+    final String outThread = threadId;
 
     final ChatMessage reply = ChatMessage(
       scriptMessageId: 'p_${DateTime.now().millisecondsSinceEpoch}',
@@ -853,7 +864,17 @@ class NtbInterpreter {
 
   /// Set by the controller so player replies land in the visible thread.
   String? _activeThreadOverride;
+
+  /// Which thread the player is currently reading.
+  ///
+  /// Deliberately *not* consulted when addressing a bubble: every `@message`
+  /// names its own `chat=`, and falling back to "whatever is on screen" leaked
+  /// one conversation's lines into another.
   set activeThread(String? threadId) => _activeThreadOverride = threadId;
+
+  /// The thread the thread-local commands (`@message` with no `chat=`) address:
+  /// whichever thread the current scene is running in.
+  String? get activeThreadId => _activeThreadOverride;
 
   // ---------------------------------------------------------------------------
   // Custom actions

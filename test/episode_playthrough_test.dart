@@ -58,6 +58,9 @@ class _RecordingRuntime implements NtbRuntime {
   /// Senders the script declared as typing, in order.
   final List<String> typingCharacters = <String>[];
 
+  /// Threads that asked a choice, in order.
+  final List<String> choiceThreads = <String>[];
+
   @override
   void onNotification({required String threadId, required String senderName, required String text}) {
     notifications.add('$threadId|$senderName|$text');
@@ -151,8 +154,12 @@ class _RecordingRuntime implements NtbRuntime {
   }
 
   @override
-  Future<NtbNode?> requestChoice(List<NtbNode> options) async {
+  Future<NtbNode?> requestChoice(List<NtbNode> options, String threadId) async {
     choiceCount++;
+    // Every choice must name the conversation it belongs to, otherwise the
+    // drawer can show up in a different chat than the one that asked.
+    expect(threadId, isNotEmpty);
+    choiceThreads.add(threadId);
     // Dismissing (null) parks the interpreter, which ends the walk cleanly.
     if (_stuck || choiceCount > 200) {
       _stuck = true;
@@ -326,7 +333,8 @@ void main() {
           'scenes=${run.scenes.length} evidence=${run.evidence.length} '
           'pings=${run.notifications.length} sounds=${run.sounds.length} '
           'ended=${run.ended} endTitle=${run.endTitle} '
-          'typed=${run.typingCharacters.length}');
+          'typed=${run.typingCharacters.length} '
+          'choiceThreads=${run.choiceThreads.toSet().length}');
       expect(run.evidence, isNotEmpty, reason: '@add_evidence never fired');
       expect(run.notifications, isNotEmpty, reason: '@notification never fired');
       expect(run.sounds, isNotEmpty, reason: '@sound/@music never fired');

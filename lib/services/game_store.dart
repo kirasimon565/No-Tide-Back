@@ -590,6 +590,13 @@ class GameStore {
         'Rebuild with -PwithXsolla.',
       );
     } on PlatformException catch (error) {
+      // Distinguish "this build is broken" from "your purchase failed": the
+      // former is ours to fix and must not look like a billing problem.
+      if (error.code == 'XSOLLA_QUERY' || error.code == 'XSOLLA_INIT') {
+        return PurchaseResult.failure(
+          '${error.message ?? 'The Xsolla integration could not start.'}',
+        );
+      }
       return PurchaseResult.failure(error.message ?? 'Xsolla purchase failed');
     }
   }

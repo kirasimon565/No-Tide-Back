@@ -298,17 +298,22 @@ class MainActivity : FlutterActivity() {
             // String, matching Google Play Billing.
             val inApp = "inapp"
 
+            // Builders are separate classes from the types that create them, so
+            // every setter must be looked up on the builder instance's own
+            // class. Looking them up on the outer class throws
+            // NoSuchMethodException naming the outer type — which the sheet
+            // then showed to the player as a payment error.
             val productBuilder = productClass.getMethod("newBuilder").invoke(null)
-            productClass.getMethod("setProductId", String::class.java)
+            productBuilder.javaClass.getMethod("setProductId", String::class.java)
                 .invoke(productBuilder, sku)
-            productClass.getMethod("setProductType", String::class.java)
+            productBuilder.javaClass.getMethod("setProductType", String::class.java)
                 .invoke(productBuilder, inApp)
-            val product = productClass.getMethod("build").invoke(productBuilder)
+            val product = productBuilder.javaClass.getMethod("build").invoke(productBuilder)
 
             val paramsBuilder = paramsClass.getMethod("newBuilder").invoke(null)
-            paramsClass.getMethod("setProductList", List::class.java)
+            paramsBuilder.javaClass.getMethod("setProductList", List::class.java)
                 .invoke(paramsBuilder, listOf(product))
-            val params = paramsClass.getMethod("build").invoke(paramsBuilder)
+            val params = paramsBuilder.javaClass.getMethod("build").invoke(paramsBuilder)
 
             val listener = java.lang.reflect.Proxy.newProxyInstance(
                 classLoader,
@@ -354,7 +359,20 @@ class MainActivity : FlutterActivity() {
                 .invoke(client, params, listener)
         } catch (e: Throwable) {
             android.util.Log.e("XsollaBridge", "queryProductDetails failed", e)
-            failPending("XSOLLA_QUERY", e.message ?: "Product query failed")
+            // A NoSuchMethodException's message is just the class name, which is
+            // useless to a player. Name the bridge as the culprit and keep the
+            // SDK detail in logcat.
+            val detail = e.message ?: e.javaClass.simpleName
+            failPending(
+                "XSOLLA_QUERY",
+                if (e is NoSuchMethodException) {
+                    "The Xsolla bridge does not match the bundled SDK version " +
+                        "($detail). This is an app build issue, not your account — " +
+                        "report it with this line."
+                } else {
+                    "Could not load the Xsolla catalog: $detail"
+                },
+            )
         }
     }
 
@@ -369,16 +387,16 @@ class MainActivity : FlutterActivity() {
             val billingClientClass = sdkClass("BillingClient")
 
             val detailsBuilder = detailsParamsClass.getMethod("newBuilder").invoke(null)
-            detailsParamsClass.getMethod(
+            detailsBuilder.javaClass.getMethod(
                 "setProductDetails",
                 sdkClass("ProductDetails"),
             ).invoke(detailsBuilder, productDetails)
-            val detailsParams = detailsParamsClass.getMethod("build").invoke(detailsBuilder)
+            val detailsParams = detailsBuilder.javaClass.getMethod("build").invoke(detailsBuilder)
 
             val flowBuilder = flowParamsClass.getMethod("newBuilder").invoke(null)
-            flowParamsClass.getMethod("setProductDetailsParamsList", List::class.java)
+            flowBuilder.javaClass.getMethod("setProductDetailsParamsList", List::class.java)
                 .invoke(flowBuilder, listOf(detailsParams))
-            val flowParams = flowParamsClass.getMethod("build").invoke(flowBuilder)
+            val flowParams = flowBuilder.javaClass.getMethod("build").invoke(flowBuilder)
 
             // launchBillingFlow returns a BillingResult; a non-OK code means the
             // sheet never opened (the listener will not fire in that case).

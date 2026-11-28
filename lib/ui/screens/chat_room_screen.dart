@@ -293,7 +293,9 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
               ),
               if (widget.readOnly)
                 _ReadOnlyFooter(thread: thread)
-              else if (game.activeChoice != null && game.activeChoice!.isNotEmpty)
+              else if (game.activeChoice != null &&
+                  game.activeChoice!.isNotEmpty &&
+                  _ownsChoice(game))
                 ChoiceDrawer(
                   options: game.activeChoice!,
                   economy: economy,
@@ -318,6 +320,15 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
         ),
       ),
     );
+  }
+
+  /// The drawer belongs to one conversation. Rendering it in every open chat
+  /// meant a choice asked in the group could be answered from a private DM,
+  /// and the log that followed landed in the wrong thread.
+  bool _ownsChoice(GameScreenState game) {
+    final String? owner = game.choiceThreadId;
+    if (owner == null) return true; // older saves without the field
+    return owner == widget.threadId;
   }
 
   String _displayName(String threadId, ChatThread thread) {
