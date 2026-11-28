@@ -1,0 +1,4 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- The Flutter tooling injects INTERNET permission for debug/profile runs. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+</manifest>

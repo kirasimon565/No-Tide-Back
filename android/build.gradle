@@ -1,0 +1,44 @@
+// ---------------------------------------------------------------------------
+// Xsolla Mobile SDK repository.
+//
+// Xsolla retired the old `login` / `payments` / `store` 3.1.0 artifacts that
+// the design document referenced; resolving them fails with
+// "Could not find com.xsolla.android:store:3.1.0". The current SDK ships as a
+// single `com.xsolla.android:mobile` artifact that mirrors Google Play Billing
+// and settles through Xsolla Pay Station.
+//
+// Only a raw Maven tree on GitHub is published (no GitHub Pages), so the URL is
+// parameterised: override it without touching this file if Xsolla moves again.
+//
+//   ./gradlew -PxsollaMavenUrl=https://raw.githubusercontent.com/xsolla/xsolla-sdk-android/main
+//   ./gradlew -PxsollaMavenUrl=file:///path/to/a/local/mirror
+// ---------------------------------------------------------------------------
+def xsollaMavenUrl = (findProperty("xsollaMavenUrl") ?: "https://raw.githubusercontent.com/xsolla/xsolla-sdk-android/main").toString()
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        // Only consulted when -PwithXsolla is set (see android/app/build.gradle).
+        maven {
+            url = uri(xsollaMavenUrl)
+            // The tree is a plain Maven layout, but the host serves the
+            // directory listing as HTML; Gradle is fine with that.
+        }
+    }
+}
+
+rootProject.layout.buildDirectory.value(rootProject.layout.projectDirectory.dir("../build"))
+
+subprojects {
+    project.layout.buildDirectory.value(
+        rootProject.layout.buildDirectory.dir(project.name).get()
+    )
+}
+subprojects {
+    project.evaluationDependsOn(":app")
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.layout.buildDirectory
+}

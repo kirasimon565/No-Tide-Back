@@ -1,0 +1,148 @@
+name: Release APK
+
+# Publishes a signed APK to a GitHub Release when a version tag is pushed:
+#   git tag v1.0.0 && git push origin v1.0.0
+#
+# Uses the same keystore secrets as build-apk.yml.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to publish (e.g. v1.0.0)'
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  # Tag-driven releases use the tag; manual runs use the `tag` input.
+  RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+  VERSION_NAME: ${{ inputs.tag || github.ref_name }}
+
+jobs:
+  release:
+    name: Build & publish release APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Decode keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${ANDROID_KEYSTORE_BASE64}" ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 is required for a release build."
+            exit 1
+          fi
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/upload-keystore.jks
+          cat > android/key.properties <<EOF
+          storeFile=upload-keystore.jks
+          storePassword=${ANDROID_KEYSTORE_PASSWORD}
+          keyAlias=${ANDROID_KEY_ALIAS}
+          keyPassword=${ANDROID_KEY_PASSWORD}
+          EOF
+
+      - name: Resolve version
+        id: version
+        run: |
+          v="${VERSION_NAME#v}"
+          # Fall back to pubspec's version when the ref is not a v* tag
+          # (manual runs from a branch).
+          case "$v" in
+            [0-9]*) ;;
+            *) v=$(sed -n 's/^version: \([0-9.]*\).*/\1/p' pubspec.yaml) ;;
+          esac
+          echo "name=$v" >> "$GITHUB_OUTPUT"
+          echo "Building version $v"
+
+      - name: Build split-per-ABI APKs
+        run: |
+          # Billing rail: the Play-installed app purchases through Xsolla's Pay
+          # Station, which is why the SDK is bundled here. A build without the
+          # AAR has no payment window to open.
+
+          flutter build apk --release --split-per-abi \
+            -PwithXsolla \
+            --dart-define=NTB_STORE=xsolla \
+            --dart-define=REVENUECAT_ANDROID_KEY=${{ secrets.REVENUECAT_ANDROID_KEY }} \
+            --build-name "${{ steps.version.outputs.name }}" \
+            --build-number ${{ github.run_number }}
+          mkdir -p dist/split
+          cp build/app/outputs/flutter-apk/*.apk dist/split/
+
+      - name: Build universal APK
+        run: |
+          flutter build apk --release \
+            -PwithXsolla \
+            --dart-define=NTB_STORE=xsolla \
+            --dart-define=REVENUECAT_ANDROID_KEY=${{ secrets.REVENUECAT_ANDROID_KEY }} \
+            --build-name "${{ steps.version.outputs.name }}" \
+            --build-number ${{ github.run_number }}
+          cp build/app/outputs/flutter-apk/app-release.apk dist/no-tide-back-${{ steps.version.outputs.name }}-universal.apk
+
+      - name: Build Play bundle (AAB)
+        run: |
+          flutter build appbundle --release \
+            --dart-define=NTB_STORE=googleplay \
+            --dart-define=REVENUECAT_ANDROID_KEY=${{ secrets.REVENUECAT_ANDROID_KEY }} \
+            --build-name "${{ steps.version.outputs.name }}" \
+            --build-number ${{ github.run_number }}
+          cp build/app/outputs/bundle/release/app-release.aab dist/no-tide-back-${{ steps.version.outputs.name }}.aab
+
+      - name: Verify signature
+        run: |
+          apk=$(ls dist/split/*arm64-v8a*.apk | head -n 1)
+          apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)
+          "$apksigner" verify --print-certs "$apk" | head -n 5
+
+      - name: List artifacts
+        run: ls -lh dist dist/split
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: No Tide Back ${{ env.RELEASE_TAG }}
+          tag_name: ${{ env.RELEASE_TAG }}
+          generate_release_notes: true
+          files: |
+            dist/*.apk
+            dist/*.aab
+            dist/split/*.apk
+          body: |
+            **No Tide Back — Episode 1: The Contract**
+
+            Package: `com.eyeswatchinggames.no_tide_back`
+
+            Install the universal APK if you are unsure which ABI your device needs.
+            Purchases and saves are tied to your Google account, so progress follows
+            you across devices.
+
+      - name: Clean signing material
+        if: always()
+        run: rm -f android/app/upload-keystore.jks android/key.properties

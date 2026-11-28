@@ -1,0 +1,90 @@
+name: Xsolla rail
+
+# The Xsolla SDK is optional, which means a broken coordinate would otherwise
+# only surface the day someone builds that rail. This job resolves and compiles
+# it on every push, so the integration can never silently rot again.
+
+on:
+  push:
+    branches: [main, 'arena/**']
+    paths:
+      - 'android/**'
+      - '.github/workflows/xsolla-rail.yml'
+  pull_request:
+    paths:
+      - 'android/**'
+  workflow_dispatch:
+    inputs:
+      xsolla_sdk_version:
+        description: 'com.xsolla.android:mobile version'
+        required: false
+        default: '3.1.4'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build-with-xsolla:
+    name: Build APK with the Xsolla SDK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Build with -PwithXsolla
+        run: |
+          set +e
+          flutter build apk --release -PwithXsolla \
+            -PxsollaSdkVersion=${{ inputs.xsolla_sdk_version || '3.1.4' }} \
+            --dart-define=NTB_STORE=xsolla > /tmp/xsolla.log 2>&1
+          status=$?
+          echo "exit=$status"
+          if [ "$status" -ne 0 ]; then
+            msg=$(awk '/What went wrong/,/Try:/' /tmp/xsolla.log | head -n 40 \
+              | tr -d '\r' | sed -e 's/%/%25/g' | awk '{ printf "%s%%0A", $0 }')
+            diag=$(grep -aE 'Could not find|Could not resolve|Unresolved reference|e: file:' /tmp/xsolla.log \
+              | head -n 15 | tr -d '\r' | sed -e 's/%/%25/g' | awk '{ printf "%s%%0A", $0 }')
+            echo "::error title=xsolla build (tail)::${msg}"
+            [ -n "$diag" ] && echo "::error title=xsolla resolution::${diag}"
+            exit "$status"
+          fi
+          ls -lh build/app/outputs/flutter-apk/ | head -5
+
+      # A build can succeed while the AAR is absent (the bridge is reflective),
+      # so assert the payment classes are actually inside the packaged APK.
+      # This is the check that would have caught the shipped APK having no Pay
+      # Station window at all.
+      - name: Assert the SDK is packaged in the APK
+        run: |
+          set +e
+          apk=build/app/outputs/flutter-apk/app-release.apk
+          # Type descriptors live in the dex string table as plain ASCII, so the
+          # packaged classes are greppable even after R8 shrinks them.
+          found=$(unzip -p "$apk" 'classes*.dex' 2>/dev/null | grep -ac 'com/xsolla')
+          echo "com/xsolla hits in dex: ${found:-0}"
+          if [ "${found:-0}" -gt 0 ]; then
+            echo "::notice title=xsolla packaged::com.xsolla.android is inside the release APK"
+            exit 0
+          fi
+          # Second opinion: Gradle's R8 mapping / dependency report.
+          if grep -rqs 'com.xsolla.android' build/app/outputs/mapping build/app/intermediates 2>/dev/null; then
+            echo "::notice title=xsolla packaged::com.xsolla.android is in the Gradle output"
+            exit 0
+          fi
+          echo "::error title=xsolla missing::The release APK contains no com.xsolla.android classes, so the Pay Station cannot open."
+          unzip -l "$apk" | tail -n 5
+          exit 1

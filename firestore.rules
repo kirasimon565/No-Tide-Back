@@ -1,0 +1,33 @@
+rules_version = '2';
+
+// No Tide Back — economy + cloud saves.
+// Deploy with: firebase deploy --only firestore:rules
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // players/{uid}
+    //   coins, multimediaUnlocked, profile, activeSave, evidenceIndex
+    // players/{uid}/saves/{slotId}         full save snapshots
+    // players/{uid}/achievements/{id}      unlocked achievements
+    // players/{uid}/purchases/{orderId}    idempotent purchase ledger
+    match /players/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      match /saves/{slotId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+
+      match /achievements/{achievementId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+
+      // The ledger is append-only from the client; entries cannot be edited or
+      // deleted after they are written.
+      match /purchases/{orderId} {
+        allow read: if request.auth != null && request.auth.uid == uid;
+        allow create: if request.auth != null && request.auth.uid == uid;
+        allow update, delete: if false;
+      }
+    }
+  }
+}
