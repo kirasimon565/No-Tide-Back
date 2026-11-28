@@ -132,6 +132,9 @@ class _PhoneInboxScreenState extends ConsumerState<PhoneInboxScreen> {
                           return _ThreadTile(
                             thread: thread,
                             unread: game.unreadByThread[thread.threadId] ?? 0,
+                            typingName: ref
+                                .read(gameStateProvider.notifier)
+                                .typingNameFor(thread.threadId),
                             onTap: () => _openThread(thread),
                           );
                         },
@@ -489,11 +492,16 @@ class _ThreadTile extends StatelessWidget {
     required this.thread,
     required this.unread,
     required this.onTap,
+    this.typingName,
   });
 
   final ChatThread thread;
   final int unread;
   final VoidCallback onTap;
+
+  /// Who is typing, resolved by the notifier, so a group thread names the
+  /// sender instead of saying "someone".
+  final String? typingName;
 
   @override
   Widget build(BuildContext context) {
@@ -545,7 +553,7 @@ class _ThreadTile extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     typing
-                        ? '${ref.read(gameStateProvider.notifier).typingNameFor(thread.threadId)?.toLowerCase() ?? 'someone'} is typing...'
+                        ? '${(typingName ?? 'someone').toLowerCase()} is typing...'
                         : (thread.lastMessagePreview.isEmpty
                             ? 'Open the relay'
                             : thread.lastMessagePreview),
