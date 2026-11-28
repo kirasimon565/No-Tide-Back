@@ -273,10 +273,19 @@ class _StoreModalSheetState extends ConsumerState<StoreModalSheet> {
                       for (final MapEntry<String, dynamic> e in skus.entries)
                         '${e.key}: ${e.value}',
                       if (loginStatus != null) ...<String>[
-                        'DEVICE SIGN-IN ${loginStatus < 0 ? 'FAILED' : 'HTTP $loginStatus'}',
+                        'OURS ${loginStatus < 0 ? 'FAILED' : 'HTTP $loginStatus'} ${report['loginBody']}',
+                        'TEST ${report['testLoginStatus']} '
+                            '${report['testLoginBody']}',
                         'DEVICE ${report['device']}',
                         'DEVICE ID ${report['deviceId']}',
-                        'BODY ${report['loginBody']}',
+                        if (loginStatus == 200) ...<String>[
+                          'VERDICT login accepted — the item query is the fault.',
+                        ] else if (report['testLoginStatus'] == 200) ...<String>[
+                          'VERDICT request shape is correct; this Login project is '
+                              'not auto-creating users.',
+                        ] else ...<String>[
+                          'VERDICT the request shape itself is refused.',
+                        ],
                       ],
                     ].join('\n');
                   });

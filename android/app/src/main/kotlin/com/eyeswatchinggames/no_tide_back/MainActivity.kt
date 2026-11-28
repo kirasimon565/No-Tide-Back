@@ -45,6 +45,9 @@ class MainActivity : FlutterActivity() {
         // ------------------------------------------------------------------
         const val XSOLLA_PROJECT_ID = 322198
         const val XSOLLA_LOGIN_ID = "49611eb4-b8eb-4b52-95b6-0d0529436a0e"
+        /// Xsolla's own documented test Login project. Used only by the
+        /// diagnostics to tell a request fault from a configuration fault.
+        const val XSOLLA_TEST_LOGIN_ID = "dfcb133b-6d0b-4937-b8d2-c4f4d58fb53a"
 
         const val SDK_PACKAGE = "com.xsolla.android.mobile"
         const val DESCRIPTOR = "com.xsolla.android.mobile."
@@ -388,34 +391,43 @@ class MainActivity : FlutterActivity() {
     }
 
     /// Runs [probeLogin] and folds its answer into the catalogue report.
+    ///
+    /// The same request is repeated against Xsolla's own documented test
+    /// Login project. That separates the two remaining causes: if the test
+    /// project answers 200 and ours answers 404, the request is right and the
+    /// problem is in our Login project's configuration; if both answer 404,
+    /// the request itself is wrong.
     private fun probeLoginInto(
         result: MethodChannel.Result,
         report: Map<String, String>,
         hint: String?,
     ) {
-        rawLogin {
-            status, body, deviceId, device ->
-            result.success(
-                mapOf(
-                    "skus" to report,
-                    "projectId" to XSOLLA_PROJECT_ID.toString(),
-                    "loginId" to XSOLLA_LOGIN_ID,
-                    "hint" to hint,
-                    "loginStatus" to status,
-                    "loginBody" to body,
-                    "deviceId" to "$deviceId (${deviceId.length} chars)",
-                    "device" to device,
-                    "sdkBundled" to isSdkBundled(),
-                    "connected" to (billingClient != null),
-                ),
-            )
+        rawLogin(XSOLLA_LOGIN_ID) { status, body, deviceId, device ->
+            rawLogin(XSOLLA_TEST_LOGIN_ID) { testStatus, testBody, _, _ ->
+                result.success(
+                    mapOf(
+                        "skus" to report,
+                        "projectId" to XSOLLA_PROJECT_ID.toString(),
+                        "loginId" to XSOLLA_LOGIN_ID,
+                        "hint" to hint,
+                        "loginStatus" to status,
+                        "loginBody" to body,
+                        "testLoginStatus" to testStatus,
+                        "testLoginBody" to testBody,
+                        "deviceId" to "$deviceId (${deviceId.length} chars)",
+                        "device" to device,
+                        "sdkBundled" to isSdkBundled(),
+                        "connected" to (billingClient != null),
+                    ),
+                )
+            }
         }
     }
 
     /// Signs in by device ID the way the SDK does, straight over HTTPS, and
     /// reports what the Login server answers.
     private fun probeLogin(result: MethodChannel.Result) {
-        rawLogin { status, body, deviceId, device ->
+        rawLogin(XSOLLA_LOGIN_ID) { status, body, deviceId, device ->
             result.success(
                 mapOf(
                     "status" to status,
@@ -430,7 +442,7 @@ class MainActivity : FlutterActivity() {
     }
 
     /// The shared request behind both probes.
-    private fun rawLogin(onDone: (Int, String, String, String) -> Unit) {
+    private fun rawLogin(loginId: String, onDone: (Int, String, String, String) -> Unit) {
         Thread {
             try {
                 val deviceId = android.provider.Settings.Secure.getString(
@@ -439,7 +451,7 @@ class MainActivity : FlutterActivity() {
                 )
                 val device = (android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL)
                 val url = "https://login.xsolla.com/api/login/device/android" +
-                    "?projectId=" + XSOLLA_LOGIN_ID + "&with_logout=0"
+                    "?projectId=" + loginId + "&with_logout=0"
                 val payload = org.json.JSONObject()
                     .put("device", device)
                     .put("device_id", deviceId)
