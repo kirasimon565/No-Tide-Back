@@ -263,6 +263,7 @@ class _StoreModalSheetState extends ConsumerState<StoreModalSheet> {
                       (report['skus'] as Map?)?.cast<String, dynamic>() ??
                           <String, dynamic>{};
                   final String? hint = report['hint'] as String?;
+                  final int? loginStatus = report['loginStatus'] as int?;
                   setState(() {
                     _diagnostics = <String>[
                       if (hint != null) '>>> $hint',
@@ -271,6 +272,12 @@ class _StoreModalSheetState extends ConsumerState<StoreModalSheet> {
                       'LOGIN ${report['loginId']}',
                       for (final MapEntry<String, dynamic> e in skus.entries)
                         '${e.key}: ${e.value}',
+                      if (loginStatus != null) ...<String>[
+                        'DEVICE SIGN-IN ${loginStatus < 0 ? 'FAILED' : 'HTTP $loginStatus'}',
+                        'DEVICE ${report['device']}',
+                        'DEVICE ID ${report['deviceId']}',
+                        'BODY ${report['loginBody']}',
+                      ],
                     ].join('\n');
                   });
                 },

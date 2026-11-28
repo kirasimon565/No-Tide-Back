@@ -80,6 +80,12 @@ class MainActivity : FlutterActivity() {
                             probe(sku, result)
                         }
                     }
+                    // Diagnostic: performs the device-ID sign-in the SDK performs,
+                    // directly, and returns the server's raw answer. The SDK
+                    // reports only "003-002 User not found", which is a summary;
+                    // this shows the exact URL, the device identity sent and the
+                    // status the server returns for it.
+                    "probeLogin" -> probeLogin(result)
                     "buySku" -> {
                         val sku = call.argument<String>("sku")
                         if (sku.isNullOrBlank()) {
@@ -381,6 +387,83 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    /// Runs [probeLogin] and folds its answer into the catalogue report.
+    private fun probeLoginInto(
+        result: MethodChannel.Result,
+        report: Map<String, String>,
+        hint: String?,
+    ) {
+        rawLogin {
+            status, body, deviceId, device ->
+            result.success(
+                mapOf(
+                    "skus" to report,
+                    "projectId" to XSOLLA_PROJECT_ID.toString(),
+                    "loginId" to XSOLLA_LOGIN_ID,
+                    "hint" to hint,
+                    "loginStatus" to status,
+                    "loginBody" to body,
+                    "deviceId" to "$deviceId (${deviceId.length} chars)",
+                    "device" to device,
+                    "sdkBundled" to isSdkBundled(),
+                    "connected" to (billingClient != null),
+                ),
+            )
+        }
+    }
+
+    /// Signs in by device ID the way the SDK does, straight over HTTPS, and
+    /// reports what the Login server answers.
+    private fun probeLogin(result: MethodChannel.Result) {
+        rawLogin { status, body, deviceId, device ->
+            result.success(
+                mapOf(
+                    "status" to status,
+                    "body" to body,
+                    "deviceId" to deviceId,
+                    "deviceIdLength" to deviceId.length,
+                    "device" to device,
+                    "loginId" to XSOLLA_LOGIN_ID,
+                ),
+            )
+        }
+    }
+
+    /// The shared request behind both probes.
+    private fun rawLogin(onDone: (Int, String, String, String) -> Unit) {
+        Thread {
+            try {
+                val deviceId = android.provider.Settings.Secure.getString(
+                    contentResolver,
+                    android.provider.Settings.Secure.ANDROID_ID,
+                )
+                val device = (android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL)
+                val url = "https://login.xsolla.com/api/login/device/android" +
+                    "?projectId=" + XSOLLA_LOGIN_ID + "&with_logout=0"
+                val payload = org.json.JSONObject()
+                    .put("device", device)
+                    .put("device_id", deviceId)
+                    .toString()
+                val connection = java.net.URL(url).openConnection() as java.net.HttpURLConnection
+                connection.requestMethod = "POST"
+                connection.doOutput = true
+                connection.connectTimeout = 15_000
+                connection.readTimeout = 15_000
+                connection.setRequestProperty("Content-Type", "application/json")
+                connection.setRequestProperty("Accept", "application/json")
+                connection.outputStream.use { it.write(payload.toByteArray()) }
+
+                val status = connection.responseCode
+                val stream = if (status in 200..299) connection.inputStream else connection.errorStream
+                val body = stream?.bufferedReader()?.use { it.readText() }.orEmpty()
+                val trimmed = if (body.length > 400) body.take(400) + "…" else body
+                onDone(status, trimmed, deviceId ?: "", device)
+            } catch (e: Throwable) {
+                onDone(-1, "request failed: " + (e.message ?: e.javaClass.simpleName), "", "")
+            }
+        }.start()
+    }
+
     /// Turns a Xsolla Login rejection into the setting that causes it.
     ///
     /// Auto-JWT signs in by device ID, which the server only accepts when
@@ -419,16 +502,23 @@ class MainActivity : FlutterActivity() {
         fun step(index: Int) {
             if (index >= types.size) {
                 val hint = report.values.firstNotNullOfOrNull { explainAuthFailure(it) }
-                result.success(
-                    mapOf(
-                        "skus" to report,
-                        "projectId" to XSOLLA_PROJECT_ID.toString(),
-                        "loginId" to XSOLLA_LOGIN_ID,
-                        "hint" to hint,
-                        "sdkBundled" to isSdkBundled(),
-                        "connected" to (billingClient != null),
-                    ),
-                )
+                // Only worth testing sign-in directly when the SDK says auth
+                // failed; otherwise the catalogue answer is the useful part.
+                val authFailed = report.values.any { explainAuthFailure(it) != null }
+                if (authFailed) {
+                    probeLoginInto(result, report, hint)
+                } else {
+                    result.success(
+                        mapOf(
+                            "skus" to report,
+                            "projectId" to XSOLLA_PROJECT_ID.toString(),
+                            "loginId" to XSOLLA_LOGIN_ID,
+                            "hint" to hint,
+                            "sdkBundled" to isSdkBundled(),
+                            "connected" to (billingClient != null),
+                        ),
+                    )
+                }
                 return
             }
             queryByType(client, sku, types[index]) { product, note ->
