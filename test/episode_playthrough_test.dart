@@ -42,9 +42,21 @@ class _RecordingRuntime implements NtbRuntime {
   void onMessage(ChatMessage message) => messages.add(message);
 
   @override
-  void onThreadUpdate(String threadId, {ThreadStatus? status, ChatMessage? message}) {
+  void onThreadUpdate(
+    String threadId, {
+    ThreadStatus? status,
+    ChatMessage? message,
+    String? typingCharacter,
+  }) {
     if (!threadsTouched.contains(threadId)) threadsTouched.add(threadId);
+    // The indicator must be able to name the sender in a group thread.
+    if (status == ThreadStatus.typing && typingCharacter != null) {
+      typingCharacters.add(typingCharacter);
+    }
   }
+
+  /// Senders the script declared as typing, in order.
+  final List<String> typingCharacters = <String>[];
 
   @override
   void onNotification({required String threadId, required String senderName, required String text}) {
@@ -253,6 +265,13 @@ void main() {
 
     test('plays from the first scene to the stinger without premium', timeout: const Timeout(Duration(minutes: 4)), () async {
       final _RecordingRuntime run = await _play();
+      // Every typing beat must name a sender: an anonymous one is what the
+      // player saw as "Someone is typing" in the group thread.
+      expect(
+        run.typingCharacters.where((String c) => c.trim().isEmpty),
+        isEmpty,
+        reason: 'typing beats without a sender',
+      );
 
       expect(run.messages, isNotEmpty, reason: 'no dialogue was emitted');
       expect(run.choiceCount, greaterThan(10), reason: 'choices never fired');
@@ -294,12 +313,20 @@ void main() {
 
     test('emits evidence, notifications and sound cues', timeout: const Timeout(Duration(minutes: 4)), () async {
       final _RecordingRuntime run = await _play();
+      // Every typing beat must name a sender: an anonymous one is what the
+      // player saw as "Someone is typing" in the group thread.
+      expect(
+        run.typingCharacters.where((String c) => c.trim().isEmpty),
+        isEmpty,
+        reason: 'typing beats without a sender',
+      );
       // Surfaced in CI as a check notice so coverage is visible without logs.
       // ignore: avoid_print
       print('PLAYTHROUGH messages=${run.messages.length} choices=${run.choiceCount} '
           'scenes=${run.scenes.length} evidence=${run.evidence.length} '
           'pings=${run.notifications.length} sounds=${run.sounds.length} '
-          'ended=${run.ended} endTitle=${run.endTitle}');
+          'ended=${run.ended} endTitle=${run.endTitle} '
+          'typed=${run.typingCharacters.length}');
       expect(run.evidence, isNotEmpty, reason: '@add_evidence never fired');
       expect(run.notifications, isNotEmpty, reason: '@notification never fired');
       expect(run.sounds, isNotEmpty, reason: '@sound/@music never fired');

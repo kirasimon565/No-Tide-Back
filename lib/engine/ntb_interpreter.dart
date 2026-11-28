@@ -18,7 +18,14 @@ abstract class NtbRuntime {
   void onMessage(ChatMessage message);
 
   /// Update a thread's presence, preview and unread badge.
-  void onThreadUpdate(String threadId, {ThreadStatus? status, ChatMessage? message});
+  void onThreadUpdate(
+    String threadId, {
+    ThreadStatus? status,
+    ChatMessage? message,
+    /// Who is typing, when the script knows. A group thread has no single
+    /// sender, so without this the indicator can only say "Someone".
+    String? typingCharacter,
+  });
 
   /// `@notification` — banner ping, possibly for a thread the player is not in.
   void onNotification({required String threadId, required String senderName, required String text});
@@ -604,7 +611,7 @@ class NtbInterpreter {
       sequenceOrder: _index,
       inGameTimestamp: runtime.currentTime,
     );
-    await _awaitDelivery(node, threadId);
+    await _awaitDelivery(node, threadId, typingCharacter: sender);
     runtime.onMessage(message);
     runtime.onThreadUpdate(threadId, message: message);
 
@@ -702,7 +709,11 @@ class NtbInterpreter {
         ? _threadFor(node.param('chat'))
         : _threadForCharacter(character);
 
-    runtime.onThreadUpdate(threadId, status: ThreadStatus.typing);
+    runtime.onThreadUpdate(
+      threadId,
+      status: ThreadStatus.typing,
+      typingCharacter: character.isEmpty ? null : character,
+    );
     await _wait(node.doubleParam('duration', 2));
     runtime.onThreadUpdate(threadId, status: ThreadStatus.online);
   }
@@ -925,7 +936,11 @@ class NtbInterpreter {
   /// one frame. This derives the pause from the message itself — a long
   /// paragraph takes longer to "type" than a two-word reply — and scales with
   /// the player's pace setting.
-  Future<void> _awaitDelivery(NtbNode node, String threadId) async {
+  Future<void> _awaitDelivery(
+    NtbNode node,
+    String threadId, {
+    String? typingCharacter,
+  }) async {
     final double target = () {
       if (node.has('delay')) return node.doubleParam('delay', 0);
       final int length = runtime.interpolate(node.param('text')).length;
@@ -940,7 +955,12 @@ class NtbInterpreter {
     // this the indicator almost never appeared.
     final double typingFor = math.min(target * 0.7, 1.4);
     if (typingFor > 0.15) {
-      runtime.onThreadUpdate(threadId, status: ThreadStatus.typing);
+      // Name the sender of the bubble that is about to land.
+      runtime.onThreadUpdate(
+        threadId,
+        status: ThreadStatus.typing,
+        typingCharacter: typingCharacter,
+      );
       await _wait(typingFor);
       runtime.onThreadUpdate(threadId, status: ThreadStatus.online);
     }

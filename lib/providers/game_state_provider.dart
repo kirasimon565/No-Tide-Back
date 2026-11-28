@@ -723,21 +723,37 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
   void onMessage(ChatMessage message) {
     final List<ChatMessage> bucket =
         _messages.putIfAbsent(message.threadId, () => <ChatMessage>[]);
-    // Every bubble gets its own minute: the environment anchors are minutes —
-    // sometimes hours — apart, so reusing `environmentTime` froze the clock
-    // across a whole conversation. A new conversation also opens with a gap.
+    // Every bubble gets its own minute. The interpreter stamps messages from
+    // `runtime.currentTime`, which only changes at the five `@environment`
+    // anchors in a part — so honouring that stamp kept a whole conversation on
+    // one time (a dozen bubbles all reading 07:42 AM). The clock advances here
+    // instead, and a new conversation opens with a wider gap.
     final bool newConversation = _lastStampedThread != message.threadId;
-    final String stamp = message.inGameTimestamp.isNotEmpty
-        ? message.inGameTimestamp
-        : StoryClock.advance(
-            state.environmentTime,
-            sceneChanged: newConversation,
-          );
+    final String stamp = StoryClock.advance(
+      state.environmentTime,
+      sceneChanged: newConversation,
+    );
     _lastStampedThread = message.threadId;
     final ChatMessage stamped = message.copyWith(inGameTimestamp: stamp);
     bucket.add(stamped);
+    // The environment readout (hub, chat header, save file) shows story time,
+    // so it moves with the conversation instead of lagging behind the bubbles.
+    state = state.copyWith(environmentTime: stamp);
     // A DM appears in the inbox the moment the character writes to it.
     _markThreadStarted(message.threadId);
+  }
+
+  /// Character id currently "typing" in each thread, cleared when the status
+  /// leaves [ThreadStatus.typing]. Drives the name on the indicator bubble.
+  final Map<String, String> _typingCharacter = <String, String>{};
+
+  /// Display name for the typing indicator, or null when nobody is identified.
+  String? typingNameFor(String threadId) {
+    final ChatThread? thread = state.thread(threadId);
+    if (thread == null || thread.onlineStatus != ThreadStatus.typing) return null;
+    final String? id = _typingCharacter[threadId];
+    if (id == null || id.isEmpty) return null;
+    return ChatThreads.displayNameForCharacter(id);
   }
 
   @override
@@ -745,7 +761,15 @@ class GameStateNotifier extends Notifier<GameScreenState> implements NtbRuntime 
     String threadId, {
     ThreadStatus? status,
     ChatMessage? message,
+    String? typingCharacter,
   }) {
+    if (status == ThreadStatus.typing) {
+      if (typingCharacter != null && typingCharacter.isNotEmpty) {
+        _typingCharacter[threadId] = typingCharacter;
+      }
+    } else if (status != null) {
+      _typingCharacter.remove(threadId);
+    }
     final List<ChatThread> next = state.threads.map((ChatThread thread) {
       if (thread.threadId != threadId) return thread;
       final bool isOpen = state.openThreadId == threadId;

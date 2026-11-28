@@ -220,7 +220,15 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
               bottom: false,
               child: Column(
             children: <Widget>[
-              _ChatHeader(thread: thread, economy: economy, playerName: ref.read(gameStateProvider.notifier).profile.playerName),
+              _ChatHeader(
+                thread: thread,
+                economy: economy,
+                playerName:
+                    ref.read(gameStateProvider.notifier).profile.playerName,
+                typingName: ref
+                    .read(gameStateProvider.notifier)
+                    .typingNameFor(thread.threadId),
+              ),
               Expanded(
                 child: Stack(
                   children: <Widget>[
@@ -242,7 +250,13 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                       itemBuilder: (BuildContext context, int index) {
                         if (index >= messages.length) {
                           return TypingIndicatorBubble(
-                            name: _displayName(thread.threadId, thread),
+                            // Named from the sender the script is about to
+                            // speak as, so a group thread says "Maya is typing"
+                            // rather than "Someone".
+                            name: ref
+                                    .read(gameStateProvider.notifier)
+                                    .typingNameFor(thread.threadId) ??
+                                _displayName(thread.threadId, thread),
                             accent: AppColors.forCharacter(
                               ChatThreads.characterForThread(thread.threadId),
                             ),
@@ -354,11 +368,15 @@ class _ChatHeader extends ConsumerWidget {
     required this.thread,
     required this.economy,
     required this.playerName,
+    this.typingName,
   });
 
   final ChatThread thread;
   final PlayerEconomyState economy;
   final String playerName;
+
+  /// Who is typing, when the script identified them.
+  final String? typingName;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -369,7 +387,9 @@ class _ChatHeader extends ConsumerWidget {
     final String status = switch (thread.onlineStatus) {
       ThreadStatus.online => 'ONLINE',
       ThreadStatus.offline => 'OFFLINE',
-      ThreadStatus.typing => 'TYPING',
+      // A group thread is never just "TYPING": name the sender.
+      ThreadStatus.typing =>
+        typingName == null ? 'TYPING' : '${typingName!.toUpperCase()} TYPING',
     };
 
     return GlassChrome(

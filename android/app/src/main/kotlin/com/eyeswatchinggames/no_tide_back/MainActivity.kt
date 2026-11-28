@@ -169,12 +169,36 @@ class MainActivity : FlutterActivity() {
                     .invoke(null, XSOLLA_LOGIN_ID),
             )
 
+            // `Config.Integration.forXsolla(...)` exists in 3.1.4 but is a
+            // Kotlin inline/companion helper, so it is not reliably reachable
+            // by reflection. The value it builds is
+            // `Config.Integration.Xsolla(authentication, events)`, and its
+            // constructor is public — build that directly.
             val auth = authClass
                 .getMethod("forAutoJWT", projectIdClass, loginUuidClass)
                 .invoke(null, projectId, loginUuid)
-            val integration = integrationClass
-                .getMethod("forXsolla", authClass)
-                .invoke(null, auth)
+            val xsollaClass = sdkClass("Config\$Integration\$Xsolla")
+            val integration = try {
+                // Preferred: the documented factory, when reflection can see it.
+                integrationClass
+                    .getMethod("forXsolla", authClass)
+                    .invoke(null, auth)
+            } catch (_: NoSuchMethodException) {
+                // No `Events.getDefault()` in this build: go through its Builder.
+                val eventsClass = sdkClass("Config\$Integration\$Xsolla\$Events")
+                val eventsBuilderClass = sdkClass("Config\$Integration\$Xsolla\$Events\$Builder")
+                val events = eventsBuilderClass.getConstructor().newInstance().let { b ->
+                    eventsBuilderClass.getMethod("build").invoke(b)
+                }
+                xsollaClass
+                    .getDeclaredConstructors()
+                    .firstOrNull { it.parameterTypes.size == 2 }
+                    ?.also { it.isAccessible = true }
+                    ?.newInstance(auth, events)
+                    ?: throw IllegalStateException(
+                        "Xsolla integration could not be constructed for this SDK build",
+                    )
+            }
 
             val config = configClass
                 .getConstructor(commonClass, integrationClass, paymentsClass, analyticsClass)
@@ -266,8 +290,13 @@ class MainActivity : FlutterActivity() {
             val listenerClass = sdkClass("ProductDetailsResponseListener")
             val billingClientClass = sdkClass("BillingClient")
 
-            val productType = billingClientClass.getField("ProductType").get(null)
-            val inApp = productType.javaClass.getField("INAPP").get(productType)
+            // `BillingClient.ProductType` is a @StringDef annotation interface,
+            // not a constant holder: the SDK's own constant for a one-time
+            // product is the literal "inapp". Reflecting into ProductType.INAPP
+            // threw, and the thrown message was just "ProductType" — which the
+            // store sheet then showed to the player. `setProductType` takes a
+            // String, matching Google Play Billing.
+            val inApp = "inapp"
 
             val productBuilder = productClass.getMethod("newBuilder").invoke(null)
             productClass.getMethod("setProductId", String::class.java)

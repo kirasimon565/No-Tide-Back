@@ -545,7 +545,7 @@ class _ThreadTile extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     typing
-                        ? 'typing...'
+                        ? '${ref.read(gameStateProvider.notifier).typingNameFor(thread.threadId)?.toLowerCase() ?? 'someone'} is typing...'
                         : (thread.lastMessagePreview.isEmpty
                             ? 'Open the relay'
                             : thread.lastMessagePreview),

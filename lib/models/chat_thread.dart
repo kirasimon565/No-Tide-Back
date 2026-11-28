@@ -221,4 +221,10 @@ abstract final class ChatThreads {
   /// `dm_abigail` -> `abigail`; `group_island` -> `group_island`.
   static String characterForThread(String threadId) =>
       threadId.startsWith('dm_') ? threadId.substring(3) : threadId;
+
+  /// `abigail` -> `Abigail`, as the script's `sender=` attribute is lowercase.
+  static String displayNameForCharacter(String characterId) {
+    if (characterId.isEmpty) return '';
+    return characterId[0].toUpperCase() + characterId.substring(1);
+  }
 }

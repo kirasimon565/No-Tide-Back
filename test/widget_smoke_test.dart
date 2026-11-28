@@ -169,6 +169,55 @@ void main() {
       tester.takeException();
     });
 
+    test('consecutive bubbles get different times, and typing is named', () {
+      // The reported bug, twice: a dozen bubbles all read 07:42 AM because the
+      // stamp came from the interpreter (which only moves at @environment).
+      final ProviderContainer container = ProviderContainer(
+        overrides: [gameStoreProvider.overrideWithValue(offlineStore)],
+      );
+      addTearDown(container.dispose);
+      final GameStateNotifier notifier =
+          container.read(gameStateProvider.notifier);
+
+      ChatMessage bubble(String id, String sender) => ChatMessage(
+            scriptMessageId: id,
+            threadId: 'group_island',
+            senderId: sender,
+            messageType: MessageType.text,
+            bodyText: 'hello',
+            sequenceOrder: id.hashCode,
+            // Exactly what the interpreter supplies: a constant environment
+            // time. It must not be honoured verbatim.
+            inGameTimestamp: '07:42 AM',
+          );
+
+      notifier.onMessage(bubble('m1', 'abigail'));
+      notifier.onMessage(bubble('m2', 'maya'));
+      notifier.onMessage(bubble('m3', 'maya'));
+
+      final List<String> stamps = container
+          .read(threadMessagesProvider('group_island'))
+          .map((ChatMessage m) => m.inGameTimestamp)
+          .toList();
+      expect(stamps.length, 3);
+      expect(stamps.toSet().length, 3, reason: 'stamps were $stamps');
+      expect(stamps.first, isNot('07:42 AM'));
+
+      // The typing indicator has to name the sender, not say "Someone".
+      expect(ChatThreads.displayNameForCharacter('abigail'), 'Abigail');
+      expect(ChatThreads.displayNameForCharacter(''), '');
+
+      notifier.onThreadUpdate(
+        'group_island',
+        status: ThreadStatus.typing,
+        typingCharacter: 'maya',
+      );
+      expect(notifier.typingNameFor('group_island'), 'Maya');
+
+      notifier.onThreadUpdate('group_island', status: ThreadStatus.online);
+      expect(notifier.typingNameFor('group_island'), isNull);
+    });
+
     test('the billing rail follows the install source, not just the build flag', () {
       // The release APK is compiled for Google Play. On a Galaxy or Amazon
       // device that used to keep the Play rail, so RevenueCat was handed the
